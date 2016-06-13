@@ -33,30 +33,22 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     private final String TAG = "ECOLOGY - MAGI LIB";
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
-    private googleapiConnectionListener googleapiConnectionListener;
-    private wifip2pConnectionListener wifip2pConnectionListener;
     private EventReceiver eventReceiver;
     private EventBroadcaster eventBroadcaster;
     private Event event;
-    private String applicationId;
+    private ForwardRequest forwardRequest;
     private String[] eventType;
     private final IntentFilter intentFilter = new IntentFilter();
-
+    private String android_id;
     private static final String CAPABILITY_NAME = "mobile_news_feed_controller";
+    private Context activity;
     private boolean messageapi = false;
     private boolean wifiDirect = false;
 
     private Handler handler = new Handler(this);
 
-    public Ecology(googleapiConnectionListener googleapiConnectionListener){
-        this.googleapiConnectionListener = googleapiConnectionListener;
-        messageapi = true;
-    }
-
-    public Ecology(wifip2pConnectionListener wifip2pConnectionListener){
-        this.wifip2pConnectionListener = wifip2pConnectionListener;
+    public Ecology(){
         filterIntent();
-        wifiDirect = true;
     }
 
     public void setEventReceiver(EventReceiver eventReceiver) {
@@ -72,12 +64,15 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     }
 
     public IntentFilter getIntentFilter(){
+        wifiDirect= true;
         return intentFilter;
     }
 
-    public void connectEcology(String applicationId, Context activity){
+    public void connectEcology(String ecologyName, Context activity){
 
-        this.applicationId = applicationId;
+        Settings.ECOLOGY_NAME = ecologyName;
+        this.activity = activity;
+
         googleApiClient = new GoogleApiClient.Builder(activity)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
@@ -86,11 +81,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         googleApiClient.connect();
 
         Wearable.MessageApi.addListener(googleApiClient, this);
-    }
-
-
-    public void connectEcology(final String ecologyName){
-        Settings.ECOLOGY_NAME = ecologyName;
     }
 
     public void disconnectEcology(){
@@ -158,7 +148,29 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         nodeId = pickBestNodeId(connectedNodes);
         Log.i(TAG, "nodeId " + nodeId);
         //nodeId = "7ffcaa18";
-        googleapiConnectionListener.onGoogleApiConnected(true);
+
+        eventBroadcaster.setGoogleApiClient(googleApiClient);
+        eventBroadcaster.setNodeId(nodeId);
+
+        if( nodeId != null){
+            messageapi = true;
+            android_id = android.provider.Settings.Secure.getString(activity.getContentResolver(),
+                    android.provider.Settings.Secure.ANDROID_ID);
+            Log.i(TAG, "my android id " +android_id);
+
+            forwardRequest = new ForwardRequest();
+            forwardRequest.setDeviceID(android_id);
+            eventBroadcaster.setForwardRequest(forwardRequest);
+
+            eventBroadcaster.setMessageapi(true);
+        }
+
+        if(messageapi && !wifiDirect) {
+            Event event = new Event();
+            event.setType("ecology:connected");
+            eventReceiver.handleEvent(event);
+        }
+
         return nodeId;
     }
 
@@ -180,29 +192,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     }
 
     public EventBroadcaster getEventBroadcaster(){
-
-        if(messageapi) {
-            Log.i(TAG, "messageapi geteventbroadcaster ");
-            eventBroadcaster = new EventBroadcaster(googleApiClient, nodeId, this);
-        }
-
-        if(wifiDirect){
-            eventBroadcaster = new EventBroadcaster(this);
-        }
-
+        eventBroadcaster = new EventBroadcaster(this);
         return eventBroadcaster;
     }
-
-    public interface googleapiConnectionListener{
-
-        void onGoogleApiConnected(Boolean googleapiConnected) throws IOException;
-    }
-
-    public interface wifip2pConnectionListener{
-
-        void onWiFiP2PConnected(Boolean wifip2pConnected) throws IOException;
-    }
-
 
     public interface EventReceiver {
 
@@ -223,19 +215,30 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
-        Log.i(TAG, "Received");
 
-        event = unpack(messageEvent.getData(), event);
+        if(messageapi) {
+            forwardRequest = unpack(messageEvent.getData(), forwardRequest);
+            event = forwardRequest.getEvent();
+            String deviceID = forwardRequest.getDeviceID();
 
-        eventType = eventBroadcaster.getEventTypes();
+            Log.i(TAG, "received android id " + deviceID);
+            Log.i(TAG, "Received "+event.getType());
 
-        for (String anEventType : eventType) {
+            eventType = eventBroadcaster.getEventTypes();
 
-            if (anEventType != null && event.getType().equals(anEventType)) {
-                eventReceiver.handleEvent(event);
+            for (String anEventType : eventType) {
+
+                if (anEventType != null && event.getType().equals(anEventType)) {
+
+                    if (!(deviceID.equals(android_id))) {
+                        eventReceiver.handleEvent(event);
+                    }
+
+                    if (wifiDirect)
+                        eventBroadcaster.forward(forwardRequest, event, true);
+                }
             }
         }
-
     }
 
     private void filterIntent()
@@ -270,11 +273,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                     (this).getHandler(),p2pInfo.groupOwnerAddress);
             handler.start();
         }
-        try {
-            wifip2pConnectionListener.onWiFiP2PConnected(true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -292,6 +290,12 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
                     if (anEventType != null && event.getType().equals(anEventType)) {
                         eventReceiver.handleEvent(event);
+
+                        if(messageapi) {
+                            forwardRequest.setEvent(event);
+                            forwardRequest.setDeviceID(android_id);
+                            eventBroadcaster.forward(forwardRequest, event, false);
+                        }
                     }
                 }
                 break;
@@ -299,8 +303,21 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                 Log.d(Settings.TAG, " MY HANDLE");
                 Object obj = msg.obj;
                 setEventBroadcaster((SocketCreator) obj);
+
+                if(wifiDirect) {
+                    Event event = new Event();
+                    event.setType("ecology:connected");
+                    eventReceiver.handleEvent(event);
+                }
         }
         return true;
+    }
+
+    public static <T> ForwardRequest unpack(byte[] bytes, ForwardRequest creator) {
+        Parcel parcel = Parcel.obtain();
+        parcel.unmarshall(bytes, 0, bytes.length);
+        parcel.setDataPosition(0);
+        return creator.createFromParcel(parcel);
     }
 
     public static <T> Event unpack(byte[] bytes, Event creator) {
