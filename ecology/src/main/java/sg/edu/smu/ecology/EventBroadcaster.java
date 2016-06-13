@@ -20,7 +20,7 @@ public class EventBroadcaster {
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
     private Event event;
-    private ForwardRequest forwardRequest;
+    private DependentEvent dependentEvent;
     private int index = 0;
     private Ecology ecology;
     private static String MESSAGE_PATH = " ";
@@ -51,8 +51,8 @@ public class EventBroadcaster {
         }
     };
 
-    public void setForwardRequest(ForwardRequest forwardRequest) {
-        this.forwardRequest = forwardRequest;
+    public void setDependentEvent(DependentEvent dependentEvent) {
+        this.dependentEvent = dependentEvent;
     }
 
     public void setMessageapi(boolean messageapi) {
@@ -80,8 +80,8 @@ public class EventBroadcaster {
 
         if(messageapi) {
             Log.i(TAG, "Message api");
-            forwardRequest.setEvent(event);
-            forwardrequestData = pack((Parcelable) forwardRequest);
+            dependentEvent.setEvent(event);
+            forwardrequestData = pack((Parcelable) dependentEvent);
         }
 
             if (socketCreator != null)
@@ -118,9 +118,9 @@ public class EventBroadcaster {
 
     };
 
-    public void forward(ForwardRequest forwardRequest, Event event, Boolean forwardRequired){
+    public void forward(DependentEvent dependentEvent, Event event, Boolean forwardRequired){
 
-        forwardrequestData = pack((Parcelable) forwardRequest);
+        forwardrequestData = pack((Parcelable) dependentEvent);
         eventData = pack((Parcelable) event);
 
         if (socketCreator != null && forwardRequired) {

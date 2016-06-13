@@ -36,7 +36,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     private EventReceiver eventReceiver;
     private EventBroadcaster eventBroadcaster;
     private Event event;
-    private ForwardRequest forwardRequest;
+    private DependentEvent dependentEvent;
     private String[] eventType;
     private final IntentFilter intentFilter = new IntentFilter();
     private String android_id;
@@ -158,9 +158,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                     android.provider.Settings.Secure.ANDROID_ID);
             Log.i(TAG, "my android id " +android_id);
 
-            forwardRequest = new ForwardRequest();
-            forwardRequest.setDeviceID(android_id);
-            eventBroadcaster.setForwardRequest(forwardRequest);
+            dependentEvent = new DependentEvent();
+            dependentEvent.setDeviceID(android_id);
+            eventBroadcaster.setDependentEvent(dependentEvent);
 
             eventBroadcaster.setMessageapi(true);
         }
@@ -217,9 +217,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     public void onMessageReceived(MessageEvent messageEvent) {
 
         if(messageapi) {
-            forwardRequest = unpack(messageEvent.getData(), forwardRequest);
-            event = forwardRequest.getEvent();
-            String deviceID = forwardRequest.getDeviceID();
+            dependentEvent = unpack(messageEvent.getData(), dependentEvent);
+            event = dependentEvent.getEvent();
+            String deviceID = dependentEvent.getDeviceID();
 
             Log.i(TAG, "received android id " + deviceID);
             Log.i(TAG, "Received "+event.getType());
@@ -235,7 +235,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                     }
 
                     if (wifiDirect)
-                        eventBroadcaster.forward(forwardRequest, event, true);
+                        eventBroadcaster.forward(dependentEvent, event, true);
                 }
             }
         }
@@ -292,9 +292,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                         eventReceiver.handleEvent(event);
 
                         if(messageapi) {
-                            forwardRequest.setEvent(event);
-                            forwardRequest.setDeviceID(android_id);
-                            eventBroadcaster.forward(forwardRequest, event, false);
+                            dependentEvent.setEvent(event);
+                            dependentEvent.setDeviceID(android_id);
+                            eventBroadcaster.forward(dependentEvent, event, false);
                         }
                     }
                 }
@@ -313,7 +313,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         return true;
     }
 
-    public static <T> ForwardRequest unpack(byte[] bytes, ForwardRequest creator) {
+    public static <T> DependentEvent unpack(byte[] bytes, DependentEvent creator) {
         Parcel parcel = Parcel.obtain();
         parcel.unmarshall(bytes, 0, bytes.length);
         parcel.setDataPosition(0);

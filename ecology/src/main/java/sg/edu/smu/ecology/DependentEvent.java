@@ -6,16 +6,16 @@ import android.os.Parcelable;
 /**
  * Created by anurooppv on 11/6/2016.
  */
-public class ForwardRequest implements Parcelable {
+public class DependentEvent implements Parcelable {
 
     private Event event;
     private String deviceID;
 
-    public ForwardRequest(){
+    public DependentEvent(){
 
     }
 
-    protected ForwardRequest(Parcel in) {
+    protected DependentEvent(Parcel in) {
         event = in.readParcelable(Event.class.getClassLoader());
         deviceID = in.readString();
     }
@@ -36,15 +36,15 @@ public class ForwardRequest implements Parcelable {
         this.deviceID = deviceID;
     }
 
-    public static final Creator<ForwardRequest> CREATOR = new Creator<ForwardRequest>() {
+    public static final Creator<DependentEvent> CREATOR = new Creator<DependentEvent>() {
         @Override
-        public ForwardRequest createFromParcel(Parcel in) {
-            return new ForwardRequest(in);
+        public DependentEvent createFromParcel(Parcel in) {
+            return new DependentEvent(in);
         }
 
         @Override
-        public ForwardRequest[] newArray(int size) {
-            return new ForwardRequest[size];
+        public DependentEvent[] newArray(int size) {
+            return new DependentEvent[size];
         }
     };
 
@@ -59,7 +59,7 @@ public class ForwardRequest implements Parcelable {
         dest.writeString(deviceID);
     }
 
-    public <T> ForwardRequest createFromParcel(Parcel parcel) {
-        return new ForwardRequest(parcel);
+    public <T> DependentEvent createFromParcel(Parcel parcel) {
+        return new DependentEvent(parcel);
     }
 }
