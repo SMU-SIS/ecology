@@ -20,6 +20,7 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,7 +29,7 @@ import java.util.Set;
  * Created by anurooppv on 1/6/2016.
  */
 public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener,WifiP2pManager.ConnectionInfoListener,
-        Handler.Callback  {
+        Handler.Callback {
 
     private final String TAG = "ECOLOGY - MAGI LIB";
     private GoogleApiClient googleApiClient;
@@ -265,7 +266,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
             } catch (Exception e) {
                 Log.d(Settings.TAG,
                         "Failed to create a server thread - " + e.getMessage());
-                return;
             }
         } else {
             Log.d(Settings.TAG, "Connected as peer");
