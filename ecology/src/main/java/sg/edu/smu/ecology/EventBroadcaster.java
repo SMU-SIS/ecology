@@ -28,7 +28,6 @@ public class EventBroadcaster {
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private boolean messageapi = false;
     private byte[] forwardrequestData;
-    private byte[] eventData;
 
     private String[] eventType = new String[10];
 
@@ -40,7 +39,6 @@ public class EventBroadcaster {
     public void subscribe(String eventType, Ecology.EventReceiver eventReceiver){
         this.eventType[index++] = eventType;
         ecology.setEventReceiver(eventReceiver);
-        ecology.setEvent(event);
     };
 
     public void unsubscribe(String unsubEventType, Ecology.EventReceiver eventReceiver){
@@ -76,7 +74,7 @@ public class EventBroadcaster {
         event.setType(eventType);
         event.setData(data);
 
-        eventData = pack((Parcelable) event);
+        byte[] eventData = pack((Parcelable) event);
 
         if(messageapi) {
             Log.i(TAG, "Message api");
@@ -121,7 +119,7 @@ public class EventBroadcaster {
     public void forward(DependentEvent dependentEvent, Event event, Boolean forwardRequired){
 
         forwardrequestData = pack((Parcelable) dependentEvent);
-        eventData = pack((Parcelable) event);
+        byte[] eventData = pack((Parcelable) event);
 
         if (socketCreator != null && forwardRequired) {
             Log.i(TAG, "forward");

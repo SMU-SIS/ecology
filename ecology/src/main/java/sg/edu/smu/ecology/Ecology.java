@@ -36,7 +36,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     private String nodeId = null;
     private EventReceiver eventReceiver;
     private EventBroadcaster eventBroadcaster;
-    private Event event;
     private DependentEvent dependentEvent;
     private String[] eventType;
     private final IntentFilter intentFilter = new IntentFilter();
@@ -54,10 +53,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
     public void setEventReceiver(EventReceiver eventReceiver) {
         this.eventReceiver = eventReceiver;
-    }
-
-    public void setEvent(Event event) {
-        this.event = event;
     }
 
     public Handler getHandler() {
@@ -219,11 +214,11 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
         if(messageapi) {
             dependentEvent = unpack(messageEvent.getData(), dependentEvent);
-            event = dependentEvent.getEvent();
+            Event event = dependentEvent.getEvent();
             String deviceID = dependentEvent.getDeviceID();
 
             Log.i(TAG, "received android id " + deviceID);
-            Log.i(TAG, "Received "+event.getType());
+            Log.i(TAG, "Received " + event.getType());
 
             eventType = eventBroadcaster.getEventTypes();
 
@@ -281,9 +276,10 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
             case Settings.MESSAGE_READ:
                 Log.d(Settings.TAG, " MESSAGE_READ");
                 byte[] readBuf = (byte[]) msg.obj;
+                Event event = new Event();
                 event = unpack(readBuf, event);
-                Log.i(Settings.TAG, " eventType" +event.getType());
-                Log.i(Settings.TAG, " eventData" +event.getData());
+                Log.i(Settings.TAG, " eventType " + event.getType());
+                Log.i(Settings.TAG, " eventData " + event.getData());
                 eventType = eventBroadcaster.getEventTypes();
 
                 for (String anEventType : eventType) {
@@ -305,9 +301,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                 setEventBroadcaster((SocketCreator) obj);
 
                 if(wifiDirect) {
-                    Event event = new Event();
-                    event.setType("ecology:connected");
-                    eventReceiver.handleEvent(event);
+                    Event newEvent = new Event();
+                    newEvent.setType("ecology:connected");
+                    eventReceiver.handleEvent(newEvent);
                 }
         }
         return true;
