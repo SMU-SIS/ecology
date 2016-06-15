@@ -7,13 +7,13 @@ import android.os.Parcelable;
 public class Event implements Parcelable {
 
     private String type;
-    private Bundle data;
+    private Float data;
 
     public Event(){}
 
     protected Event(Parcel in) {
         type = in.readString();
-        data = in.readBundle();
+        data = in.readFloat();
     }
 
     public String getType() {
@@ -24,11 +24,11 @@ public class Event implements Parcelable {
         type = value;
     }
 
-    public Bundle getData() {
+    public Float getData() {
         return data;
     }
 
-    public void setData(Bundle value) {
+    public void setData(Float value) {
         data = value;
     }
 
@@ -53,7 +53,7 @@ public class Event implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(type);
-        dest.writeBundle(data);
+        dest.writeFloat(data);
     }
     public <T> Event createFromParcel(Parcel parcel) {
         return new Event(parcel);

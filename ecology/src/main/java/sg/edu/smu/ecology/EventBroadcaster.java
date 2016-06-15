@@ -69,7 +69,7 @@ public class EventBroadcaster {
         this.socketCreator = socketCreator;
     }
 
-    public void publish(final String eventType, Bundle data) {
+    public void publish(final String eventType, Float data) {
 
         event.setType(eventType);
         event.setData(data);
