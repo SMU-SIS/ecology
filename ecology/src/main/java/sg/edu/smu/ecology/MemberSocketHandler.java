@@ -12,6 +12,8 @@ import java.net.Socket;
  * Created by tnnguyen on 28/4/16.
  */
 public class MemberSocketHandler extends Thread {
+    private static final String TAG = MemberSocketHandler.class.getSimpleName();
+
     private Handler handler;
     private InetAddress address;
     private SocketCreator socketCreator;
@@ -27,7 +29,7 @@ public class MemberSocketHandler extends Thread {
         try {
             socket.setReuseAddress(true);
             socket.bind(null);
-            Log.d(Settings.TAG, "MemberSocketHandler run EventBroadcaster ");
+            Log.d(TAG, "MemberSocketHandler run EventBroadcaster ");
             socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT), Settings.TIME_OUT);
             socketCreator = new SocketCreator(socket, handler);
             new Thread(socketCreator).start();

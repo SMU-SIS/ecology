@@ -12,8 +12,8 @@ import java.net.Socket;
  * Created by anurooppv on 1/6/2016.
  */
 public class SocketCreator implements Runnable {
+    private static final String TAG = SocketCreator.class.getSimpleName();
 
-    private static final String TAG = "Event Handler";
     private Handler handler;
     private Socket socket = null;
     private InputStream inputStream;

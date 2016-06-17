@@ -15,8 +15,9 @@ import com.google.android.gms.wearable.Wearable;
  */
 public class EventBroadcaster {
 
+    private final static String TAG = EventBroadcaster.class.getSimpleName();
+
     public SocketCreator socketCreator;
-    private final String TAG = "EVENT BROADCASTER";
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
     private Event event;
@@ -151,8 +152,6 @@ public class EventBroadcaster {
     }
 
     public String[] getEventTypes() {
-        Log.i(TAG, "eventType" + eventType);
-        Log.i(TAG, "index" + index);
         return eventType;
     }
 

@@ -31,7 +31,8 @@ import java.util.Set;
 public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.MessageListener,WifiP2pManager.ConnectionInfoListener,
         Handler.Callback {
 
-    private final String TAG = "ECOLOGY - MAGI LIB";
+    private final static String TAG = Ecology.class.getSimpleName();
+
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
     private EventReceiver eventReceiver;
@@ -215,6 +216,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     }
 
     @Override
+    // Handle message received from the message API.
     public void onMessageReceived(MessageEvent messageEvent) {
 
         if(messageapi) {
@@ -256,19 +258,19 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
-        Log.d(Settings.TAG, "onConnectionInfoAvailable");
+        Log.d(TAG, "onConnectionInfoAvailable");
         Thread handler = null;
         if (p2pInfo.isGroupOwner) {
-            Log.d(Settings.TAG, "Connected as group owner");
+            Log.d(TAG, "Connected as group owner");
             try {
                 handler = new OwnerSocketHandler(this.getHandler());
                 handler.start();
             } catch (Exception e) {
-                Log.d(Settings.TAG,
+                Log.d(TAG,
                         "Failed to create a server thread - " + e.getMessage());
             }
         } else {
-            Log.d(Settings.TAG, "Connected as peer");
+            Log.d(TAG, "Connected as peer");
             handler = new MemberSocketHandler(
                     (this).getHandler(),p2pInfo.groupOwnerAddress);
             handler.start();
@@ -276,14 +278,13 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     }
 
     @Override
+    // Handle message received from wifi direct.
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
             case Settings.MESSAGE_READ:
-                Log.d(Settings.TAG, " MESSAGE_READ");
                 byte[] readBuf = (byte[]) msg.obj;
                 event = unpack(readBuf, event);
-                Log.i(Settings.TAG, " eventType" +event.getType());
-                Log.i(Settings.TAG, " eventData" +event.getData());
+                Log.d(TAG, "New Message (eventType: "+ event.getType() + ")");
                 eventType = eventBroadcaster.getEventTypes();
 
                 for (String anEventType : eventType) {
@@ -300,7 +301,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                 }
                 break;
             case Settings.MY_HANDLE:
-                Log.d(Settings.TAG, " MY HANDLE");
+                Log.d(TAG, " MY HANDLE");
                 Object obj = msg.obj;
                 setEventBroadcaster((SocketCreator) obj);
 
