@@ -19,8 +19,6 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import org.apache.commons.lang3.SerializationUtils;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
@@ -220,7 +218,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     public void onMessageReceived(MessageEvent messageEvent) {
 
         if(messageapi) {
-            dependentEvent = (DependentEvent) SerializationUtils.deserialize(messageEvent.getData());
+            dependentEvent = unpack(messageEvent.getData(), dependentEvent);
             event = dependentEvent.getEvent();
             String deviceID = dependentEvent.getDeviceID();
 
@@ -283,7 +281,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
             case Settings.MESSAGE_READ:
                 Log.d(Settings.TAG, " MESSAGE_READ");
                 byte[] readBuf = (byte[]) msg.obj;
-                event = (Event)SerializationUtils.deserialize(readBuf);
+                event = unpack(readBuf, event);
                 Log.i(Settings.TAG, " eventType" +event.getType());
                 Log.i(Settings.TAG, " eventData" +event.getData());
                 eventType = eventBroadcaster.getEventTypes();
@@ -315,4 +313,17 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         return true;
     }
 
+    public static <T> DependentEvent unpack(byte[] bytes, DependentEvent creator) {
+        Parcel parcel = Parcel.obtain();
+        parcel.unmarshall(bytes, 0, bytes.length);
+        parcel.setDataPosition(0);
+        return creator.createFromParcel(parcel);
+    }
+
+    public static <T> Event unpack(byte[] bytes, Event creator) {
+        Parcel parcel = Parcel.obtain();
+        parcel.unmarshall(bytes, 0, bytes.length);
+        parcel.setDataPosition(0);
+        return creator.createFromParcel(parcel);
+    }
 }
