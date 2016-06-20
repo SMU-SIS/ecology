@@ -10,6 +10,8 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Wearable;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 /**
  * Created by anurooppv on 1/6/2016.
  */
@@ -77,12 +79,12 @@ public class EventBroadcaster {
         event.setType(eventType);
         event.setData(data);
 
-        eventData = pack((Parcelable) event);
+        eventData = SerializationUtils.serialize(event);
 
         if(messageapi) {
             Log.i(TAG, "Message api");
             dependentEvent.setEvent(event);
-            forwardrequestData = pack((Parcelable) dependentEvent);
+            forwardrequestData = SerializationUtils.serialize(dependentEvent);
         }
 
             if (socketCreator != null)
@@ -121,8 +123,8 @@ public class EventBroadcaster {
 
     public void forward(DependentEvent dependentEvent, Event event, Boolean forwardRequired){
 
-        forwardrequestData = pack((Parcelable) dependentEvent);
-        eventData = pack((Parcelable) event);
+        forwardrequestData = SerializationUtils.serialize(dependentEvent);
+        eventData = SerializationUtils.serialize(event);
 
         if (socketCreator != null && forwardRequired) {
             Log.i(TAG, "forward");
@@ -153,14 +155,6 @@ public class EventBroadcaster {
 
     public String[] getEventTypes() {
         return eventType;
-    }
-
-    public static byte[] pack(Parcelable parcelable) {
-        Parcel parcel = Parcel.obtain();
-        parcelable.writeToParcel(parcel, 0);
-        byte[] bytes = parcel.marshall();
-        parcel.recycle();
-        return bytes;
     }
 
 }
