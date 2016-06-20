@@ -3,10 +3,12 @@ package sg.edu.smu.ecology;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.io.Serializable;
+
 /**
  * Created by anurooppv on 11/6/2016.
  */
-public class DependentEvent implements Parcelable {
+public class DependentEvent implements Serializable {
 
     private Event event;
     private String deviceID;
@@ -36,30 +38,4 @@ public class DependentEvent implements Parcelable {
         this.deviceID = deviceID;
     }
 
-    public static final Creator<DependentEvent> CREATOR = new Creator<DependentEvent>() {
-        @Override
-        public DependentEvent createFromParcel(Parcel in) {
-            return new DependentEvent(in);
-        }
-
-        @Override
-        public DependentEvent[] newArray(int size) {
-            return new DependentEvent[size];
-        }
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(event, flags);
-        dest.writeString(deviceID);
-    }
-
-    public <T> DependentEvent createFromParcel(Parcel parcel) {
-        return new DependentEvent(parcel);
-    }
 }
