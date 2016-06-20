@@ -1,166 +1,123 @@
 package sg.edu.smu.ecology;
 
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.Wearable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Created by anurooppv on 1/6/2016.
+ * Created by Anuroop PATTENA VANIYAR (anurooppv@smu.edu.sg) on 1/6/2016.
+ * <p/>
+ * Event broadcaster are used to publish and received events to and from anywhere in the ecology.
  */
 public class EventBroadcaster {
 
     private final static String TAG = EventBroadcaster.class.getSimpleName();
 
-    public SocketCreator socketCreator;
-    private GoogleApiClient googleApiClient;
-    private String nodeId = null;
-    private Event event;
-    private DependentEvent dependentEvent;
-    private int index = 0;
-    private Ecology ecology;
-    private static String MESSAGE_PATH = " ";
-    private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
-    private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
-    private boolean messageapi = false;
-    private byte[] forwardrequestData;
-    private byte[] eventData;
+    private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
 
-    private String[] eventType = new String[10];
+    /**
+     * The room the event broadcaster is part of.
+     */
+    private final Room room;
 
-    public EventBroadcaster(Ecology ecology){
-        this.ecology = ecology;
-        event = new Event();
+    /**
+     * @param room the room the event broadcaster is part of.
+     */
+    public EventBroadcaster(Room room) {
+        this.room = room;
     }
 
-    public void subscribe(String eventType, Ecology.EventReceiver eventReceiver){
-        this.eventType[index++] = eventType;
-        ecology.setEventReceiver(eventReceiver);
-        ecology.setEvent(event);
-    };
-
-    public void unsubscribe(String unsubEventType, Ecology.EventReceiver eventReceiver){
-        for (String anEventType : eventType) {
-            if (unsubEventType.equals(anEventType)) {
-                unsubEventType = null;
+    /**
+     * Handle the messages coming from the room.
+     *
+     * @param type the type of message
+     * @param message the message
+     */
+    void onRoomMessage(short type, Bundle message) {
+        if (type == MessageTypes.EVENT) {
+            // Extract the event data from the message.
+            byte[] eventData = message.getByteArray("event");
+            if (eventData == null) {
+                Log.w(TAG, "Received event message without event data.");
+                return;
             }
-        }
-    };
-
-    public void setDependentEvent(DependentEvent dependentEvent) {
-        this.dependentEvent = dependentEvent;
-    }
-
-    public void setMessageapi(boolean messageapi) {
-        this.messageapi = messageapi;
-    }
-
-    public void setNodeId(String nodeId) {
-        this.nodeId = nodeId;
-    }
-
-    public void setGoogleApiClient(GoogleApiClient googleApiClient) {
-        this.googleApiClient = googleApiClient;
-    }
-
-    public void setSocketCreator(SocketCreator socketCreator){
-        this.socketCreator = socketCreator;
-    }
-
-    public void publish(final String eventType, Bundle data) {
-
-        event.setType(eventType);
-        event.setData(data);
-
-        eventData = pack((Parcelable) event);
-
-        if(messageapi) {
-            Log.i(TAG, "Message api");
-            dependentEvent.setEvent(event);
-            forwardrequestData = pack((Parcelable) dependentEvent);
-        }
-
-            if (socketCreator != null)
-                socketCreator.write(eventData);
-
-
-            if (eventType.equals("launch")) {
-                MESSAGE_PATH = START_ACTIVITY_PATH_1;
+            // Parse the event.
+            Event event = EventEncoder.unpack(eventData);
+            if(event == null){
+                Log.w(TAG, "Event parsing failed");
             } else {
-                MESSAGE_PATH = MESSAGE_PATH_EVENT;
+                onRoomEvent(event);
             }
-
-            if (nodeId != null) {
-                Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                        MESSAGE_PATH, forwardrequestData).setResultCallback(
-                        new ResultCallback<MessageApi.SendMessageResult>() {
-                            @Override
-                            public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                                Log.i(TAG, "Message Sent " + eventType);
-
-                                if (!sendMessageResult.getStatus().isSuccess()) {
-                                    // Failed to send message
-                                    Log.i(TAG, "Message Failed");
-                                }
-                            }
-                        }
-
-                );
-            } else {
-                // Unable to retrieve node with transcription capability
-                Log.i(TAG, "Message not sent - Node Id is null ");
-            }
-
-
-    };
-
-    public void forward(DependentEvent dependentEvent, Event event, Boolean forwardRequired){
-
-        forwardrequestData = pack((Parcelable) dependentEvent);
-        eventData = pack((Parcelable) event);
-
-        if (socketCreator != null && forwardRequired) {
-            Log.i(TAG, "forward");
-            socketCreator.write(eventData);
-        }
-
-        if (nodeId != null) {
-            Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                    MESSAGE_PATH, forwardrequestData).setResultCallback(
-                    new ResultCallback<MessageApi.SendMessageResult>() {
-                        @Override
-                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            Log.i(TAG, "Message Sent " + eventType);
-
-                            if (!sendMessageResult.getStatus().isSuccess()) {
-                                // Failed to send message
-                                Log.i(TAG, "Message Failed");
-                            }
-                        }
-                    }
-
-            );
         } else {
-            // Unable to retrieve node with transcription capability
-            Log.i(TAG, "Message not sent - Node Id is null ");
+            Log.w(TAG, "Unknown message type " + type + ".");
+            return;
         }
     }
 
-    public String[] getEventTypes() {
-        return eventType;
+    void onRoomEvent(Event event){
+        // Fetch the list of event receiver for this particular event type.
+        List<EventReceiver> thisEventReceivers = eventReceivers.get(event.getType());
+        if(thisEventReceivers == null) {
+            return;
+        }
+        // Forward the event.
+        for (EventReceiver receiver : thisEventReceivers) {
+            receiver.handleEvent(event);
+        }
     }
 
-    public static byte[] pack(Parcelable parcelable) {
-        Parcel parcel = Parcel.obtain();
-        parcelable.writeToParcel(parcel, 0);
-        byte[] bytes = parcel.marshall();
-        parcel.recycle();
-        return bytes;
+    /**
+     * Register an event receiver for the events of a certain type.
+     *
+     * @param eventType     the even type
+     * @param eventReceiver the receiver to subscribed.
+     */
+    public void subscribe(String eventType, EventReceiver eventReceiver) {
+        List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
+
+        // If there is not receiver yet registered for this event, create one.
+        if(thisEventReceivers == null){
+            thisEventReceivers = new ArrayList<>();
+            eventReceivers.put(eventType, thisEventReceivers);
+        }
+
+        thisEventReceivers.add(eventReceiver);
     }
 
+    /**
+     * Unsubscribe an event receiver for the events of a certain type.
+     *
+     * @param eventType     the even type
+     * @param eventReceiver the receiver to unsubscribed
+     */
+    public void unsubscribe(String eventType, EventReceiver eventReceiver) {
+        List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
+
+        if(thisEventReceivers != null){
+            thisEventReceivers.remove(eventReceiver);
+
+            // If there is not receivers remaining for this particular event type, remove the list.
+            if(thisEventReceivers.isEmpty()){
+                eventReceivers.remove(eventType);
+            }
+        }
+    }
+
+    /**
+     * Publish an event. The event will be transmitted to any receiver that subscribe to the event's
+     * type from any device of the ecology
+     *
+     * @param eventType the event type
+     * @param data      the event's data
+     */
+    public void publish(String eventType, Bundle data) {
+        Event event = new Event(eventType, data);
+        Bundle message = new Bundle();
+        message.putByteArray("event", EventEncoder.pack(event));
+        room.onEventBroadcasterMessage(MessageTypes.EVENT, message);
+    }
 }
