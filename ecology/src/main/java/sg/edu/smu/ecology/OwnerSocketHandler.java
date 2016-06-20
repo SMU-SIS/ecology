@@ -13,6 +13,9 @@ import java.util.concurrent.TimeUnit;
  * Created by tnnguyen on 28/4/16.
  */
 public class OwnerSocketHandler extends Thread {
+
+    private static final String TAG = OwnerSocketHandler.class.getSimpleName();
+
     ServerSocket socket = null;
     private final int THREAD_COUNT = 10;
     private Handler handler;
@@ -37,7 +40,7 @@ public class OwnerSocketHandler extends Thread {
     public void run() {
         while (true) {
             try {
-                Log.d(Settings.TAG, "OwnerSocketHandler run EventBroadcaster ");
+                Log.d(TAG, "OwnerSocketHandler run EventBroadcaster ");
                 pool.execute(new SocketCreator(socket.accept(), handler));
             } catch (IOException e) {
                 try {
