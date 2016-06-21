@@ -45,19 +45,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
     private boolean messageapi = false;
     private boolean wifiDirect = false;
 
-
-    private static Ecology ecology = null;
-    public static Ecology connect(Context context){
-        if(ecology == null){
-            ecology = new Ecology();
-            ecology.connectEcology(Settings.ECOLOGY_NAME, context);
-        }
-        return ecology;
-    }
-
     private Handler handler = new Handler(this);
 
-    private Ecology(){
+    public Ecology(){
         filterIntent();
     }
 
@@ -74,7 +64,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         return intentFilter;
     }
 
-    private void connectEcology(String ecologyName, Context activity){
+    public void connectEcology(String ecologyName, Context activity){
 
         Settings.ECOLOGY_NAME = ecologyName;
         this.activity = activity;
