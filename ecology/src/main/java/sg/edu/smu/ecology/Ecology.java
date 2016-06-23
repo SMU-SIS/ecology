@@ -299,7 +299,8 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                 for (String anEventType : eventType) {
 
                     if (anEventType != null && eventTypeReceived.equals(anEventType)) {
-
+                        eventReceiver.handleEvent(eventTypeReceived, data);
+                        
                         if(messageapi) {
                             data.addElement(android_id);
                             eventBroadcaster.forward(data, false);
