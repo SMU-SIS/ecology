@@ -117,17 +117,22 @@ public class EventBroadcaster {
 
     };
 
-    public void forward(Collection<Object> args, Boolean forwardRequired){
+    public void forward(Collection<Object> args, Boolean forwardCoreRequired){
 
         Vector<Object> data = new Vector<>(args);
-        OSCMessage oscMessage = new OSCMessage("/event", data);
-        eventData = oscMessage.getByteArray();
 
-        if (socketCreator != null && forwardRequired) {
+        //If forward to a core device is required
+        if (forwardCoreRequired) {
             Log.i(TAG, "forward");
             //Remove device ID
             data.removeElementAt(data.size() - 1);
-            socketCreator.write(eventData);
+        }
+        
+        OSCMessage oscMessage = new OSCMessage("/event", data);
+        eventData = oscMessage.getByteArray();
+
+        if(socketCreator != null){
+                socketCreator.write(eventData);
         }
 
         if (nodeId != null) {
