@@ -200,7 +200,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
     public interface EventReceiver {
 
-        void handleEvent(Event event);
+        void handleEvent(String eventType, Collection<Object> args);
 
     }
 
@@ -314,17 +314,4 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         return true;
     }
 
-    public static <T> DependentEvent unpack(byte[] bytes, DependentEvent creator) {
-        Parcel parcel = Parcel.obtain();
-        parcel.unmarshall(bytes, 0, bytes.length);
-        parcel.setDataPosition(0);
-        return creator.createFromParcel(parcel);
-    }
-
-    public static <T> Event unpack(byte[] bytes, Event creator) {
-        Parcel parcel = Parcel.obtain();
-        parcel.unmarshall(bytes, 0, bytes.length);
-        parcel.setDataPosition(0);
-        return creator.createFromParcel(parcel);
-    }
 }
