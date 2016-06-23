@@ -9,6 +9,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Wearable;
+import com.illposed.osc.OSCMessage;
+
+import java.util.Collection;
+import java.util.Vector;
 
 /**
  * Created by anurooppv on 1/6/2016.
@@ -20,28 +24,23 @@ public class EventBroadcaster {
     public SocketCreator socketCreator;
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
-    private Event event;
-    private DependentEvent dependentEvent;
     private int index = 0;
     private Ecology ecology;
     private static String MESSAGE_PATH = " ";
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private boolean messageapi = false;
-    private byte[] forwardrequestData;
     private byte[] eventData;
 
     private String[] eventType = new String[10];
 
     public EventBroadcaster(Ecology ecology){
         this.ecology = ecology;
-        event = new Event();
     }
 
     public void subscribe(String eventType, Ecology.EventReceiver eventReceiver){
         this.eventType[index++] = eventType;
         ecology.setEventReceiver(eventReceiver);
-        ecology.setEvent(event);
     };
 
     public void unsubscribe(String unsubEventType, Ecology.EventReceiver eventReceiver){
@@ -51,10 +50,6 @@ public class EventBroadcaster {
             }
         }
     };
-
-    public void setDependentEvent(DependentEvent dependentEvent) {
-        this.dependentEvent = dependentEvent;
-    }
 
     public void setMessageapi(boolean messageapi) {
         this.messageapi = messageapi;
@@ -72,54 +67,57 @@ public class EventBroadcaster {
         this.socketCreator = socketCreator;
     }
 
-    public void publish(final String eventType, Bundle data) {
+    public void publish(final String eventType, Collection<Object> args) {
 
-        event.setType(eventType);
-        event.setData(data);
-
-        eventData = pack((Parcelable) event);
+        Vector<Object> data = new Vector<>(args);
+        //Add eventtype at the end.
+        data.addElement(eventType);
 
         if(messageapi) {
             Log.i(TAG, "Message api");
-            dependentEvent.setEvent(event);
-            forwardrequestData = pack((Parcelable) dependentEvent);
+            String deviceId = ecology.getAndroid_id();
+            //If message api add device ID at the end
+            data.addElement(deviceId);
         }
 
-            if (socketCreator != null)
-                socketCreator.write(eventData);
+        OSCMessage oscMessage = new OSCMessage("/event", data);
+        eventData = oscMessage.getByteArray();
 
+        if (socketCreator != null) {
+            socketCreator.write(eventData);
+        }
 
-            if (eventType.equals("launch")) {
-                MESSAGE_PATH = START_ACTIVITY_PATH_1;
-            } else {
-                MESSAGE_PATH = MESSAGE_PATH_EVENT;
-            }
+        if (eventType.equals("launch")) {
+            MESSAGE_PATH = START_ACTIVITY_PATH_1;
+        } else {
+            MESSAGE_PATH = MESSAGE_PATH_EVENT;
+        }
 
-            if (nodeId != null) {
-                Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                        MESSAGE_PATH, forwardrequestData).setResultCallback(
-                        new ResultCallback<MessageApi.SendMessageResult>() {
-                            @Override
-                            public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                                Log.i(TAG, "Message Sent " + eventType);
+        if (nodeId != null) {
+            Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
+                    MESSAGE_PATH, eventData).setResultCallback(
+                    new ResultCallback<MessageApi.SendMessageResult>() {
+                        @Override
+                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
+                            Log.i(TAG, "Message Sent " + eventType);
 
-                                if (!sendMessageResult.getStatus().isSuccess()) {
-                                    // Failed to send message
-                                    Log.i(TAG, "Message Failed");
-                                }
+                            if (!sendMessageResult.getStatus().isSuccess()) {
+                                // Failed to send message
+                                Log.i(TAG, "Message Failed");
                             }
                         }
+                    }
 
-                );
-            } else {
-                // Unable to retrieve node with transcription capability
-                Log.i(TAG, "Message not sent - Node Id is null ");
-            }
+            );
+        } else {
+            // Unable to retrieve node with transcription capability
+            Log.i(TAG, "Message not sent - Node Id is null ");
+        }
 
 
     };
 
-    public void forward(DependentEvent dependentEvent, Event event, Boolean forwardRequired){
+    /*public void forward(DependentEvent dependentEvent, Event event, Boolean forwardRequired){
 
         forwardrequestData = pack((Parcelable) dependentEvent);
         eventData = pack((Parcelable) event);
@@ -150,7 +148,7 @@ public class EventBroadcaster {
             Log.i(TAG, "Message not sent - Node Id is null ");
         }
     }
-
+*/
     public String[] getEventTypes() {
         return eventType;
     }
