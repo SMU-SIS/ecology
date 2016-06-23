@@ -238,8 +238,9 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                         eventReceiver.handleEvent(eventTypeReceived, data);
                     }
 
-                    //if (wifiDirect)
-                        //eventBroadcaster.forward(dependentEvent, event, true);
+                    if (wifiDirect) {
+                        eventBroadcaster.forward(data, true);
+                    }
                 }
             }
         }
@@ -285,23 +286,26 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
             case Settings.MESSAGE_READ:
                 Log.d(TAG, " MESSAGE_READ");
                 byte[] readBuf = (byte[]) msg.obj;
-               /* event = unpack(readBuf, event);
-                Log.i(Settings.TAG, " eventType " + event.getType());
-                Log.i(Settings.TAG, " eventData " + event.getData());
-                eventType = eventBroadcaster.getEventTypes();*/
 
-                //for (String anEventType : eventType) {
+                OSCByteArrayToJavaConverter oscByteArrayToJavaConverter = new OSCByteArrayToJavaConverter();
+                OSCMessage oscMessage = (OSCMessage) oscByteArrayToJavaConverter.convert(readBuf, readBuf.length);
+                Vector<Object> data = new Vector<>(oscMessage.getArguments());
 
-                    //if (anEventType != null && event.getType().equals(anEventType)) {
-                        //eventReceiver.handleEvent(event);
+                String eventTypeReceived = (String) data.get(data.size() - 1);
+                Log.i(TAG, " eventType " + eventTypeReceived);
 
-                        /*if(messageapi) {
-                            dependentEvent.setEvent(event);
-                            dependentEvent.setDeviceID(android_id);
-                            eventBroadcaster.forward(dependentEvent, event, false);
-                        }*/
-                   // }
-                //}
+                eventType = eventBroadcaster.getEventTypes();
+
+                for (String anEventType : eventType) {
+
+                    if (anEventType != null && eventTypeReceived.equals(anEventType)) {
+
+                        if(messageapi) {
+                            data.addElement(android_id);
+                            eventBroadcaster.forward(data, false);
+                        }
+                    }
+                }
                 break;
             case Settings.MY_HANDLE:
                 Log.d(TAG, " MY HANDLE");
@@ -309,8 +313,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                 setEventBroadcaster((SocketCreator) obj);
 
                 if(wifiDirect) {
-                    //Event newEvent = new Event();
-                    //newEvent.setType("ecology:connected");
                     Vector<Object> launchData = new Vector<>();
                     eventReceiver.handleEvent("ecology:connected", launchData);
                 }
