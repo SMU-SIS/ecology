@@ -1,10 +1,15 @@
 package sg.edu.smu.ecology;
 
+import android.util.Log;
+
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Vector;
+
 /**
  * Created by anurooppv on 22/6/2016.
  */
@@ -12,6 +17,7 @@ public class ByteArrayToJavaConverter {
     private static final String BUNDLE_START = "#bundle";
     private static final char BUNDLE_IDENTIFIER = BUNDLE_START.charAt(0);
     private static final String NO_ARGUMENT_TYPES = "";
+    private final static String TAG = ByteArrayToJavaConverter.class.getSimpleName();
 
     private static class Input {
 
@@ -122,14 +128,9 @@ public class ByteArrayToJavaConverter {
         // http://opensoundcontrol.org/spec-1_0
         if (rawInput.getBytes().length <= rawInput.getStreamPosition()) {
             typesStr = NO_ARGUMENT_TYPES;
-        } else if (rawInput.getBytes()[rawInput.getStreamPosition()] != ',') {
-            // XXX should we not rather fail-fast -> throw exception?
-            typesStr = NO_ARGUMENT_TYPES;
         } else {
-            rawInput.getAndIncreaseStreamPositionByOne();
             typesStr = readString(rawInput);
         }
-
         return typesStr;
     }
 
@@ -243,18 +244,44 @@ public class ByteArrayToJavaConverter {
                 & 0xFFFFFFFFL;
     }
 
+
+    public List<Object> convert(byte[] bytes) {
+        Log.i(TAG, "convert");
+        int bytesLength = bytes.length;
+        final Input rawInput = new Input(bytes, bytesLength);
+
+        CharSequence types = readTypes(rawInput);
+        ArrayList<Object> array = new ArrayList<>();
+
+        for (int ti = 0; ti < types.length(); ++ti) {
+            if ('[' == types.charAt(ti)) {
+                // we're looking at an array -- read it in
+                array.add(readArray(rawInput, types, ++ti));
+                Log.i(TAG,"Array"+array);
+                // then increment i to the end of the array
+                while (types.charAt(ti) != ']') {
+                    ti++;
+                }
+            } else {
+                array.add(readArgument(rawInput, types.charAt(ti)));
+            }
+        }
+
+        return array;
+    }
+
     /**
      * Reads an array from the byte stream.
      * @param types
      * @param pos at which position to start reading
      * @return the array that was read
      */
-    private List<Object> readArray(final Input rawInput, final CharSequence types, int pos) {
+    private Vector<Object> readArray(final Input rawInput, final CharSequence types, int pos) {
         int arrayLen = 0;
         while (types.charAt(pos + arrayLen) != ']') {
             arrayLen++;
         }
-        final List<Object> array = new ArrayList<Object>(arrayLen);
+        final Vector<Object> array = new Vector<>(arrayLen);
         for (int ai = 0; ai < arrayLen; ai++) {
             array.add(readArgument(rawInput, types.charAt(pos + ai)));
         }
