@@ -156,12 +156,4 @@ public class EventBroadcaster {
         return eventType;
     }
 
-    public static byte[] pack(Parcelable parcelable) {
-        Parcel parcel = Parcel.obtain();
-        parcelable.writeToParcel(parcel, 0);
-        byte[] bytes = parcel.marshall();
-        parcel.recycle();
-        return bytes;
-    }
-
 }
