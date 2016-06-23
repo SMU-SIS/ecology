@@ -30,7 +30,6 @@ public class EventBroadcaster {
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private boolean messageapi = false;
-    private byte[] eventData;
 
     private String[] eventType = new String[10];
 
@@ -72,7 +71,15 @@ public class EventBroadcaster {
         Vector<Object> data = new Vector<>(args);
         //Add eventtype at the end.
         data.addElement(eventType);
+        OSCMessage oscMessage = new OSCMessage("/event", data);
 
+        //Send eve
+        if (socketCreator != null) {
+            byte [] eventData = oscMessage.getByteArray();
+            socketCreator.write(eventData);
+        }
+
+        //Add device id at the end for dependent devices.
         if(messageapi) {
             Log.i(TAG, "Message api");
             String deviceId = ecology.getAndroid_id();
@@ -80,12 +87,8 @@ public class EventBroadcaster {
             data.addElement(deviceId);
         }
 
-        OSCMessage oscMessage = new OSCMessage("/event", data);
-        eventData = oscMessage.getByteArray();
-
-        if (socketCreator != null) {
-            socketCreator.write(eventData);
-        }
+        oscMessage = new OSCMessage("/event", data);
+        byte[] forwardRequestData = oscMessage.getByteArray();
 
         if (eventType.equals("launch")) {
             MESSAGE_PATH = START_ACTIVITY_PATH_1;
@@ -95,7 +98,7 @@ public class EventBroadcaster {
 
         if (nodeId != null) {
             Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                    MESSAGE_PATH, eventData).setResultCallback(
+                    MESSAGE_PATH, forwardRequestData).setResultCallback(
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
@@ -121,23 +124,23 @@ public class EventBroadcaster {
 
         Vector<Object> data = new Vector<>(args);
 
-        //If forward to a core device is required
-        if (forwardCoreRequired) {
-            Log.i(TAG, "forward");
-            //Remove device ID
-            data.removeElementAt(data.size() - 1);
-        }
-        
         OSCMessage oscMessage = new OSCMessage("/event", data);
-        eventData = oscMessage.getByteArray();
+        byte[] forwardRequestData = oscMessage.getByteArray();
 
-        if(socketCreator != null){
-                socketCreator.write(eventData);
+        //If forward to a core device is required
+        if (socketCreator != null && forwardCoreRequired) {
+            Log.i(TAG, "forward");
+            //Remove device id.
+            data.removeElementAt(data.size() - 1);
+            oscMessage = new OSCMessage("/event", data);
+            byte[] eventData = oscMessage.getByteArray();
+            socketCreator.write(eventData);
         }
 
+        //Forward to dependent devices - keep device id.
         if (nodeId != null) {
             Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                    MESSAGE_PATH, eventData).setResultCallback(
+                    MESSAGE_PATH, forwardRequestData).setResultCallback(
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {

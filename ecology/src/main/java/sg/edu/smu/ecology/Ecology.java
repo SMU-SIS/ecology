@@ -220,7 +220,8 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
             OSCByteArrayToJavaConverter oscByteArrayToJavaConverter = new OSCByteArrayToJavaConverter();
             OSCMessage oscMessage = (OSCMessage) oscByteArrayToJavaConverter.convert(messageEvent.getData(), messageEvent.getData().length);
-            Vector<Object> data = new Vector<>(oscMessage.getArguments());
+            List<Object> data;
+            data = oscMessage.getArguments();
 
             String deviceID = (String) data.get(data.size() - 1);
             String eventTypeReceived = (String) data.get(data.size() - 2);
@@ -289,7 +290,8 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
                 OSCByteArrayToJavaConverter oscByteArrayToJavaConverter = new OSCByteArrayToJavaConverter();
                 OSCMessage oscMessage = (OSCMessage) oscByteArrayToJavaConverter.convert(readBuf, readBuf.length);
-                Vector<Object> data = new Vector<>(oscMessage.getArguments());
+                List<Object> data;
+                data = oscMessage.getArguments();
 
                 String eventTypeReceived = (String) data.get(data.size() - 1);
                 Log.i(TAG, " eventType " + eventTypeReceived);
@@ -302,7 +304,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                         eventReceiver.handleEvent(eventTypeReceived, data);
                         
                         if(messageapi) {
-                            data.addElement(android_id);
+                            data.add(android_id);
                             eventBroadcaster.forward(data, false);
                         }
                     }
