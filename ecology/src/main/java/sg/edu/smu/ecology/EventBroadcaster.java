@@ -69,6 +69,7 @@ public class EventBroadcaster {
     public void publish(final String eventType, Collection<Object> args) {
 
         Vector<Object> data = new Vector<>(args);
+        Log.i(TAG, "eventType "+eventType);
         //Add eventtype at the end.
         data.addElement(eventType);
         OSCMessage oscMessage = new OSCMessage("/event", data);
@@ -123,7 +124,7 @@ public class EventBroadcaster {
     public void forward(Collection<Object> args, Boolean forwardCoreRequired){
 
         Vector<Object> data = new Vector<>(args);
-
+        Log.i(TAG, "data "+data);
         OSCMessage oscMessage = new OSCMessage("/event", data);
         byte[] forwardRequestData = oscMessage.getByteArray();
 
@@ -132,6 +133,7 @@ public class EventBroadcaster {
             Log.i(TAG, "forward");
             //Remove device id.
             data.removeElementAt(data.size() - 1);
+            Log.i(TAG, "data " + data);
             oscMessage = new OSCMessage("/event", data);
             byte[] eventData = oscMessage.getByteArray();
             socketCreator.write(eventData);

@@ -222,6 +222,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
             OSCMessage oscMessage = (OSCMessage) oscByteArrayToJavaConverter.convert(messageEvent.getData(), messageEvent.getData().length);
             List<Object> data;
             data = oscMessage.getArguments();
+            Log.i(TAG, "Data "+data);
 
             String deviceID = (String) data.get(data.size() - 1);
             String eventTypeReceived = (String) data.get(data.size() - 2);
@@ -305,6 +306,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                         
                         if(messageapi) {
                             data.add(android_id);
+                            Log.i(TAG, "data "+data);
                             eventBroadcaster.forward(data, false);
                         }
                     }
