@@ -6,14 +6,14 @@ import java.util.ArrayList;
 /**
  * Created by anurooppv on 29/6/2016.
  */
-public class DataMessage {
+public class MessageData {
 
     protected String address;
     protected ArrayList<Object> arguments;
     protected String typeTags;
     private int datasize = 0;
 
-    public DataMessage() {
+    public MessageData() {
         arguments = new ArrayList<Object>();
         typeTags = ",";
     }

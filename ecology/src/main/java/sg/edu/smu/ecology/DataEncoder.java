@@ -19,15 +19,16 @@ public class DataEncoder {
     public DataEncoder() {
     }
 
-    public void encodeMessage(DataMessage dataMessage, IoBuffer buffer)
+    //Write datamessage into iobuffer.
+    public void encodeMessage(MessageData messageData, IoBuffer buffer)
             throws CharacterCodingException {
-        String addr = dataMessage.getAddress();
+        String addr = messageData.getAddress();
 
         write(addr, buffer);
 
-        ArrayList<Object> args = dataMessage.getArguments();
+        ArrayList<Object> args = messageData.getArguments();
 
-        String typeTags = dataMessage.getTypeTags();
+        String typeTags = messageData.getTypeTags();
 
         write(typeTags, buffer);
 

@@ -7,7 +7,6 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcel;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -19,26 +18,9 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import org.apache.mina.core.buffer.IoBuffer;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.CharBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -233,11 +215,10 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         if(messageapi) {
 
             DataDecoder dataDecoder = new DataDecoder();
-            Log.i(TAG, "messagedata " + Arrays.toString(messageEvent.getData()));
-            DataMessage dataMessage = dataDecoder.convertMessage(messageEvent.getData(), messageEvent.getData().length);
+            MessageData messageData = dataDecoder.convertMessage(messageEvent.getData(), messageEvent.getData().length);
 
             List<Object> data;
-            data = dataMessage.getArguments();
+            data = messageData.getArguments();
             Log.i(TAG, "Data "+data);
 
             String eventTypeReceived = null;
@@ -314,10 +295,11 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
                 DataDecoder dataDecoder = new DataDecoder();
 
-                DataMessage dataMessage = dataDecoder.convertMessage(readBuf, readBuf.length);
+                MessageData messageData = dataDecoder.convertMessage(readBuf, readBuf.length);
 
                 List<Object> data;
-                data = dataMessage.getArguments();
+                data = messageData.getArguments();
+                Log.i(TAG, "data "+data);
                 String eventTypeReceived = null;
 
                 try {
@@ -343,6 +325,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                     }
                 }
                 break;
+
             case Settings.MY_HANDLE:
                 Log.d(TAG, " MY HANDLE");
                 Object obj = msg.obj;

@@ -73,24 +73,24 @@ public class EventBroadcaster {
         IoBuffer ioBuffer1 = IoBuffer.allocate(150);
         IoBuffer ioBuffer2 = IoBuffer.allocate(150);
 
-        Log.i(TAG, "eventType "+eventType);
+        //Log.i(TAG, "eventType "+eventType);
 
         //Add eventtype at the end.
         data.addElement(eventType);
 
         DataEncoder dataEncoder = new DataEncoder();
-        DataMessage dataMessage = new DataMessage();
-        dataMessage.setAddress("/event");
+        MessageData messageData = new MessageData();
+        messageData.setAddress("/event");
 
         //Send event via WiFiP2P
         if (socketCreator != null) {
 
             for(int i = 0; i<data.size(); i++){
-                dataMessage.addArgument(data.get(i));
+                messageData.addArgument(data.get(i));
             }
 
             try {
-                dataEncoder.encodeMessage(dataMessage, ioBuffer1);
+                dataEncoder.encodeMessage(messageData, ioBuffer1);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }
@@ -103,19 +103,19 @@ public class EventBroadcaster {
 
         //Add device id at the end for dependent devices.
         if (messageapi) {
-            Log.i(TAG, "Message api");
+            //Log.i(TAG, "Message api");
             String deviceId = ecology.getAndroid_id();
-            //If dataMessage api add device ID at the end
+            //If messageData api add device ID at the end
             data.addElement(deviceId);
 
 
             Log.i(TAG, "Data " + data);
             for (int i = 0; i < data.size(); i++) {
-                dataMessage.addArgument(data.get(i));
+                messageData.addArgument(data.get(i));
             }
 
             try {
-                dataEncoder.encodeMessage(dataMessage, ioBuffer2);
+                dataEncoder.encodeMessage(messageData, ioBuffer2);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }
@@ -136,11 +136,11 @@ public class EventBroadcaster {
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            Log.i(TAG, "DataMessage Sent " + eventType);
+                            Log.i(TAG, "MessageData Sent " + eventType);
 
                             if (!sendMessageResult.getStatus().isSuccess()) {
-                                // Failed to send dataMessage
-                                Log.i(TAG, "DataMessage Failed");
+                                // Failed to send messageData
+                                Log.i(TAG, "MessageData Failed");
                             }
                         }
                     }
@@ -160,19 +160,19 @@ public class EventBroadcaster {
         Vector<Object> data = new Vector<>(args);
         Log.i(TAG, "data " + data);
 
-        DataMessage dataMessage = new DataMessage();
-        dataMessage.setAddress("/event");
+        MessageData messageData = new MessageData();
+        messageData.setAddress("/event");
         DataEncoder dataEncoder = new DataEncoder();
 
         IoBuffer ioBuffer1 = IoBuffer.allocate(150);
         IoBuffer ioBuffer2 = IoBuffer.allocate(150);
 
         for(int i = 0; i<data.size(); i++){
-            dataMessage.addArgument(data.get(i));
+            messageData.addArgument(data.get(i));
         }
 
         try {
-            dataEncoder.encodeMessage(dataMessage, ioBuffer1);
+            dataEncoder.encodeMessage(messageData, ioBuffer1);
         } catch (CharacterCodingException e) {
             e.printStackTrace();
         }
@@ -187,11 +187,11 @@ public class EventBroadcaster {
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            Log.i(TAG, "DataMessage Sent " + eventType);
+                            Log.i(TAG, "MessageData Sent " + eventType);
 
                             if (!sendMessageResult.getStatus().isSuccess()) {
-                                // Failed to send dataMessage
-                                Log.i(TAG, "DataMessage Failed");
+                                // Failed to send messageData
+                                Log.i(TAG, "MessageData Failed");
                             }
                         }
                     }
@@ -199,7 +199,7 @@ public class EventBroadcaster {
             );
         } else {
             // Unable to retrieve node with transcription capability
-            Log.i(TAG, "DataMessage not sent - Node Id is null ");
+            Log.i(TAG, "MessageData not sent - Node Id is null ");
         }
 
         ioBuffer1.clear();
@@ -213,11 +213,11 @@ public class EventBroadcaster {
 
             Log.i(TAG, "data " + data);
             for(int i = 0; i<data.size(); i++){
-                dataMessage.addArgument(data.get(i));
+                messageData.addArgument(data.get(i));
             }
 
             try {
-                dataEncoder.encodeMessage(dataMessage, ioBuffer2);
+                dataEncoder.encodeMessage(messageData, ioBuffer2);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }

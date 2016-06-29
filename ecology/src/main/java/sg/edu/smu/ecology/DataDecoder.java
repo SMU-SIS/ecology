@@ -1,15 +1,8 @@
 package sg.edu.smu.ecology;
 
-import android.renderscript.ScriptGroup;
-
-import org.apache.mina.core.buffer.IoBuffer;
-
 import java.math.BigInteger;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -17,10 +10,7 @@ import java.util.List;
  */
 public class DataDecoder {
 
-    private static final String BUNDLE_START = "#bundle";
-    private static final char BUNDLE_IDENTIFIER = BUNDLE_START.charAt(0);
     private static final String NO_ARGUMENT_TYPES = "";
-    private DataMessage dataMessage;
 
     private static class Input {
 
@@ -84,31 +74,30 @@ public class DataDecoder {
         this.charset = charset;
     }
 
-
     /**
      * Converts the byte array to a simple message.
      * Assumes that the byte array is a message.
      * @return a message containing the data specified in the byte stream
      */
-    public DataMessage convertMessage(byte[] bytes, int bytesLength) {
+    public MessageData convertMessage(byte[] bytes, int bytesLength) {
         final Input rawInput = new Input(bytes, bytesLength);
-        final DataMessage dataMessage = new DataMessage();
+        final MessageData messageData = new MessageData();
 
-        dataMessage.setAddress(readString(rawInput));
+        messageData.setAddress(readString(rawInput));
         final CharSequence types = readTypes(rawInput);
         for (int ti = 0; ti < types.length(); ++ti) {
             if ('[' == types.charAt(ti)) {
                 // we're looking at an array -- read it in
-                dataMessage.addArgument(readArray(rawInput, types, ++ti));
+                messageData.addArgument(readArray(rawInput, types, ++ti));
                 // then increment i to the end of the array
                 while (types.charAt(ti) != ']') {
                     ti++;
                 }
             } else {
-                dataMessage.addArgument(readArgument(rawInput, types.charAt(ti)));
+                messageData.addArgument(readArgument(rawInput, types.charAt(ti)));
             }
         }
-        return dataMessage;
+        return messageData;
     }
 
     /**
@@ -270,8 +259,8 @@ public class DataDecoder {
                 & 0xFFFFFFFFL;
     }
 
-    /**
-     * Reads an array from the byte stream.
+
+    /* Reads an array from the byte stream.
      * @param types
      * @param pos at which position to start reading
      * @return the array that was read
@@ -288,9 +277,7 @@ public class DataDecoder {
         return array;
     }
 
-    /**
-     * Get the length of the string currently in the byte stream.
-     */
+    //Get the length of the string currently in the byte stream.
     private int lengthOfCurrentString(final Input rawInput) {
         int len = 0;
         while (rawInput.getBytes()[rawInput.getStreamPosition() + len] != 0) {
@@ -299,10 +286,7 @@ public class DataDecoder {
         return len;
     }
 
-    /**
-     * Move to the next byte with an index in the byte array
-     * which is dividable by four.
-     */
+    //Move to the next byte with an index in the byte array which is dividable by four.
     private void moveToFourByteBoundry(final Input rawInput) {
         // If i am already at a 4 byte boundry, I need to move to the next one
         final int mod = rawInput.getStreamPosition() % 4;
