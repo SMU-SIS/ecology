@@ -1,8 +1,5 @@
 package sg.edu.smu.ecology;
 
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -10,6 +7,10 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Wearable;
 
+import org.apache.mina.core.buffer.IoBuffer;
+
+import java.nio.charset.CharacterCodingException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Vector;
 
@@ -29,6 +30,7 @@ public class EventBroadcaster {
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private boolean messageapi = false;
+    private IoBuffer ioBuffer = null;
 
     private String[] eventType = new String[10];
 
@@ -69,26 +71,54 @@ public class EventBroadcaster {
 
         Vector<Object> data = new Vector<>(args);
         Log.i(TAG, "eventType "+eventType);
+
         //Add eventtype at the end.
         data.addElement(eventType);
-        OSCMessage oscMessage = new OSCMessage("/event", data);
 
-        //Send eve
+        DataEncoder dataEncoder = new DataEncoder();
+        DataMessage dataMessage = new DataMessage();
+        dataMessage.setAddress("/event");
+        ioBuffer = IoBuffer.allocate(200);
+
+        //Send event via WiFiP2P
         if (socketCreator != null) {
-            byte [] eventData = oscMessage.getByteArray();
+
+            for(int i = 0; i<data.size(); i++){
+                dataMessage.addArgument(data.get(i));
+            }
+
+            try {
+                dataEncoder.encodeMessage(dataMessage, ioBuffer);
+            } catch (CharacterCodingException e) {
+                e.printStackTrace();
+            }
+
+            byte [] eventData = ioBuffer.array();
             socketCreator.write(eventData);
         }
 
+
         //Add device id at the end for dependent devices.
-        if(messageapi) {
+        if (messageapi) {
             Log.i(TAG, "Message api");
             String deviceId = ecology.getAndroid_id();
-            //If message api add device ID at the end
+            //If dataMessage api add device ID at the end
             data.addElement(deviceId);
+
+            Log.i(TAG, "Data " + data);
+            for (int i = 0; i < data.size(); i++) {
+                dataMessage.addArgument(data.get(i));
+            }
+
+            try {
+                dataEncoder.encodeMessage(dataMessage, ioBuffer);
+            } catch (CharacterCodingException e) {
+                e.printStackTrace();
+            }
         }
 
-        oscMessage = new OSCMessage("/event", data);
-        byte[] forwardRequestData = oscMessage.getByteArray();
+        byte[] forwardRequestData = ioBuffer.array();
+        Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
 
         if (eventType.equals("launch")) {
             MESSAGE_PATH = START_ACTIVITY_PATH_1;
@@ -102,11 +132,11 @@ public class EventBroadcaster {
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            Log.i(TAG, "Message Sent " + eventType);
+                            Log.i(TAG, "DataMessage Sent " + eventType);
 
                             if (!sendMessageResult.getStatus().isSuccess()) {
-                                // Failed to send message
-                                Log.i(TAG, "Message Failed");
+                                // Failed to send dataMessage
+                                Log.i(TAG, "DataMessage Failed");
                             }
                         }
                     }
@@ -117,24 +147,48 @@ public class EventBroadcaster {
             Log.i(TAG, "Message not sent - Node Id is null ");
         }
 
-
     };
 
     public void forward(Collection<Object> args, Boolean forwardCoreRequired){
 
         Vector<Object> data = new Vector<>(args);
         Log.i(TAG, "data "+data);
-        OSCMessage oscMessage = new OSCMessage("/event", data);
-        byte[] forwardRequestData = oscMessage.getByteArray();
+
+        DataMessage dataMessage = new DataMessage();
+        dataMessage.setAddress("/event");
+        DataEncoder dataEncoder = new DataEncoder();
+        ioBuffer = IoBuffer.allocate(100);
+
+        for(int i = 0; i<data.size(); i++){
+            dataMessage.addArgument(data.get(i));
+        }
+
+        try {
+            dataEncoder.encodeMessage(dataMessage, ioBuffer);
+        } catch (CharacterCodingException e) {
+            e.printStackTrace();
+        }
+
+        byte[] forwardRequestData = ioBuffer.array();
 
         //If forward to a core device is required
         if (socketCreator != null && forwardCoreRequired) {
             Log.i(TAG, "forward");
             //Remove device id.
             data.removeElementAt(data.size() - 1);
+
             Log.i(TAG, "data " + data);
-            oscMessage = new OSCMessage("/event", data);
-            byte[] eventData = oscMessage.getByteArray();
+            for(int i = 0; i<data.size(); i++){
+                dataMessage.addArgument(data.get(i));
+            }
+
+            try {
+                dataEncoder.encodeMessage(dataMessage, ioBuffer);
+            } catch (CharacterCodingException e) {
+                e.printStackTrace();
+            }
+
+            byte[] eventData = ioBuffer.array();
             socketCreator.write(eventData);
         }
 
@@ -145,11 +199,11 @@ public class EventBroadcaster {
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            Log.i(TAG, "Message Sent " + eventType);
+                            Log.i(TAG, "DataMessage Sent " + eventType);
 
                             if (!sendMessageResult.getStatus().isSuccess()) {
-                                // Failed to send message
-                                Log.i(TAG, "Message Failed");
+                                // Failed to send dataMessage
+                                Log.i(TAG, "DataMessage Failed");
                             }
                         }
                     }
@@ -157,7 +211,7 @@ public class EventBroadcaster {
             );
         } else {
             // Unable to retrieve node with transcription capability
-            Log.i(TAG, "Message not sent - Node Id is null ");
+            Log.i(TAG, "DataMessage not sent - Node Id is null ");
         }
     }
 

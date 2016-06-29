@@ -18,12 +18,27 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
-import com.illposed.osc.OSCMessage;
-import com.illposed.osc.utility.OSCByteArrayToJavaConverter;
+
+import org.apache.mina.core.buffer.IoBuffer;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -151,7 +166,6 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
         nodeId = pickBestNodeId(connectedNodes);
         Log.i(TAG, "nodeId " + nodeId);
-        //nodeId = "7ffcaa18";
 
         eventBroadcaster.setGoogleApiClient(googleApiClient);
         eventBroadcaster.setNodeId(nodeId);
@@ -218,10 +232,12 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
         if(messageapi) {
 
-            OSCByteArrayToJavaConverter oscByteArrayToJavaConverter = new OSCByteArrayToJavaConverter();
-            OSCMessage oscMessage = (OSCMessage) oscByteArrayToJavaConverter.convert(messageEvent.getData(), messageEvent.getData().length);
+            DataDecoder dataDecoder = new DataDecoder();
+            Log.i(TAG, "messagedata " + Arrays.toString(messageEvent.getData()));
+            DataMessage dataMessage = dataDecoder.convertMessage(messageEvent.getData(), messageEvent.getData().length);
+
             List<Object> data;
-            data = oscMessage.getArguments();
+            data = dataMessage.getArguments();
             Log.i(TAG, "Data "+data);
 
             String deviceID = (String) data.get(data.size() - 1);
@@ -289,10 +305,12 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
                 Log.d(TAG, " MESSAGE_READ");
                 byte[] readBuf = (byte[]) msg.obj;
 
-                OSCByteArrayToJavaConverter oscByteArrayToJavaConverter = new OSCByteArrayToJavaConverter();
-                OSCMessage oscMessage = (OSCMessage) oscByteArrayToJavaConverter.convert(readBuf, readBuf.length);
+                DataDecoder dataDecoder = new DataDecoder();
+
+                DataMessage dataMessage = dataDecoder.convertMessage(readBuf, readBuf.length);
+
                 List<Object> data;
-                data = oscMessage.getArguments();
+                data = dataMessage.getArguments();
 
                 String eventTypeReceived = (String) data.get(data.size() - 1);
                 Log.i(TAG, " eventType " + eventTypeReceived);
