@@ -240,8 +240,15 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
             data = dataMessage.getArguments();
             Log.i(TAG, "Data "+data);
 
-            String deviceID = (String) data.get(data.size() - 1);
-            String eventTypeReceived = (String) data.get(data.size() - 2);
+            String eventTypeReceived = null;
+            String deviceID = null;
+
+            try {
+                deviceID = (String) data.get(data.size() - 1);
+                eventTypeReceived = (String) data.get(data.size() - 2);
+            }catch (ArrayIndexOutOfBoundsException e){
+                e.printStackTrace();
+            }
 
             Log.i(TAG, "received android id " + deviceID);
             Log.i(TAG, "Received "+eventTypeReceived);
@@ -250,7 +257,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
             for (String anEventType : eventType) {
 
-                if (anEventType != null && eventTypeReceived.equals(anEventType)) {
+                if (anEventType != null && eventTypeReceived != null && eventTypeReceived.equals(anEventType)) {
 
                     if (!(deviceID.equals(android_id))) {
                         eventReceiver.handleEvent(eventTypeReceived, data);
@@ -311,15 +318,21 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
                 List<Object> data;
                 data = dataMessage.getArguments();
+                String eventTypeReceived = null;
 
-                String eventTypeReceived = (String) data.get(data.size() - 1);
+                try {
+                    eventTypeReceived = (String) data.get(data.size() - 1);
+                }catch (ArrayIndexOutOfBoundsException e){
+                    e.printStackTrace();
+                }
+
                 Log.i(TAG, " eventType " + eventTypeReceived);
 
                 eventType = eventBroadcaster.getEventTypes();
 
                 for (String anEventType : eventType) {
 
-                    if (anEventType != null && eventTypeReceived.equals(anEventType)) {
+                    if (anEventType != null && eventTypeReceived != null && eventTypeReceived.equals(anEventType)) {
                         eventReceiver.handleEvent(eventTypeReceived, data);
                         
                         if(messageapi) {
