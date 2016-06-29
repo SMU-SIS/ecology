@@ -125,5 +125,9 @@ public class MessageData {
         return len + pad;
     }
 
+    public void clearArguments(){
+        arguments.clear();
+    }
+
 
 }

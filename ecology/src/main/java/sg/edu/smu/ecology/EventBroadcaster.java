@@ -70,8 +70,7 @@ public class EventBroadcaster {
 
         Vector<Object> data = new Vector<>(args);
 
-        IoBuffer ioBuffer1 = IoBuffer.allocate(150);
-        IoBuffer ioBuffer2 = IoBuffer.allocate(150);
+        IoBuffer ioBuffer = IoBuffer.allocate(150);
 
         //Log.i(TAG, "eventType "+eventType);
 
@@ -90,14 +89,14 @@ public class EventBroadcaster {
             }
 
             try {
-                dataEncoder.encodeMessage(messageData, ioBuffer1);
+                dataEncoder.encodeMessage(messageData, ioBuffer);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }
 
-            byte [] eventData = ioBuffer1.array();
+            byte [] eventData = ioBuffer.array();
             socketCreator.write(eventData);
-            ioBuffer1.clear();
+            ioBuffer.clear();
         }
 
 
@@ -115,13 +114,13 @@ public class EventBroadcaster {
             }
 
             try {
-                dataEncoder.encodeMessage(messageData, ioBuffer2);
+                dataEncoder.encodeMessage(messageData, ioBuffer);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }
         }
 
-        byte[] forwardRequestData = ioBuffer2.array();
+        byte[] forwardRequestData = ioBuffer.array();
         Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
 
         if (eventType.equals("launch")) {
@@ -151,7 +150,7 @@ public class EventBroadcaster {
             Log.i(TAG, "Message not sent - Node Id is null ");
         }
 
-        ioBuffer2.clear();
+        ioBuffer.clear();
 
     };
 
@@ -164,20 +163,19 @@ public class EventBroadcaster {
         messageData.setAddress("/event");
         DataEncoder dataEncoder = new DataEncoder();
 
-        IoBuffer ioBuffer1 = IoBuffer.allocate(150);
-        IoBuffer ioBuffer2 = IoBuffer.allocate(150);
+        IoBuffer ioBuffer = IoBuffer.allocate(150);
 
         for(int i = 0; i<data.size(); i++){
             messageData.addArgument(data.get(i));
         }
 
         try {
-            dataEncoder.encodeMessage(messageData, ioBuffer1);
+            dataEncoder.encodeMessage(messageData, ioBuffer);
         } catch (CharacterCodingException e) {
             e.printStackTrace();
         }
 
-        byte[] forwardRequestData = ioBuffer1.array();
+        byte[] forwardRequestData = ioBuffer.array();
         Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
 
         //Forward to dependent devices - keep device id.
@@ -202,7 +200,7 @@ public class EventBroadcaster {
             Log.i(TAG, "MessageData not sent - Node Id is null ");
         }
 
-        ioBuffer1.clear();
+        ioBuffer.clear();
 
         //If forward to a core device is required
         if (socketCreator != null && forwardCoreRequired) {
@@ -210,22 +208,24 @@ public class EventBroadcaster {
             //Remove device id.
             data.removeElementAt(data.size() - 1);
 
+            MessageData messageData1 = new MessageData();
+            messageData1.setAddress("/event");
 
             Log.i(TAG, "data " + data);
             for(int i = 0; i<data.size(); i++){
-                messageData.addArgument(data.get(i));
+                messageData1.addArgument(data.get(i));
             }
 
             try {
-                dataEncoder.encodeMessage(messageData, ioBuffer2);
+                dataEncoder.encodeMessage(messageData1, ioBuffer);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }
 
-            byte[] eventData = ioBuffer2.array();
+            byte[] eventData = ioBuffer.array();
             Log.i(TAG, "data " + Arrays.toString(eventData));
             socketCreator.write(eventData);
-            ioBuffer2.clear();
+            ioBuffer.clear();
         }
 
     }

@@ -242,6 +242,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
                     if (!(deviceID.equals(android_id))) {
                         eventReceiver.handleEvent(eventTypeReceived, data);
+                        Log.i(TAG, "handleevent");
                     }
 
                     if (wifiDirect) {
