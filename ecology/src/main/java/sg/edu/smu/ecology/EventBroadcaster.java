@@ -9,7 +9,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Wearable;
-import com.illposed.osc.OSCMessage;
 
 import java.util.Collection;
 import java.util.Vector;
