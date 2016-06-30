@@ -78,11 +78,12 @@ public class EventBroadcaster {
         data.addElement(eventType);
 
         DataEncoder dataEncoder = new DataEncoder();
-        MessageData messageData = new MessageData();
-        messageData.setAddress("/event");
 
         //Send event via WiFiP2P
         if (socketCreator != null) {
+
+            MessageData messageData = new MessageData();
+            messageData.setAddress("/event");
 
             for(int i = 0; i<data.size(); i++){
                 messageData.addArgument(data.get(i));
@@ -107,14 +108,16 @@ public class EventBroadcaster {
             //If messageData api add device ID at the end
             data.addElement(deviceId);
 
+            MessageData messageData1 = new MessageData();
+            messageData1.setAddress("/event");
 
             Log.i(TAG, "Data " + data);
             for (int i = 0; i < data.size(); i++) {
-                messageData.addArgument(data.get(i));
+                messageData1.addArgument(data.get(i));
             }
 
             try {
-                dataEncoder.encodeMessage(messageData, ioBuffer);
+                dataEncoder.encodeMessage(messageData1, ioBuffer);
             } catch (CharacterCodingException e) {
                 e.printStackTrace();
             }
