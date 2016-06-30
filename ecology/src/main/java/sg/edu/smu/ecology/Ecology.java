@@ -193,7 +193,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
     public interface EventReceiver {
 
-        void handleEvent(String eventType, Collection<Object> args);
+        void handleEvent(String eventType, List<Object> args);
 
     }
 
