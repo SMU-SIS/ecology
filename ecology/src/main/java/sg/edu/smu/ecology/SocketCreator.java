@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * Created by anurooppv on 1/6/2016.
@@ -18,6 +19,7 @@ public class SocketCreator implements Runnable {
     private Socket socket = null;
     private InputStream inputStream;
     private OutputStream outputStream;
+    private final int BUFFER_SIZE = 150;
 
     public SocketCreator(Socket socket, Handler handler) {
         this.socket = socket;
@@ -29,12 +31,13 @@ public class SocketCreator implements Runnable {
         try {
             inputStream = socket.getInputStream();
             outputStream = socket.getOutputStream();
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[BUFFER_SIZE];
             int bytes;
             Log.i(TAG, "EventBroadcaster run");
             handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
             while (true) {
                 try {
+                    Log.i(TAG, "buffer "+ Arrays.toString(buffer));
                     bytes = inputStream.read(buffer);
                     if (bytes == -1) {
                         break;

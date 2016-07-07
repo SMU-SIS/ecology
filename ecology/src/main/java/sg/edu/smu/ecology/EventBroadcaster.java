@@ -30,6 +30,7 @@ public class EventBroadcaster {
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private boolean messageapi = false;
+    private final int BUFFER_SIZE = 150;
 
     private String[] eventType = new String[10];
 
@@ -70,7 +71,7 @@ public class EventBroadcaster {
 
         Vector<Object> data = new Vector<>(args);
 
-        IoBuffer ioBuffer = IoBuffer.allocate(150);
+        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
 
         //Log.i(TAG, "eventType "+eventType);
 
@@ -166,7 +167,7 @@ public class EventBroadcaster {
         messageData.setAddress("/event");
         DataEncoder dataEncoder = new DataEncoder();
 
-        IoBuffer ioBuffer = IoBuffer.allocate(150);
+        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
 
         for(int i = 0; i<data.size(); i++){
             messageData.addArgument(data.get(i));
