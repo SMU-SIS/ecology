@@ -30,7 +30,7 @@ public class EventBroadcaster {
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private boolean messageapi = false;
-    private final int BUFFER_SIZE = 150;
+    private final int BUFFER_SIZE = 1024;
 
     private String[] eventType = new String[10];
 

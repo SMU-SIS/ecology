@@ -3,11 +3,11 @@ package sg.edu.smu.ecology;
 import android.os.Handler;
 import android.util.Log;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Arrays;
 
 /**
  * Created by anurooppv on 1/6/2016.
@@ -17,9 +17,7 @@ public class SocketCreator implements Runnable {
 
     private Handler handler;
     private Socket socket = null;
-    private InputStream inputStream;
-    private OutputStream outputStream;
-    private final int BUFFER_SIZE = 150;
+    private DataOutputStream outputStream;
 
     public SocketCreator(Socket socket, Handler handler) {
         this.socket = socket;
@@ -29,21 +27,21 @@ public class SocketCreator implements Runnable {
     @Override
     public void run() {
         try {
-            inputStream = socket.getInputStream();
-            outputStream = socket.getOutputStream();
+            DataInputStream inputStream = new DataInputStream(socket.getInputStream());
+            outputStream = new DataOutputStream(socket.getOutputStream());
+
+            int BUFFER_SIZE = 1024;
             byte[] buffer = new byte[BUFFER_SIZE];
-            int bytes;
             Log.i(TAG, "EventBroadcaster run");
             handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
+
             while (true) {
                 try {
-                    Log.i(TAG, "buffer "+ Arrays.toString(buffer));
-                    bytes = inputStream.read(buffer);
-                    if (bytes == -1) {
-                        break;
-                    }
-                    handler.obtainMessage(Settings.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
-                } catch (IOException e) {
+                    inputStream.readFully(buffer);
+                    handler.obtainMessage(Settings.MESSAGE_READ,buffer).sendToTarget();
+                } catch (EOFException e) {
+                    break;
+                }catch (IOException e) {
                     Log.e(TAG, "Exception during read", e);
                 }
             }
