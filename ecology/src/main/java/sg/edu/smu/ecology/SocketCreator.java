@@ -39,6 +39,11 @@ public class SocketCreator implements Runnable {
                 try {
                     inputStream.readFully(buffer);
                     handler.obtainMessage(Settings.MESSAGE_READ,buffer).sendToTarget();
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 } catch (EOFException e) {
                     break;
                 }catch (IOException e) {
