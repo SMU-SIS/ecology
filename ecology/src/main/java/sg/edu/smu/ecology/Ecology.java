@@ -19,7 +19,6 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +81,7 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
         googleApiClient.connect();
 
         Wearable.MessageApi.addListener(googleApiClient, this);
+
     }
 
     public void disconnectEcology(){
