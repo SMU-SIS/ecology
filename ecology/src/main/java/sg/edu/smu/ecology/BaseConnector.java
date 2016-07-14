@@ -1,14 +1,12 @@
 package sg.edu.smu.ecology;
 
 
-import android.os.Bundle;
-
 import java.util.List;
 import java.util.Vector;
 
 /**
  * Created by Quentin ROY on 18/6/16.
- *
+ * <p/>
  * Base implementation of {@link Connector} with receiver management.
  */
 public abstract class BaseConnector implements Connector {
@@ -21,19 +19,18 @@ public abstract class BaseConnector implements Connector {
     /**
      * @see Connector#addReceiver(Receiver)
      */
-    public void addReceiver(Receiver receiver){
+    public void addReceiver(Receiver receiver) {
         receivers.add(receiver);
     }
 
     /**
-     * Pass a message to all receivers (see {@link Connector.Receiver#onMessage(short, Bundle)}).
+     * Pass a message to all receivers (see {@link Connector.Receiver#onMessage(List<Object>)}).
      *
-     * @param type    the message's type
      * @param message the message's content.
      */
-    protected void passMessageToReceiver(short type, Bundle message){
-        for(Receiver receiver: receivers){
-            receiver.onMessage(type, message);
+    protected void passMessageToReceiver(List<Object> message) {
+        for (Receiver receiver : receivers) {
+            receiver.onMessage(message);
         }
     }
 }

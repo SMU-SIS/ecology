@@ -1,6 +1,6 @@
 package sg.edu.smu.ecology;
 
-import android.os.Bundle;
+import java.util.List;
 
 /**
  * Created by Quentin ROY on 17/6/16.
@@ -13,10 +13,9 @@ public interface Connector {
     /**
      * Send a message through the connector.
      *
-     * @param type    the type of the message to send
      * @param message the content of the message
      */
-    public void sendMessage(short type, Bundle message);
+    public void sendMessage(List<Object> message);
 
     /**
      * Add a receiver to the connector.
@@ -49,10 +48,9 @@ public interface Connector {
         /**
          * Handle a connector message.
          *
-         * @param type    the type of the message that has been received
          * @param message the content of the message
          */
-        public void onMessage(short type, Bundle message);
+        public void onMessage(List<Object> message);
 
         /**
          * Receive the connection notifications.

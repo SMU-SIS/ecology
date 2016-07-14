@@ -1,10 +1,9 @@
 package sg.edu.smu.ecology;
 
 
-import android.os.Bundle;
-import android.util.Log;
-
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,8 +40,8 @@ public class Ecology {
         this.connector.addReceiver(new Connector.Receiver() {
 
             @Override
-            public void onMessage(short type, Bundle message) {
-                Ecology.this.onConnectorMessage(type, message);
+            public void onMessage(List<Object> message) {
+                Ecology.this.onConnectorMessage(message);
             }
 
             @Override
@@ -60,20 +59,18 @@ public class Ecology {
     /**
      * Receive messages from the other devices of the ecology.
      *
-     * @param type    the type of message
      * @param message the message content
      */
-    private void onConnectorMessage(short type, Bundle message) {
-        // Check how should be handled the message.
-        if (type == MessageTypes.EVENT) {
-            // In case of room message fetch the target room and forward it the message.
-            String targetRoomName = message.getString("room");
-            Room room = rooms.get(targetRoomName);
-            if (room != null) {
-                room.onMessage(type, message);
-            }
-        } else {
-            Log.w(TAG, "Unsupported message type: " + type);
+    private void onConnectorMessage(List<Object> message) {
+        String targetRoomName;
+        try {
+            targetRoomName = (String) message.get(message.size() - 1);
+        } catch (ClassCastException | IndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Unrecognized message format.");
+        }
+        Room room = rooms.get(targetRoomName);
+        if (room != null) {
+            room.onMessage(message.subList(0, message.size() - 2));
         }
     }
 
@@ -95,12 +92,12 @@ public class Ecology {
      * Send a message to the other devices of the ecology from a specific room.
      *
      * @param roomName the name of the room who send the event
-     * @param type     the type of message to send
      * @param message  the content of the message
      */
-    void onRoomMessage(String roomName, short type, Bundle message) {
-        message.putString("room", roomName);
-        connector.sendMessage(type, message);
+    void onRoomMessage(String roomName, List<Object> message) {
+        List<Object> msg = new ArrayList<>(message);
+        message.add(roomName);
+        connector.sendMessage(msg);
     }
 
     /**

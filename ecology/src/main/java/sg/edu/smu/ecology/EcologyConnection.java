@@ -1,7 +1,5 @@
 package sg.edu.smu.ecology;
 
-import android.os.Bundle;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -56,20 +54,19 @@ public class EcologyConnection extends BaseConnector {
 
     /**
      * Called when a message is received from a core node.
-     *  @param type the type of message.
-     * @param data the message data content.
+     *
+     * @param message the message data content.
      */
-    private void onCoreMessage(short type, Bundle data) {
+    private void onCoreMessage(List<Object> message) {
         // TODO
     }
 
     /**
      * Called when a message is received from a dependent node.
      *
-     * @param type the type of message.
-     * @param data the message data content.
+     * @param message the message data content.
      */
-    private void onDependentMessage(short type, Bundle data) {
+    private void onDependentMessage(List<Object> message) {
         // TODO
     }
 
@@ -77,7 +74,7 @@ public class EcologyConnection extends BaseConnector {
      * Send a message to the other devices part of the ecology.
      */
     @Override
-    public void sendMessage(short type, Bundle message) {
+    public void sendMessage(List<Object> message) {
         // TODO
     }
 
@@ -170,8 +167,8 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Dependent node connector receiver inner class.
      * <p/>
-     * Forward {@link Connector.Receiver#onMessage(short, Bundle)} to
-     * {@link #onDependentMessage(short, Bundle)}.
+     * Forward {@link Connector.Receiver#onMessage(List<Object>)} to
+     * {@link #onDependentMessage(List<Object>)}.
      */
     private class DependentConnectorReceiver extends ConnectorReceiver {
         DependentConnectorReceiver(Connector connector) {
@@ -179,16 +176,16 @@ public class EcologyConnection extends BaseConnector {
         }
 
         @Override
-        public void onMessage(short type, Bundle message) {
-            onDependentMessage(type, message);
+        public void onMessage(List<Object> message) {
+            onDependentMessage(message);
         }
     }
 
     /**
      * Core node connector receiver inner class.
      * <p/>
-     * Forward {@link Connector.Receiver#onMessage(short, Bundle)} to
-     * {@link #onCoreMessage(short, Bundle)}.
+     * Forward {@link Connector.Receiver#onMessage(List<Object>)} to
+     * {@link #onCoreMessage(List<Object>)}.
      */
     private class CoreConnectorReceiver extends ConnectorReceiver {
         CoreConnectorReceiver(Connector connector) {
@@ -196,8 +193,8 @@ public class EcologyConnection extends BaseConnector {
         }
 
         @Override
-        public void onMessage(short type, Bundle message) {
-            onCoreMessage(type, message);
+        public void onMessage(List<Object> message) {
+            onCoreMessage(message);
         }
     }
 }
