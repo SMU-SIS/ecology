@@ -36,7 +36,7 @@ public class SocketCreator implements Runnable {
 
             while (true) {
                 try {
-                    int toRead = inputStream.readByte();
+                    int toRead = inputStream.readInt();
                     int currentRead = 0;
 
                     while(currentRead < toRead){
@@ -74,7 +74,7 @@ public class SocketCreator implements Runnable {
 
     public void writeInt(int length){
         try {
-            outputStream.write(length);
+            outputStream.writeInt(length);
         }catch (IOException e) {
             Log.e(TAG, "Exception during write int", e);
         }
