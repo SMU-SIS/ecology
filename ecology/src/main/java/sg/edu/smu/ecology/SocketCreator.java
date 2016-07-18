@@ -8,6 +8,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 
 /**
  * Created by anurooppv on 1/6/2016.
@@ -30,19 +31,21 @@ public class SocketCreator implements Runnable {
             DataInputStream inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
 
-            int BUFFER_SIZE = 1024;
-            byte[] buffer = new byte[BUFFER_SIZE];
             Log.i(TAG, "EventBroadcaster run");
             handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
 
             while (true) {
                 try {
-                    inputStream.readFully(buffer);
-                    handler.obtainMessage(Settings.MESSAGE_READ,buffer).sendToTarget();
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    int toRead = inputStream.readByte();
+                    int currentRead = 0;
+
+                    while(currentRead < toRead){
+                        byte[] dataBuffer = new byte[toRead];
+
+                        currentRead += inputStream.read(dataBuffer, currentRead, toRead - currentRead);
+                        Log.i(TAG, "buffer "+ Arrays.toString(dataBuffer));
+
+                        handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
                     }
                 } catch (EOFException e) {
                     break;
@@ -61,11 +64,19 @@ public class SocketCreator implements Runnable {
         }
     }
 
-    public void write(byte[] buffer) {
+    public void writeData(byte[] buffer) {
         try {
             outputStream.write(buffer);
         } catch (IOException e) {
-            Log.e(TAG, "Exception during write", e);
+            Log.e(TAG, "Exception during write data", e);
+        }
+    }
+
+    public void writeInt(int length){
+        try {
+            outputStream.write(length);
+        }catch (IOException e) {
+            Log.e(TAG, "Exception during write int", e);
         }
     }
 }

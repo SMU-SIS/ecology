@@ -96,11 +96,17 @@ public class EventBroadcaster {
                 e.printStackTrace();
             }
 
+            int length = ioBuffer.position();
             byte [] eventData = ioBuffer.array();
-            socketCreator.write(eventData);
+            byte [] eventDataToSend = Arrays.copyOfRange(eventData, 0 , length);
+
+            //Write length of the data first
+            socketCreator.writeInt(length);
+
+            //Write the byte data
+            socketCreator.writeData(eventDataToSend);
             ioBuffer.clear();
         }
-
 
         //Add device id at the end for dependent devices.
         if (messageapi) {
@@ -226,9 +232,15 @@ public class EventBroadcaster {
                 e.printStackTrace();
             }
 
-            byte[] eventData = ioBuffer.array();
-            Log.i(TAG, "data " + Arrays.toString(eventData));
-            socketCreator.write(eventData);
+            int length = ioBuffer.position();
+            byte [] eventData = ioBuffer.array();
+            byte [] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
+
+            //Write length of the data first
+            socketCreator.writeInt(length);
+
+            //Write the byte data
+            socketCreator.writeData(eventDataToSend);
             ioBuffer.clear();
         }
 
