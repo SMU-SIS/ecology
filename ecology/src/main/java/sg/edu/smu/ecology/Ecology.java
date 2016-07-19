@@ -2,6 +2,8 @@ package sg.edu.smu.ecology;
 
 import android.content.Context;
 import android.content.IntentFilter;
+import android.net.wifi.WpsInfo;
+import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
@@ -263,6 +265,29 @@ public class Ecology implements GoogleApiClient.ConnectionCallbacks, MessageApi.
 
     public void setEventBroadcaster(SocketCreator value) {
         eventBroadcaster.setSocketCreator(value);
+    }
+
+
+    public WifiP2pConfig getWifiConfig(Peer peer){
+        WifiP2pConfig config = new WifiP2pConfig();
+        config.deviceAddress = peer.getDevice().deviceAddress;
+        config.wps.setup = WpsInfo.PBC;
+        return config;
+    }
+
+    public void scanPeers(WifiP2pManager manager, WifiP2pManager.Channel channel){
+
+        manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+            @Override
+            public void onSuccess() {
+                Log.i(TAG, "discover peers success");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+
+            }
+        });
     }
 
     @Override

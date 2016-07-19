@@ -1,5 +1,6 @@
 package sg.edu.smu.ecology;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -19,13 +20,15 @@ public class BroadcastManager extends BroadcastReceiver {
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private Ecology ecology;
+    private Activity activity;
 
     public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                            Ecology ecology) {
+                            Ecology ecology, Activity activity) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.ecology = ecology;
+        this.activity = activity;
     }
 
     @Override
@@ -42,10 +45,11 @@ public class BroadcastManager extends BroadcastReceiver {
             }
         }
         else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            /*if (manager != null) {
-                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager()
-                        .findFragmentByTag("services"));
-            }*/
+            if (manager != null) {
+                Log.i(TAG, "requestpeers");
+                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
+                        findFragmentByTag("peerList"));
+            }
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             if (manager != null) {
@@ -53,7 +57,7 @@ public class BroadcastManager extends BroadcastReceiver {
                         .getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
                 if (networkInfo.isConnected()) {
                     Log.d(TAG, "Connected to peer network.");
-                    manager.requestConnectionInfo(channel, (WifiP2pManager.ConnectionInfoListener) ecology);
+                    manager.requestConnectionInfo(channel, ecology);
                 }
             }
         }

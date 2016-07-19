@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Ecology</string>
+    <string name="finding_service">Finding room</string>
 </resources>

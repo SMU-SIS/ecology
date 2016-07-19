@@ -25,10 +25,10 @@ public class PeerList extends ListFragment implements WifiP2pManager.PeerListLis
     private final static String TAG = PeerList.class.getSimpleName();
 
     WiFiDevicesAdapter listAdapter = null;
-    private List<Peer> devices = new ArrayList<Peer>();
+    private List<Peer> peers = new ArrayList<Peer>();
 
     public interface MemberClickListener {
-        public void setupRoom(Peer member);
+        public void peerSelect(Peer wifiPeer);
     }
 
     @Override
@@ -46,19 +46,25 @@ public class PeerList extends ListFragment implements WifiP2pManager.PeerListLis
     }
 
     @Override
-    public void onPeersAvailable(WifiP2pDeviceList peers) {
-        devices.clear();
-        for(WifiP2pDevice peer : peers.getDeviceList())
+    public void onPeersAvailable(WifiP2pDeviceList peerDeviceList) {
+        peers.clear();
+        for(WifiP2pDevice peer : peerDeviceList.getDeviceList())
         {
-            Peer member = new Peer();
-            member.setDevice(peer);
-            member.setName(peer.deviceName);
-            member.setRegistrationType(peer.primaryDeviceType);
-            devices.add(member);
+            Log.i(TAG, "onPeersAvailable");
+            PeerList.WiFiDevicesAdapter adapter = ((PeerList.WiFiDevicesAdapter) this.getListAdapter());
+
+            Peer wifiPeer = new Peer();
+            wifiPeer.setDevice(peer);
+            wifiPeer.setName(peer.deviceName);
+            wifiPeer.setRegistrationType(peer.primaryDeviceType);
+            peers.add(wifiPeer);
+
+            adapter.add(wifiPeer);
+            adapter.notifyDataSetChanged();
         }
         ((WiFiDevicesAdapter) getListAdapter()).notifyDataSetChanged();
 
-        if (devices.size() == 0) {
+        if (peers.size() == 0) {
             Log.d(TAG, "No devices found");
             return;
         }
@@ -66,7 +72,7 @@ public class PeerList extends ListFragment implements WifiP2pManager.PeerListLis
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-        ((MemberClickListener) getActivity()).setupRoom((Peer) l.getItemAtPosition(position));
+        ((MemberClickListener) getActivity()).peerSelect((Peer) l.getItemAtPosition(position));
         ((TextView) v.findViewById(android.R.id.text2)).setText("Connecting");
     }
 
@@ -97,16 +103,16 @@ public class PeerList extends ListFragment implements WifiP2pManager.PeerListLis
                 }
                 TextView statusText = (TextView) v
                         .findViewById(android.R.id.text2);
-                statusText.setText(getMemberStatus(service.getDevice().status));
+                statusText.setText(getPeerStatus(service.getDevice().status));
             }
             return v;
         }
     }
 
     /*
-        Returns current status of member
+        Returns current status of peer
      */
-    public static String getMemberStatus(int statusCode) {
+    public static String getPeerStatus(int statusCode) {
         switch (statusCode) {
             case WifiP2pDevice.CONNECTED:
                 return "Connected";
