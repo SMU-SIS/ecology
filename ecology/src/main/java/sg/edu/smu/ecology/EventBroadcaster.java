@@ -118,7 +118,7 @@ public class EventBroadcaster {
             MessageData messageData1 = new MessageData();
             messageData1.setAddress("/event");
 
-            Log.i(TAG, "Data " + data);
+            //Log.i(TAG, "Data " + data);
             for (int i = 0; i < data.size(); i++) {
                 messageData1.addArgument(data.get(i));
             }
@@ -130,8 +130,10 @@ public class EventBroadcaster {
             }
         }
 
+        int length = ioBuffer.position();
         byte[] forwardRequestData = ioBuffer.array();
-        Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
+        byte [] forwardRequestDataToSend = Arrays.copyOfRange(forwardRequestData, 0, length);
+        //Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
 
         if (eventType.equals("launch")) {
             MESSAGE_PATH = START_ACTIVITY_PATH_1;
@@ -141,7 +143,7 @@ public class EventBroadcaster {
 
         if (nodeId != null) {
             Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                    MESSAGE_PATH, forwardRequestData).setResultCallback(
+                    MESSAGE_PATH, forwardRequestDataToSend).setResultCallback(
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
@@ -167,7 +169,7 @@ public class EventBroadcaster {
     public void forward(Collection<Object> args, Boolean forwardCoreRequired){
 
         Vector<Object> data = new Vector<>(args);
-        Log.i(TAG, "data " + data);
+        //Log.i(TAG, "data " + data);
 
         MessageData messageData = new MessageData();
         messageData.setAddress("/event");
@@ -185,13 +187,15 @@ public class EventBroadcaster {
             e.printStackTrace();
         }
 
+        int length = ioBuffer.position();
         byte[] forwardRequestData = ioBuffer.array();
-        Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
+        byte [] forwardRequestDataToSend = Arrays.copyOfRange(forwardRequestData, 0, length);
+        //Log.i(TAG, "data " + Arrays.toString(forwardRequestData));
 
         //Forward to dependent devices - keep device id.
         if (nodeId != null) {
             Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                    MESSAGE_PATH, forwardRequestData).setResultCallback(
+                    MESSAGE_PATH, forwardRequestDataToSend).setResultCallback(
                     new ResultCallback<MessageApi.SendMessageResult>() {
                         @Override
                         public void onResult(MessageApi.SendMessageResult sendMessageResult) {
@@ -221,7 +225,7 @@ public class EventBroadcaster {
             MessageData messageData1 = new MessageData();
             messageData1.setAddress("/event");
 
-            Log.i(TAG, "data " + data);
+            //Log.i(TAG, "data " + data);
             for(int i = 0; i<data.size(); i++){
                 messageData1.addArgument(data.get(i));
             }
@@ -232,12 +236,12 @@ public class EventBroadcaster {
                 e.printStackTrace();
             }
 
-            int length = ioBuffer.position();
+            int lengthData = ioBuffer.position();
             byte [] eventData = ioBuffer.array();
-            byte [] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
+            byte [] eventDataToSend = Arrays.copyOfRange(eventData, 0, lengthData);
 
             //Write length of the data first
-            socketCreator.writeInt(length);
+            socketCreator.writeInt(lengthData);
 
             //Write the byte data
             socketCreator.writeData(eventDataToSend);
