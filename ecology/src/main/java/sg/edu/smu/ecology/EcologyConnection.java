@@ -14,6 +14,8 @@ import java.util.Vector;
  */
 public class EcologyConnection extends BaseConnector {
 
+    private final static String TAG = EcologyConnection.class.getSimpleName();
+
     /**
      * List of core node connectors, see {@link #addCoreConnector(Connector)}.
      */
@@ -69,7 +71,7 @@ public class EcologyConnection extends BaseConnector {
      * @param message the message data content.
      */
     private void onDependentMessage(List<Object> message) {
-        // TODO
+        passMessageToReceiver(message);
     }
 
     /**
@@ -77,7 +79,6 @@ public class EcologyConnection extends BaseConnector {
      */
     @Override
     public void sendMessage(List<Object> message) {
-        // TODO
 
         for(int i = 0; i< coreConnectorList.size(); i++){
             coreConnectorList.get(i).sendMessage(message);

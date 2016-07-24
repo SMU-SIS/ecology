@@ -49,7 +49,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         final String eventType = (String) message.get(message.size() - 2);
 
         // Add device ID at the end
-        message.add(android_id);
+        //message.add(android_id);
 
         DataEncoder dataEncoder = new DataEncoder();
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);

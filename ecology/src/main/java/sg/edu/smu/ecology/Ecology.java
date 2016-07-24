@@ -97,7 +97,7 @@ public class Ecology {
     void onRoomMessage(String roomName, List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
         message.add(roomName);
-        connector.sendMessage(msg);
+        connector.sendMessage(message);
     }
 
     /**
