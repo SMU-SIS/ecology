@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.content.Context;
+
 import java.util.List;
 import java.util.Vector;
 
@@ -76,18 +78,28 @@ public class EcologyConnection extends BaseConnector {
     @Override
     public void sendMessage(List<Object> message) {
         // TODO
+
+        for(int i = 0; i< coreConnectorList.size(); i++){
+            coreConnectorList.get(i).sendMessage(message);
+
+        }
+
+        for(int i = 0; i< dependentConnectorList.size(); i++){
+            dependentConnectorList.get(i).sendMessage(message);
+        }
+
     }
 
     /**
      * Connect to the ecology.
      */
-    public void connect() {
+    public void connect(Context activity) {
         // Connect all connectors.
         for (Connector connector : dependentConnectorList) {
-            connector.connect();
+            connector.connect(activity);
         }
         for (Connector connector : coreConnectorList) {
-            connector.connect();
+            connector.connect(activity);
         }
     }
 
