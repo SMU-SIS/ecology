@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.content.Context;
+
 import java.util.List;
 
 /**
@@ -26,8 +28,9 @@ public interface Connector {
 
     /**
      * Ask the connector to connect itself.
+     * @param activity
      */
-    public void connect();
+    public void connect(Context activity);
 
     /**
      * Request a disconnection.
