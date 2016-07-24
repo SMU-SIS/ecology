@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.content.Context;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,7 +28,7 @@ public class EventBroadcasterTest {
             }
 
             @Override
-            public void connect() {
+            public void connect(Context activity) {
 
             }
 
