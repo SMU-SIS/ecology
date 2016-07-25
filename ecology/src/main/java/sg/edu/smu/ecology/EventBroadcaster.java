@@ -51,7 +51,7 @@ public class EventBroadcaster {
         }
         // Forward the event to the receivers.
         for (EventReceiver receiver : thisEventReceivers) {
-            receiver.handleEvent(eventType, message.subList(0, message.size() - 2));
+            receiver.handleEvent(eventType, message.subList(0, message.size() - 1));
         }
     }
 
