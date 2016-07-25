@@ -70,7 +70,7 @@ public class Ecology {
         }
         Room room = rooms.get(targetRoomName);
         if (room != null) {
-            room.onMessage(message.subList(0, message.size() - 2));
+            room.onMessage(message.subList(0, message.size() - 1));
         }
     }
 
