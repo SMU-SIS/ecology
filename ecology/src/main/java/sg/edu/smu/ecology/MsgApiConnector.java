@@ -34,12 +34,10 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
-    private String android_id;
     private static final String CAPABILITY_NAME = "mobile_news_feed_controller";
     private static String MESSAGE_PATH = " ";
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
-    private Context activity;
     private Connector.Receiver receiver;
 
     @Override
@@ -47,9 +45,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         int BUFFER_SIZE = 1024;
         // Retrieve eventType
         final String eventType = (String) message.get(message.size() - 2);
-
-        // Add device ID at the end
-        message.add(android_id);
 
         DataEncoder dataEncoder = new DataEncoder();
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
@@ -112,8 +107,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     @Override
     public void connect(Context activity) {
-
-        this.activity = activity;
 
         googleApiClient = new GoogleApiClient.Builder(activity)
                 .addApi(Wearable.API)
@@ -198,12 +191,9 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         Log.i(TAG, "nodeId " + nodeId);
 
         if( nodeId != null){
-            android_id = android.provider.Settings.Secure.getString(activity.getContentResolver(),
-                    android.provider.Settings.Secure.ANDROID_ID);
-            Log.i(TAG, "my android id " + android_id);
-
             Vector<Object> launchData = new Vector<>();
-            //eventReceiver.handleEvent("ecology:connected", launchData);
+            launchData.add("ecology:connected");
+            receiver.onMessage(launchData);
         }
 
         return nodeId;
@@ -241,14 +231,8 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         List<Object> data;
         data = messageData.getArguments();
         Log.i(TAG, "Data " + data);
-        
-        // Get the device id of the message sender
-        String deviceId = (String) data.get(data.size() - 1);
 
-        // Only if the message is not sent by the same device
-        if(!deviceId.equals(android_id)) {
-            receiver.onMessage(data.subList(0, (data.size() - 1)));
-        }
+        receiver.onMessage(data);
     }
 
 }
