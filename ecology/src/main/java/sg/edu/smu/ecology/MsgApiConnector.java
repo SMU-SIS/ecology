@@ -44,7 +44,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     public void sendMessage(List<Object> message) {
         int BUFFER_SIZE = 1024;
         // Retrieve eventType
-        final String eventType = (String) message.get(message.size() - 2);
+        final String eventType = (String) message.get(message.size() - 3);
 
         DataEncoder dataEncoder = new DataEncoder();
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
