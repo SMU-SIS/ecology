@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Magi</string>
+    <string name="finding_service">Finding peers</string>
 </resources>
