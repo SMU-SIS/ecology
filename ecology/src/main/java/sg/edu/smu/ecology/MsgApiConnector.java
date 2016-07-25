@@ -49,7 +49,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         final String eventType = (String) message.get(message.size() - 2);
 
         // Add device ID at the end
-        //message.add(android_id);
+        message.add(android_id);
 
         DataEncoder dataEncoder = new DataEncoder();
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
@@ -240,9 +240,15 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
         List<Object> data;
         data = messageData.getArguments();
-        Log.i(TAG, "Data "+data);
+        Log.i(TAG, "Data " + data);
+        
+        // Get the device id of the message sender
+        String deviceId = (String) data.get(data.size() - 1);
 
-        receiver.onMessage(data);
+        // Only if the message is not sent by the same device
+        if(!deviceId.equals(android_id)) {
+            receiver.onMessage(data.subList(0, (data.size() - 1)));
+        }
     }
 
 }
