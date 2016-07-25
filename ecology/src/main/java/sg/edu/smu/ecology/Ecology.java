@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 /**
  * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
@@ -27,6 +28,9 @@ public class Ecology {
      * A map storing the different rooms of the ecology.
      */
     private Map<String, Room> rooms = new HashMap<>();
+
+    // Stores all the rooms of the ecology
+    private Vector<Room> roomsList = new Vector<>();
 
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
@@ -68,10 +72,25 @@ public class Ecology {
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             throw new IllegalArgumentException("Unrecognized message format.");
         }
+
+        String ECOLOGY_CONNECTED = "ecology:connected";
+        /**
+         * To handle the initial ecology:connected event
+         * This event will be forwarded to all the rooms of the ecology
+         */
+        if(targetRoomName.equals(ECOLOGY_CONNECTED)){
+            for (Room room : roomsList) {
+                if(room != null){
+                    room.onMessage(message);
+                }
+            }
+        }
+
         Room room = rooms.get(targetRoomName);
         if (room != null) {
             room.onMessage(message.subList(0, message.size() - 1));
         }
+
     }
 
     /**
@@ -111,6 +130,7 @@ public class Ecology {
         if (room == null) {
             room = new Room(roomName, this);
             rooms.put(roomName, room);
+            roomsList.add(room);
         }
         return room;
     }
