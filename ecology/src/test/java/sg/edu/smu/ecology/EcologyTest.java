@@ -36,6 +36,7 @@ public class EcologyTest {
         ecologyA = null;
     }
 
+    // When a message is received from room
     @Test
     public void testOnRoomMessage() throws Exception {
         Vector<Object> data = new Vector<>();
@@ -49,11 +50,13 @@ public class EcologyTest {
         // Room name will be added at the end of the message
         assertNotEquals(data, connector.getMessage());
 
-        data.add(name);
-        // Check if ecology has added the room name
+        String roomNameA = "roomA";
+        data.add(roomNameA);
+        // Check if ecology has added the correct room name
         assertEquals(data, connector.getMessage());
     }
 
+    // Check if room is added or not
     @Test
     public void testGetRoom() throws Exception {
 
@@ -66,6 +69,7 @@ public class EcologyTest {
         assertEquals(roomA, ecologyA.getRoomsFromName(name));
     }
 
+    // When message is received from a connector - check for correct room
     @Test
     public void testCorrectRoomMessage() throws Exception{
         Vector<Object> data = new Vector<>();
@@ -85,6 +89,7 @@ public class EcologyTest {
         assertEquals(data.subList(0, data.size() - 1), roomA.getMessage());
     }
 
+    //When message is received from a connector - check for inappropriate rooms
     @Test
     public void testNoRoomFoundReceiverMessage(){
         Vector<Object> data = new Vector<>();
@@ -108,6 +113,7 @@ public class EcologyTest {
         assertNull(roomA.getMessage());
     }
 
+    // When message is received from a connector - check for incorrect message format
     @Test(expected = IllegalArgumentException.class)
     public void testIncorrectReceiverMessage(){
         Vector<Object> data = new Vector<>();

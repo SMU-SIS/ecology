@@ -33,24 +33,10 @@ public class RoomTest {
 
     @After
     public void tearDown() throws Exception {
-
+        roomA = null;
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testIllegalArgumentException(){
-        roomB = new Room("", ecologyB);
-    }
-
-    @Test
-    public void testNullEventBroadcaster() throws Exception{
-        assertNotNull(roomA.getEventBroadcaster());
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testNullPointerExceptionForEventBroadcaster() {
-        roomB.getEventBroadcaster();
-    }
-
+    // Check to see if room has been created with the proper name.
     @Test
     public void testGetCorrectRoomName() throws Exception{
         // Expected name
@@ -65,6 +51,7 @@ public class RoomTest {
         assertEquals(ecologyA, roomA.getEcology());
     }
 
+    // When room passes message to event broadcaster
     @Test
     public void testOnMessage() throws Exception {
         Vector<Object> data = new Vector<>();
@@ -80,6 +67,7 @@ public class RoomTest {
         assertEquals(data, roomA.getEventBroadcaster().getMessage());
     }
 
+    // When room receives message from event broadcaster
     @Test
     public void testOnEventBroadcasterMessage() throws Exception {
         Vector<Object> data = new Vector<>();
@@ -89,15 +77,31 @@ public class RoomTest {
         String eventType = "test";
         roomA.getEventBroadcaster().publish(eventType, data);
 
-        /**
-         * Since event broadcaster adds the eventype at the end of the message before passing it to
-           the room
-         */
+        //Since event broadcaster adds the eventype at the end of the message before passing it to
+        //the room
         assertNotEquals(data, roomA.getMessage());
 
         data.add(eventType);
 
         // Check to see if the correct message has reached the correct room
         assertEquals(data, roomA.getMessage());
+    }
+
+    // Improper value is passed while creating a room
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentException(){
+        roomB = new Room("", ecologyB);
+    }
+
+    // When a room is created, an event broadcaster object is created
+    @Test
+    public void testNullEventBroadcaster() throws Exception{
+        assertNotNull(roomA.getEventBroadcaster());
+    }
+
+    // When a room is not created, event broadcaster will not be created
+    @Test(expected = NullPointerException.class)
+    public void testNullPointerExceptionForEventBroadcaster() {
+        roomB.getEventBroadcaster();
     }
 }
