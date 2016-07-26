@@ -3,7 +3,6 @@ package sg.edu.smu.ecology;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.Vector;
 
@@ -24,7 +23,6 @@ public class EcologyTest {
     @Before
     public void setUp() throws Exception {
         connector = new EcologyConnection();
-        connector.addCoreConnector(Mockito.mock(Connector.class));
         ecologyA = new Ecology(connector);
     }
 
@@ -38,6 +36,9 @@ public class EcologyTest {
         Vector<Object> data = new Vector<>();
         data.add(1);
         data.add("value");
+
+        // No message has reached the ecology from rooms
+        assertNull(connector.getMessage());
 
         ecologyA.onRoomMessage(name, data);
         // Room name will be added at the end of the message
