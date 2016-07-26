@@ -32,7 +32,8 @@ public class EcologyTest {
 
     @After
     public void tearDown() throws Exception {
-
+        connector = null;
+        ecologyA = null;
     }
 
     @Test
@@ -75,6 +76,7 @@ public class EcologyTest {
 
         roomA = ecologyA.getRoom(roomName);
 
+        // Message destined for room A is received
         for (Connector.Receiver receiver : receivers) {
             receiver.onMessage(data);
         }
@@ -115,10 +117,12 @@ public class EcologyTest {
         String roomName = "roomA";
         roomA = ecologyA.getRoom(roomName);
 
+        // Receives message of incorrect format
         for (Connector.Receiver receiver : receivers) {
             receiver.onMessage(data);
         }
 
+        // Should throw IllegalArgumentException as expected
         roomA.getMessage();
     }
 }
