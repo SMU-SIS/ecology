@@ -59,6 +59,7 @@ public class Room {
      * @param message the content of the message
      */
     void onMessage(List<Object> message) {
+        this.message = message;
         // Currently, only event broadcaster messages are supported.
         eventBroadcaster.onRoomMessage(message);
     }

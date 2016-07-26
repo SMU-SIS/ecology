@@ -16,6 +16,10 @@ public abstract class BaseConnector implements Connector {
      */
     private List<Receiver> receivers = new Vector<Receiver>();
 
+    public List<Receiver> getReceivers() {
+        return receivers;
+    }
+
     /**
      * @see Connector#addReceiver(Receiver)
      */

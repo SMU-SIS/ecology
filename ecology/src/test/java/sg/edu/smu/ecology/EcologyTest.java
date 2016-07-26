@@ -4,6 +4,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
@@ -19,11 +20,14 @@ public class EcologyTest {
     private Ecology ecologyA, ecologyB;
     String name = "roomA";
     private EcologyConnection connector;
+    private List<Connector.Receiver> receivers;
 
     @Before
     public void setUp() throws Exception {
         connector = new EcologyConnection();
         ecologyA = new Ecology(connector);
+
+        receivers = connector.getReceivers();
     }
 
     @After
@@ -59,5 +63,62 @@ public class EcologyTest {
 
         // Since room has been added
         assertEquals(roomA, ecologyA.getRoomsFromName(name));
+    }
+
+    @Test
+    public void testCorrectRoomMessage() throws Exception{
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("value");
+        String roomName = "roomA";
+        data.add(roomName);
+
+        roomA = ecologyA.getRoom(roomName);
+
+        for (Connector.Receiver receiver : receivers) {
+            receiver.onMessage(data);
+        }
+
+        // Message is received at the correct room
+        assertEquals(data.subList(0, data.size() - 1), roomA.getMessage());
+    }
+
+    @Test
+    public void testNoRoomFoundReceiverMessage(){
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("value");
+
+        // Data is destined for room B
+        String roomNameB = "roomB";
+        data.add(roomNameB);
+
+        String roomNameA = "roomA";
+        // Ecology has only room A
+        roomA = ecologyA.getRoom(roomNameA);
+
+        // Data destined for room B comes
+        for (Connector.Receiver receiver : receivers) {
+            receiver.onMessage(data);
+        }
+
+        // Message is not received in roomA
+        assertNull(roomA.getMessage());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testIncorrectReceiverMessage(){
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add(23);
+
+        String roomName = "roomA";
+        roomA = ecologyA.getRoom(roomName);
+
+        for (Connector.Receiver receiver : receivers) {
+            receiver.onMessage(data);
+        }
+
+        roomA.getMessage();
     }
 }
