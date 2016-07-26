@@ -207,13 +207,18 @@ public class EcologyConnection extends BaseConnector {
             Vector<Object> msg = new Vector<>(message);
             // Check if the message is from the same device or not
             if(!android_id.equals(msg.get(msg.size() - 1))) {
-                onDependentMessage(msg.subList(0, msg.size() - 1));
+                if(!message.get(msg.size() - 1).equals("ecology:connected")){
+                    onDependentMessage(msg.subList(0, msg.size() - 1));
+                }else{
+                    // Initial ecology:connected event - doesn't contain device Id and room Name
+                    onDependentMessage(message);
+                }
             }
 
             /**
              * Except for initial ecology:connected event, forward all the other events
              */
-            if(!message.get(msg.size() - 1).equals("ecology:connected")) {
+            if (!message.get(msg.size() - 1).equals("ecology:connected")) {
                 for (int i = 0; i < coreConnectorList.size(); i++) {
                     // Remove the device ID before forwarding the message
                     coreConnectorList.get(i).sendMessage(msg.subList(0, msg.size() - 1));
@@ -226,11 +231,7 @@ public class EcologyConnection extends BaseConnector {
                         dependentConnectorList.get(i).sendMessage(message);
                     }
                 }
-            }else{
-                // Initial ecology:connected event - not to be sent - doesn't contain device Id
-                onDependentMessage(message);
             }
-
 
         }
     }
