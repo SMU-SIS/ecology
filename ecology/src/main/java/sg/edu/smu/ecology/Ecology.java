@@ -28,6 +28,10 @@ public class Ecology {
      */
     private Map<String, Room> rooms = new HashMap<>();
 
+    public Room getRoomsFromName(String name) {
+        return rooms.get(name);
+    }
+
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
@@ -96,7 +100,7 @@ public class Ecology {
      */
     void onRoomMessage(String roomName, List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
-        message.add(roomName);
+        msg.add(roomName);
         connector.sendMessage(msg);
     }
 

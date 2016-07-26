@@ -25,12 +25,19 @@ public class Room {
      * The event broadcaster associated with the room.
      */
     private EventBroadcaster eventBroadcaster;
+    
+    private List<Object> message;
 
     /**
      * @param name    the name of the room
      * @param ecology the ecology this room is part of
      */
     public Room(String name, Ecology ecology) {
+
+        if(name == null || name.length() == 0){
+            throw new IllegalArgumentException();
+        }
+
         this.name = name;
         this.ecology = ecology;
         this.eventBroadcaster = new EventBroadcaster(this);
@@ -40,6 +47,9 @@ public class Room {
      * @return the event broadcaster associated with the room.
      */
     public EventBroadcaster getEventBroadcaster() {
+        if(eventBroadcaster == null){
+            throw new NullPointerException();
+        }
         return eventBroadcaster;
     }
 
@@ -59,6 +69,7 @@ public class Room {
      * @param message the message
      */
     void onEventBroadcasterMessage(List<Object> message) {
+        this.message = message;
         ecology.onRoomMessage(name, message);
     }
 
@@ -74,5 +85,17 @@ public class Room {
      */
     private void onConnectorDisconnected() {
         // TODO
+    }
+
+    public String getRoomName() {
+        return name;
+    }
+
+    public Ecology getEcology() {
+        return ecology;
+    }
+
+    public List<Object> getMessage() {
+        return message;
     }
 }
