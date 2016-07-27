@@ -4,13 +4,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Vector;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by anurooppv on 26/7/2016.
@@ -18,86 +17,88 @@ import static org.junit.Assert.assertNull;
 public class EventBroadcasterTest {
 
     @Mock
-    private Room roomA, roomB;
-    private EventBroadcaster eventBroadcasterA, eventBroadcasterB;
+    private Room roomA;
+    @Mock
     private EventReceiver eventReceiver1, eventReceiver2;
+
+    private EventBroadcaster eventBroadcaster;
+
 
     @Before
     public void setUp() throws Exception {
-        String nameA = "roomA";
-        String nameB = "roomB";
-
-        Ecology ecologyA = Mockito.mock(Ecology.class);
-        Ecology ecologyB = Mockito.mock(Ecology.class);
-
-        eventReceiver1 = Mockito.mock(EventReceiver.class);
-        eventReceiver2 = Mockito.mock(EventReceiver.class);
-
-        roomA = new Room(nameA, ecologyA);
-        roomB = new Room(nameB, ecologyB);
+        MockitoAnnotations.initMocks(this);
     }
 
     @After
     public void tearDown() throws Exception {
-
+        eventBroadcaster = null;
     }
 
+    // Check if the message comes to the right event receiver
     @Test
-    public void testSubscribe() throws Exception {
-        eventBroadcasterA = roomA.getEventBroadcaster();
-        String eventType = "test";
+    public void testMessageReception(){
 
-        eventBroadcasterA.subscribe(eventType, eventReceiver1);
+        eventBroadcaster = new EventBroadcaster(roomA);
 
-        Vector<EventReceiver> eventReceivers1 = new Vector<>();
-        eventReceivers1.add(eventReceiver1);
+        eventBroadcaster.subscribe("test1", eventReceiver1);
+        eventBroadcaster.subscribe("test2", eventReceiver2);
 
-        Vector<EventReceiver> eventReceivers2 = new Vector<>();
-        eventReceivers2.add(eventReceiver1);
-        eventReceivers2.add(eventReceiver2);
-
-        // Check if the event receiver is added to the list for the subscribed event type
-        assertEquals(eventReceivers1, eventBroadcasterA.getEventReceivers(eventType));
-        assertNotEquals(eventReceivers2 ,eventBroadcasterA.getEventReceivers(eventType));
-    }
-
-    @Test
-    public void testUnsubscribe() throws Exception {
-        eventBroadcasterA = roomA.getEventBroadcaster();
-        String eventType = "test";
-
-        eventBroadcasterA.subscribe(eventType, eventReceiver1);
-        //eventBroadcasterA.subscribe(eventType, eventReceiver2);
-
-        eventBroadcasterA.unsubscribe(eventType, eventReceiver1);
-
-        // Check if the event receiver is removed from the list for the unsubscribed event type
-        assertNull(eventBroadcasterA.getEventReceivers(eventType));
-    }
-
-    @Test
-    public void testPublish() throws Exception {
-        eventBroadcasterA = roomA.getEventBroadcaster();
         Vector<Object> data = new Vector<>();
         data.add(1);
-        data.add("value");
+        data.add("test1");
 
-        eventBroadcasterA.publish("test", data);
-        //assertEquals(data, roomA.getMessage());
+        eventBroadcaster.onRoomMessage(data);
 
-        // message will have the event type added at the end
-        data.add("test");
+        Vector<Object> data2 = new Vector<>();
+        data2.add(1);
+        data2.add("test2");
 
-        // Check to see if the correct message has reached the correct room
-        assertEquals(data, roomA.getMessage());
+        eventBroadcaster.onRoomMessage(data2);
+
+        // To verify that the right event receiver is being called the message is received
+        verify(eventReceiver1).handleEvent("test1", data.subList(0, data.size() - 1));
+        verify(eventReceiver2, never()).handleEvent("test1", data.subList(0, data.size() - 1));
+
+        // To verify that the right event receiver is being called the message is received
+        verify(eventReceiver2).handleEvent("test2", data.subList(0, data.size() - 1));
+        verify(eventReceiver1, never()).handleEvent("test2", data.subList(0, data.size() - 1));
+
     }
 
-
+    // Check if the message is reaching the correct room
     @Test
-    public void testCheckCorrectRoom(){
-        eventBroadcasterB = roomA.getEventBroadcaster();
+    public void testPublish(){
 
-        //assertEquals(roomB, eventBroadcasterB.getRoom());
-        assertEquals(roomA, eventBroadcasterB.getRoom());
+        eventBroadcaster = new EventBroadcaster(roomA);
+
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add(23);
+        eventBroadcaster.publish("test", data);
+
+        // Publish method adds the event type at the end
+        Vector<Object> roomData = new Vector<>();
+        roomData.add(1);
+        roomData.add(23);
+        roomData.add("test");
+        // To verify if the right data reaches the right room
+        verify(roomA).onEventBroadcasterMessage(roomData);
+    }
+
+    // Check if message goes to an unsubscribed event receiver
+    @Test
+    public void testUnsubscribe(){
+        eventBroadcaster = new EventBroadcaster(roomA);
+
+        eventBroadcaster.subscribe("test1", eventReceiver1);
+
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test1");
+
+        eventBroadcaster.unsubscribe("test1", eventReceiver1);
+        eventBroadcaster.onRoomMessage(data);
+        // To verify if event receiver is called or not
+        verify(eventReceiver1, never()).handleEvent("test1", data.subList(0, data.size() - 1));
     }
 }

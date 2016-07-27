@@ -20,21 +20,11 @@ public class EventBroadcaster {
 
     private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
 
-    private List<Object> message;
-
     /**
      * @param room the room the event broadcaster is part of.
      */
     public EventBroadcaster(Room room) {
         this.room = room;
-    }
-
-    public List<EventReceiver> getEventReceivers(String type) {
-        return eventReceivers.get(type);
-    }
-
-    public List<Object> getMessage() {
-        return message;
     }
 
     /**
@@ -43,7 +33,6 @@ public class EventBroadcaster {
      * @param message the message
      */
     void onRoomMessage(List<Object> message) {
-        this.message = message;
         // Only message event are supported.
         handleEventMessage(message);
     }
@@ -63,7 +52,7 @@ public class EventBroadcaster {
         }
         // Forward the event to the receivers.
         for (EventReceiver receiver : thisEventReceivers) {
-            receiver.handleEvent(eventType, message.subList(0, message.size() - 2));
+            receiver.handleEvent(eventType, message.subList(0, message.size() - 1));
         }
     }
 
@@ -115,9 +104,5 @@ public class EventBroadcaster {
         List<Object> msg = new ArrayList<>(data);
         msg.add(eventType);
         room.onEventBroadcasterMessage(msg);
-    }
-
-    public Room getRoom() {
-        return room;
     }
 }
