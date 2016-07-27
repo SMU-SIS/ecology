@@ -23,18 +23,10 @@ public class Ecology {
      */
     private Connector connector;
 
-    public Connector getConnector() {
-        return connector;
-    }
-
     /**
      * A map storing the different rooms of the ecology.
      */
     private Map<String, Room> rooms = new HashMap<>();
-
-    public Room getRoomsFromName(String name) {
-        return rooms.get(name);
-    }
 
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the

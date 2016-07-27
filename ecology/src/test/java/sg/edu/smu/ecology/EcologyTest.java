@@ -60,13 +60,11 @@ public class EcologyTest {
     @Test
     public void testGetRoom() throws Exception {
 
-        // No room has been added
-        assertNull(ecologyA.getRoomsFromName(name));
-
+        // If room is not found, required room will be created else will return the existing room
         roomA = ecologyA.getRoom(name);
 
         // Since room has been added
-        assertEquals(roomA, ecologyA.getRoomsFromName(name));
+        assertEquals(roomA, ecologyA.getRoom(name));
     }
 
     // When message is received from a connector - check for correct room
