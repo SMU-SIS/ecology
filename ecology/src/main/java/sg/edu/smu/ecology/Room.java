@@ -25,16 +25,13 @@ public class Room {
      * The event broadcaster associated with the room.
      */
     private EventBroadcaster eventBroadcaster;
-    
-    private List<Object> message;
 
     /**
      * @param name    the name of the room
      * @param ecology the ecology this room is part of
      */
     public Room(String name, Ecology ecology) {
-
-        if(name == null || name.length() == 0){
+        if(name == null || name.length() == 0 || name.equals(" ")){
             throw new IllegalArgumentException();
         }
 
@@ -44,12 +41,21 @@ public class Room {
     }
 
     /**
+     * Special constructor only for testing
+     * @param name the name of the room
+     * @param ecology the ecology this room is part of
+     * @param eventBroadcaster the event broadcaster that is part of this room
+     */
+    Room(String name, Ecology ecology, EventBroadcaster eventBroadcaster){
+        this.name = name;
+        this.ecology = ecology;
+        this.eventBroadcaster = eventBroadcaster;
+    }
+
+    /**
      * @return the event broadcaster associated with the room.
      */
     public EventBroadcaster getEventBroadcaster() {
-        if(eventBroadcaster == null){
-            throw new NullPointerException();
-        }
         return eventBroadcaster;
     }
 
@@ -59,7 +65,6 @@ public class Room {
      * @param message the content of the message
      */
     void onMessage(List<Object> message) {
-        this.message = message;
         // Currently, only event broadcaster messages are supported.
         eventBroadcaster.onRoomMessage(message);
     }
@@ -70,7 +75,6 @@ public class Room {
      * @param message the message
      */
     void onEventBroadcasterMessage(List<Object> message) {
-        this.message = message;
         ecology.onRoomMessage(name, message);
     }
 
@@ -88,15 +92,4 @@ public class Room {
         // TODO
     }
 
-    public String getRoomName() {
-        return name;
-    }
-
-    public Ecology getEcology() {
-        return ecology;
-    }
-
-    public List<Object> getMessage() {
-        return message;
-    }
 }
