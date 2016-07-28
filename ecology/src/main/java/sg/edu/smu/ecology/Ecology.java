@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 /**
  * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
@@ -74,18 +75,6 @@ public class Ecology {
             throw new IllegalArgumentException("Unrecognized message format.");
         }
 
-        /**
-         * To handle the initial ecology:connected event
-         * This event will be forwarded to all the rooms of the ecology
-         */
-        if(targetRoomName.equals(ECOLOGY_CONNECTED)){
-            for (Room room : rooms.values()) {
-                if(room != null){
-                    room.onMessage(message);
-                }
-            }
-        }
-
         Room room = rooms.get(targetRoomName);
         if (room != null) {
             room.onMessage(message.subList(0, message.size() - 1));
@@ -97,7 +86,14 @@ public class Ecology {
      * Called when the ecology connector is connected.
      */
     private void onConnectorConnected() {
-        // TODO
+        for (Room room : rooms.values()) {
+            if(room != null){
+                Vector<Object> launchData = new Vector<>();
+                launchData.add(ECOLOGY_CONNECTED);
+                // Every room in the ecology receives the connected information
+                room.getEventBroadcaster().onConnectorConnectedMessage(launchData);
+            }
+        }
     }
 
     /**

@@ -36,6 +36,24 @@ public class EventBroadcaster {
         handleEventMessage(message);
     }
 
+    /**
+     * Handle the ecology connector connected messages coming from the room.
+     *
+     * @param message the message
+     */
+    void onConnectorConnectedMessage(List<Object> message) {
+        handleEventMessage(message);
+    }
+
+    /**
+     * Handle the ecology connector disconnected messages coming from the room.
+     *
+     * @param message the message
+     */
+    void onConnectorDisconnectedMessage(List<Object> message) {
+        handleEventMessage(message);
+    }
+
     private void handleEventMessage(List<Object> message) {
         // Grab the event's type.
         String eventType;

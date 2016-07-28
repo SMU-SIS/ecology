@@ -65,7 +65,7 @@ public class EcologyConnection extends BaseConnector {
      * @param message the message data content.
      */
     private void onCoreMessage(List<Object> message) {
-        passMessageToReceiver(message);
+        passMessageToReceivers(message);
     }
 
     /**
@@ -74,7 +74,7 @@ public class EcologyConnection extends BaseConnector {
      * @param message the message data content.
      */
     private void onDependentMessage(List<Object> message) {
-        passMessageToReceiver(message);
+        passMessageToReceivers(message);
     }
 
     /**
@@ -153,10 +153,7 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorConnected(Connector connector) {
-        Vector<Object> launchData = new Vector<>();
-        launchData.add("ecology:connected");
-        // Initial ecology:connected message - doesn't contain device Id and room Name
-        passMessageToReceiver(launchData);
+        notifyConnectedToReceivers();
     }
 
     /**
@@ -165,7 +162,7 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorDisconnected(Connector connector) {
-        // TODO
+        notifyDisconnectedToReceivers();
     }
 
     /**

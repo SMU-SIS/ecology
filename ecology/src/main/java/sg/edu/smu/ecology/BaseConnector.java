@@ -28,9 +28,27 @@ public abstract class BaseConnector implements Connector {
      *
      * @param message the message's content.
      */
-    protected void passMessageToReceiver(List<Object> message) {
+    protected void passMessageToReceivers(List<Object> message) {
         for (Receiver receiver : receivers) {
             receiver.onMessage(message);
+        }
+    }
+
+    /**
+     *  Notify all receivers that its connector has been connected (see {@Link Connector.Receiver#onConnectorConnected()}.
+     */
+    protected void notifyConnectedToReceivers() {
+        for (Receiver receiver : receivers) {
+            receiver.onConnectorConnected();
+        }
+    }
+
+    /**
+     *  Notify all receivers that its connector has been disconnected (see {@Link Connector.Receiver#onConnectorDisconnected()}).
+     */
+    protected void notifyDisconnectedToReceivers() {
+        for (Receiver receiver : receivers) {
+            receiver.onConnectorDisconnected();
         }
     }
 }
