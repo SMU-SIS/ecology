@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 public class EventBroadcasterTest {
 
     @Mock
-    private Room roomA;
+    private Room room;
     @Mock
     private EventReceiver eventReceiver1, eventReceiver2;
 
@@ -27,6 +27,7 @@ public class EventBroadcasterTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
+        eventBroadcaster = new EventBroadcaster(room);
     }
 
     @After
@@ -37,18 +38,17 @@ public class EventBroadcasterTest {
     // Check if the message comes to the right event receiver
     @Test
     public void testMessageReception(){
-
-        eventBroadcaster = new EventBroadcaster(roomA);
-
         eventBroadcaster.subscribe("test1", eventReceiver1);
         eventBroadcaster.subscribe("test2", eventReceiver2);
 
+        // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
         data.add("test1");
 
         eventBroadcaster.onRoomMessage(data);
 
+        // Test data
         Vector<Object> data2 = new Vector<>();
         data2.add(1);
         data2.add("test2");
@@ -62,40 +62,36 @@ public class EventBroadcasterTest {
         // To verify that the right event receiver is being called the message is received
         verify(eventReceiver2).handleEvent("test2", data.subList(0, data.size() - 1));
         verify(eventReceiver1, never()).handleEvent("test2", data.subList(0, data.size() - 1));
-
     }
 
-    // Check if the message is reaching the correct room
+    // Check if the message reaches the correct room with correct data
     @Test
     public void testPublish(){
-
-        eventBroadcaster = new EventBroadcaster(roomA);
-
+        // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
         data.add(23);
         eventBroadcaster.publish("test", data);
 
         // Publish method adds the event type at the end
-        Vector<Object> roomData = new Vector<>();
-        roomData.add(1);
-        roomData.add(23);
+        Vector<Object> roomData = new Vector<>(data);
         roomData.add("test");
+
         // To verify if the right data reaches the right room
-        verify(roomA).onEventBroadcasterMessage(roomData);
+        verify(room).onEventBroadcasterMessage(roomData);
     }
 
     // Check if message goes to an unsubscribed event receiver
     @Test
     public void testUnsubscribe(){
-        eventBroadcaster = new EventBroadcaster(roomA);
-
         eventBroadcaster.subscribe("test1", eventReceiver1);
 
+        // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
         data.add("test1");
 
+        eventBroadcaster.publish("test1", data);
         eventBroadcaster.unsubscribe("test1", eventReceiver1);
         eventBroadcaster.onRoomMessage(data);
         // To verify if event receiver is called or not
