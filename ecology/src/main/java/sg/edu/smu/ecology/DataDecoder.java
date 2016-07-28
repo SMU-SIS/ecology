@@ -83,7 +83,6 @@ public class DataDecoder {
         final Input rawInput = new Input(bytes, bytesLength);
         final MessageData messageData = new MessageData();
 
-        messageData.setAddress(readString(rawInput));
         final CharSequence types = readTypes(rawInput);
         for (int ti = 0; ti < types.length(); ++ti) {
             if ('[' == types.charAt(ti)) {

@@ -22,9 +22,6 @@ public class DataEncoder {
     //Write datamessage into iobuffer.
     public void encodeMessage(MessageData messageData, IoBuffer buffer)
             throws CharacterCodingException {
-        String addr = messageData.getAddress();
-
-        write(addr, buffer);
 
         ArrayList<Object> args = messageData.getArguments();
 

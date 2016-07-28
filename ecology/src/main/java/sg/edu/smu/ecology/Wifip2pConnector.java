@@ -53,8 +53,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
             DataEncoder dataEncoder = new DataEncoder();
             MessageData messageData = new MessageData();
 
-            messageData.setAddress("/event");
-
             for(int i = 0; i<message.size(); i++){
                 messageData.addArgument(message.get(i));
             }

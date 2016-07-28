@@ -50,7 +50,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
 
         MessageData messageData = new MessageData();
-        messageData.setAddress("/event");
 
         Log.i(TAG, "Data " + message);
         for (int i = 0; i < message.size(); i++) {

@@ -8,7 +8,6 @@ import java.util.ArrayList;
  */
 public class MessageData {
 
-    protected String address;
     protected ArrayList<Object> arguments;
     protected String typeTags;
     private int datasize = 0;
@@ -16,14 +15,6 @@ public class MessageData {
     public MessageData() {
         arguments = new ArrayList<Object>();
         typeTags = ",";
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String anAddress) {
-        address = anAddress;
     }
 
     public String getTypeTags() {
