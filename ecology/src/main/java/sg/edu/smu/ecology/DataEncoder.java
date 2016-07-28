@@ -7,7 +7,6 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Created by anurooppv on 29/6/2016.
@@ -15,9 +14,6 @@ import java.util.Iterator;
 public class DataEncoder {
 
     private static CharsetEncoder cse = Charset.forName("UTF-8").newEncoder();
-
-    public DataEncoder() {
-    }
 
     //Write datamessage into iobuffer.
     public void encodeMessage(MessageData messageData, IoBuffer buffer)
@@ -29,8 +25,7 @@ public class DataEncoder {
 
         write(typeTags, buffer);
 
-        for (Iterator<Object> i = args.iterator(); i.hasNext();) {
-            Object arg = (Object) i.next();
+        for (Object arg : args) {
             write(arg, buffer);
         }
     }
@@ -50,8 +45,8 @@ public class DataEncoder {
 
         if (arg instanceof Object[]) {
             Object[] theArray = (Object[]) arg;
-            for (int i = 0; i < theArray.length; ++i) {
-                write(theArray[i], buffer);
+            for (Object aTheArray : theArray) {
+                write(aTheArray, buffer);
             }
             return;
         }
