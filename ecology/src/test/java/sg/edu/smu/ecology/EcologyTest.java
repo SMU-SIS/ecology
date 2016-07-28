@@ -3,130 +3,152 @@ package sg.edu.smu.ecology;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.List;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Created by anurooppv on 26/7/2016.
  */
+@RunWith(PowerMockRunner.class)
 public class EcologyTest {
 
-    private Room roomA, roomB;
-    private Ecology ecologyA, ecologyB;
-    String name = "roomA";
-    private EcologyConnection connector;
-    private List<Connector.Receiver> receivers;
+    private Ecology ecology;
+
+    @Mock
+    private EcologyConnection ecologyConnection;
+    @Mock
+    private Room room;
+    @Mock
+    private Ecology.RoomFactory roomFactory;
+    @Mock
+    private Connector.Receiver receiver;
 
     @Before
     public void setUp() throws Exception {
-        connector = new EcologyConnection();
-        ecologyA = new Ecology(connector);
-
-        receivers = connector.getReceivers();
+        MockitoAnnotations.initMocks(this);
+        ecology = new Ecology(roomFactory,ecologyConnection);
     }
 
     @After
     public void tearDown() throws Exception {
-        connector = null;
-        ecologyA = null;
+        ecology = null;
     }
 
-    // When a message is received from room
+    // To check if the message is received by the connector
     @Test
     public void testOnRoomMessage() throws Exception {
+        // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
-        data.add("value");
+        data.add("test");
 
-        // No message has reached the ecology from rooms
-        assertNull(connector.getMessage());
+        String roomName = "room";
+        ecology.onRoomMessage(roomName, data);
 
-        ecologyA.onRoomMessage(name, data);
-        // Room name will be added at the end of the message
-        assertNotEquals(data, connector.getMessage());
+        // Room name will be added at the end of the data before passing it to connector
+        Vector<Object> connectorData = new Vector<>(data);
+        connectorData.add(roomName);
 
-        String roomNameA = "roomA";
-        data.add(roomNameA);
-        // Check if ecology has added the correct room name
-        assertEquals(data, connector.getMessage());
+        // To verify if the connector received the message
+        verify(ecologyConnection).sendMessage(connectorData);
     }
 
     // Check if room is added or not
     @Test
     public void testGetRoom() throws Exception {
-
-        // If room is not found, required room will be created else will return the existing room
-        roomA = ecologyA.getRoom(name);
-
-        // Since room has been added
-        assertEquals(roomA, ecologyA.getRoom(name));
+        room = ecology.getRoom("room");
+        assertEquals(room, ecology.getRoom("room"));
     }
 
     // When message is received from a connector - check for correct room
     @Test
     public void testCorrectRoomMessage() throws Exception{
+        // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
-        data.add("value");
-        String roomName = "roomA";
+        data.add("test");
+        String roomName = "room";
         data.add(roomName);
 
-        roomA = ecologyA.getRoom(roomName);
+        // To verify if add receiver was called only once
+        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
 
-        // Message destined for room A is received
-        for (Connector.Receiver receiver : receivers) {
-            receiver.onMessage(data);
-        }
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        receiver = receiverCaptor.getValue();
 
-        // Message is received at the correct room
-        assertEquals(data.subList(0, data.size() - 1), roomA.getMessage());
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // Receiver gets the message
+        receiver.onMessage(data);
+
+        // To verify if the message reaches the correct room
+        verify(room, times(1)).onMessage(data.subList(0, data.size() - 1));
     }
 
     //When message is received from a connector - check for inappropriate rooms
     @Test
     public void testNoRoomFoundReceiverMessage(){
+        // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
-        data.add("value");
+        data.add("test");
+        // Different room name
+        String roomName = "room2";
+        data.add(roomName);
 
-        // Data is destined for room B
-        String roomNameB = "roomB";
-        data.add(roomNameB);
+        // To verify if add receiver was called only once
+        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
 
-        String roomNameA = "roomA";
-        // Ecology has only room A
-        roomA = ecologyA.getRoom(roomNameA);
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        receiver = receiverCaptor.getValue();
 
-        // Data destined for room B comes
-        for (Connector.Receiver receiver : receivers) {
-            receiver.onMessage(data);
-        }
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
 
-        // Message is not received in roomA
-        assertNull(roomA.getMessage());
+        // Receiver gets the message destined for room 2
+        receiver.onMessage(data);
+
+        // To verify that the message never reached room
+        verify(room, never()).onMessage(data.subList(0, data.size() - 1));
     }
 
     // When message is received from a connector - check for incorrect message format
     @Test(expected = IllegalArgumentException.class)
     public void testIncorrectReceiverMessage(){
+        // Test data - no room name is added
         Vector<Object> data = new Vector<>();
         data.add(1);
         data.add(23);
 
-        String roomName = "roomA";
-        roomA = ecologyA.getRoom(roomName);
+        // To verify if add receiver was called only once
+        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
 
-        // Receives message of incorrect format
-        for (Connector.Receiver receiver : receivers) {
-            receiver.onMessage(data);
-        }
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        receiver = receiverCaptor.getValue();
 
-        // Should throw IllegalArgumentException as expected
-        roomA.getMessage();
+        // Receiver gets the message destined for a room
+        // Since the message is in inappropriate format, exception will be thrown
+        receiver.onMessage(data);
     }
 }
