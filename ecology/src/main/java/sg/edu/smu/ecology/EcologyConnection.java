@@ -22,12 +22,6 @@ public class EcologyConnection extends BaseConnector {
      */
     private List<Connector> dependentConnectorList = new Vector<>();
 
-    private List<Object> message;
-
-    public List<Object> getMessage() {
-        return message;
-    }
-
     /**
      * Adds a core connector to the ecology connection.
      * Core nodes are supposed to be all linked together. Message received from a core has also be
@@ -81,8 +75,6 @@ public class EcologyConnection extends BaseConnector {
      */
     @Override
     public void sendMessage(List<Object> message) {
-
-        this.message = message;
         // TODO
     }
 
