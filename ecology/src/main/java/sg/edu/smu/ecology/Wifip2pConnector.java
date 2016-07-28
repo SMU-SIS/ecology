@@ -15,7 +15,6 @@ import org.apache.mina.core.buffer.IoBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * Created by anurooppv on 22/7/2016.
@@ -182,9 +181,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 Object obj = msg.obj;
                 setSocketData((SocketData) obj);
 
-                Vector<Object> launchData = new Vector<>();
-                launchData.add("ecology:connected");
-                receiver.onMessage(launchData);
+                receiver.onConnectorConnected();
         }
         return true;
     }

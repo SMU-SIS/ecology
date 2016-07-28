@@ -153,7 +153,10 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorConnected(Connector connector) {
-        // TODO
+        Vector<Object> launchData = new Vector<>();
+        launchData.add("ecology:connected");
+        // Initial ecology:connected message - doesn't contain device Id and room Name
+        passMessageToReceiver(launchData);
     }
 
     /**
@@ -207,29 +210,21 @@ public class EcologyConnection extends BaseConnector {
             Vector<Object> msg = new Vector<>(message);
             // Check if the message is from the same device or not
             if(!android_id.equals(msg.get(msg.size() - 1))) {
-                if(!message.get(msg.size() - 1).equals("ecology:connected")){
-                    onDependentMessage(msg.subList(0, msg.size() - 1));
-                }else{
-                    // Initial ecology:connected event - doesn't contain device Id and room Name
-                    onDependentMessage(message);
-                }
+                onDependentMessage(msg.subList(0, msg.size() - 1));
             }
 
-            /**
-             * Except for initial ecology:connected event, forward all the other events
-             */
-            if (!message.get(msg.size() - 1).equals("ecology:connected")) {
-                for (int i = 0; i < coreConnectorList.size(); i++) {
-                    // Remove the device ID before forwarding the message
-                    coreConnectorList.get(i).sendMessage(msg.subList(0, msg.size() - 1));
-                }
+            // Forward all the dependent messages to all the connected core devices
+            for (int i = 0; i < coreConnectorList.size(); i++) {
+                // Remove the device ID before forwarding the message
+                coreConnectorList.get(i).sendMessage(msg.subList(0, msg.size() - 1));
+            }
 
-                // No forwarding of data if the dependent device doesn't have any core devices
-                if(coreConnectorList.size() > 0) {
-                    for (int i = 0; i < dependentConnectorList.size(); i++) {
-                        // Forward the message to the dependent devices
-                        dependentConnectorList.get(i).sendMessage(message);
-                    }
+            // No forwarding of data if the dependent device doesn't have any core devices
+            // Also no forwarding if the device has only one dependent device
+            if(coreConnectorList.size() > 0 || dependentConnectorList.size() > 1) {
+                for (int i = 0; i < dependentConnectorList.size(); i++) {
+                    // Forward the message to the dependent devices
+                    dependentConnectorList.get(i).sendMessage(message);
                 }
             }
 
@@ -251,17 +246,14 @@ public class EcologyConnection extends BaseConnector {
         public void onMessage(List<Object> message) {
             onCoreMessage(message);
 
-            /**
-             * Forwards the event data to all the dependent devices after adding the device ID
-             * except the initial ecology:connected event
-             */
-            if(!message.get(message.size() - 1).equals("ecology:connected")) {
-                for (int i = 0; i < dependentConnectorList.size(); i++) {
-                    // Add the device id of the message sender
-                    Vector<Object> msg = new Vector<>(message);
-                    msg.add(android_id);
-                    dependentConnectorList.get(i).sendMessage(msg);
-                }
+            // Forwards the message to all the dependent devices after adding the device ID
+            // except the initial ecology:connected event
+
+            for (int i = 0; i < dependentConnectorList.size(); i++) {
+                // Add the device id of the message sender
+                Vector<Object> msg = new Vector<>(message);
+                msg.add(android_id);
+                dependentConnectorList.get(i).sendMessage(msg);
             }
         }
     }

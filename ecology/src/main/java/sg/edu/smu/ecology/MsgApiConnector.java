@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 /**
  * Created by anurooppv on 22/7/2016.
@@ -190,9 +189,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         Log.i(TAG, "nodeId " + nodeId);
 
         if( nodeId != null){
-            Vector<Object> launchData = new Vector<>();
-            launchData.add("ecology:connected");
-            receiver.onMessage(launchData);
+            receiver.onConnectorConnected();
         }
 
         return nodeId;
@@ -229,7 +226,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
         List<Object> data;
         data = messageData.getArguments();
-        Log.i(TAG, "Data " + data);
+        Log.i(TAG, "Data received" + data);
 
         receiver.onMessage(data);
     }
