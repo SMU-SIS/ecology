@@ -24,6 +24,11 @@ public class Ecology {
     private Connector connector;
 
     /**
+     * Used for creating rooms part of this ecology
+     */
+    private RoomFactory roomFactory;
+
+    /**
      * A map storing the different rooms of the ecology.
      */
     private Map<String, Room> rooms = new HashMap<>();
@@ -34,9 +39,38 @@ public class Ecology {
      */
     public Ecology(Connector ecologyConnector) {
         this.connector = ecologyConnector;
-
+        this.roomFactory = new RoomFactory();
         // Use an intermediate receiver to allows private {@link onMessage},
         // {@link onConnectorConnected} and {@link onConnectorDisconnected} on the ecology instance.
+        this.connector.addReceiver(new Connector.Receiver() {
+
+            @Override
+            public void onMessage(List<Object> message) {
+                Ecology.this.onConnectorMessage(message);
+            }
+
+            @Override
+            public void onConnectorConnected() {
+                Ecology.this.onConnectorConnected();
+            }
+
+            @Override
+            public void onConnectorDisconnected() {
+                Ecology.this.onConnectorDisconnected();
+            }
+        });
+    }
+
+    /**
+     * Special constructor only for testing
+     * @param roomFactory to create rooms part of this ecology
+     * @param connector the connector used to send messages to the other devices of the
+     *                         ecology.
+     */
+    Ecology(RoomFactory roomFactory, EcologyConnection connector){
+        this.roomFactory = roomFactory;
+        this.connector = connector;
+
         this.connector.addReceiver(new Connector.Receiver() {
 
             @Override
@@ -109,9 +143,15 @@ public class Ecology {
     public Room getRoom(String roomName) {
         Room room = rooms.get(roomName);
         if (room == null) {
-            room = new Room(roomName, this);
+            room = roomFactory.createRoom(roomName, this);
             rooms.put(roomName, room);
         }
         return room;
+    }
+
+    static class RoomFactory{
+        public Room createRoom(String roomName, Ecology ecology){
+            return new Room(roomName, ecology);
+        }
     }
 }
