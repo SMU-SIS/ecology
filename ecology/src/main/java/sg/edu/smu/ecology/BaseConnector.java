@@ -39,7 +39,7 @@ public abstract class BaseConnector implements Connector {
     }
 
     /**
-     *  Notify all receivers that its connector has been connected (see {@Link Connector.Receiver#onConnectorConnected()}.
+     *  Notify all receivers that its connector has been connected (see {@link Connector.Receiver#onConnectorConnected()}).
      */
     protected void notifyConnectedToReceivers() {
         for (Receiver receiver : receivers) {
@@ -48,7 +48,7 @@ public abstract class BaseConnector implements Connector {
     }
 
     /**
-     *  Notify all receivers that its connector has been disconnected (see {@Link Connector.Receiver#onConnectorDisconnected()}).
+     *  Notify all receivers that its connector has been disconnected (see {@link Connector.Receiver#onConnectorDisconnected()}).
      */
     protected void notifyDisconnectedToReceivers() {
         for (Receiver receiver : receivers) {
