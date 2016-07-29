@@ -118,15 +118,27 @@ public class EventBroadcaster {
 
     /**
      * Publish an event. The event will be transmitted to any receiver that subscribe to the event's
-     * type from any device of the ecology
+     * type from any device of the ecology.
      *
      * @param eventType the event type
      * @param data      the event's data
      */
     public void publish(String eventType, List<Object> data) {
+        // Create the message to be sent to the other devices of the ecology.
         List<Object> msg = new ArrayList<>(data);
         msg.add(eventType);
         room.onEventBroadcasterMessage(msg);
+        // Pass the event to the local receivers.
+        publishLocalEvent(eventType, data);
+    }
+
+    /**
+     * Publish an event locally (the event is not shared with the other device of the ecology).
+     *
+     * @param eventType the event type
+     * @param data      the event's data
+     */
+    void publishLocalEvent(String eventType, List<Object> data) {
         passEventToReceivers(eventType, data);
     }
 }

@@ -30,11 +30,6 @@ public class Ecology {
     private RoomFactory roomFactory;
 
     /**
-     * Used to check if the device has been connected to ecology
-     */
-    private final static String ECOLOGY_CONNECTED = "ecology:connected";
-
-    /**
      * A map storing the different rooms of the ecology.
      */
     private Map<String, Room> rooms = new HashMap<>();
@@ -121,12 +116,7 @@ public class Ecology {
      */
     private void onConnectorConnected() {
         for (Room room : rooms.values()) {
-            if(room != null){
-                Vector<Object> launchData = new Vector<>();
-                launchData.add(ECOLOGY_CONNECTED);
-                // Every room in the ecology receives the connected information
-                room.getEventBroadcaster().onConnectorConnectedMessage(launchData);
-            }
+            room.onEcologyConnected();
         }
     }
 

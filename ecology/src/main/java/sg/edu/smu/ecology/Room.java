@@ -1,5 +1,6 @@
 package sg.edu.smu.ecology;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,8 +9,12 @@ import java.util.List;
  * Represent an ecology space dedicated to a same set of functionalities (e.g. an application).
  */
 public class Room {
-
     private final static String TAG = Room.class.getSimpleName();
+
+    /**
+     * Event automatically sent when the ecology is connected.
+     */
+    private final static String ECOLOGY_CONNECTED = "ecology:connected";
 
     /**
      * The ecology of the room.
@@ -78,18 +83,8 @@ public class Room {
         ecology.onRoomMessage(name, message);
     }
 
-    /**
-     * Called when the room connector is connected.
-     */
-    private void onConnectorConnected() {
-        // TODO
+    // Called when the ecology gets connected.
+    public void onEcologyConnected() {
+        getEventBroadcaster().publishLocalEvent(ECOLOGY_CONNECTED, new ArrayList<>());
     }
-
-    /**
-     * Called when the room connector is disconnected.
-     */
-    private void onConnectorDisconnected() {
-        // TODO
-    }
-
 }
