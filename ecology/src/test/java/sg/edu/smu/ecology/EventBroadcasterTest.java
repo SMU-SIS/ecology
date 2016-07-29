@@ -3,8 +3,10 @@ package sg.edu.smu.ecology;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Vector;
 
@@ -14,6 +16,7 @@ import static org.mockito.Mockito.verify;
 /**
  * Created by anurooppv on 26/7/2016.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class EventBroadcasterTest {
 
     @Mock
