@@ -9,8 +9,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -87,17 +90,28 @@ public class EventBroadcasterTest {
     // Check if message goes to an unsubscribed event receiver
     @Test
     public void testUnsubscribe(){
-        eventBroadcaster.subscribe("test1", eventReceiver1);
+        // Subscribe to "test" events.
+        eventBroadcaster.subscribe("test", eventReceiver1);
+        eventBroadcaster.subscribe("test", eventReceiver2);
 
-        // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test1");
+        // Publish a first event.
+        List<Object> data1 = new ArrayList<>();
+        data1.add(1);
+        eventBroadcaster.publish("test", data1);
 
-        eventBroadcaster.publish("test1", data);
-        eventBroadcaster.unsubscribe("test1", eventReceiver1);
-        eventBroadcaster.onRoomMessage(data);
-        // To verify if event receiver is called or not
-        verify(eventReceiver1, never()).handleEvent("test1", data.subList(0, data.size() - 1));
+        // Unsubscribe to "test" events.
+        eventBroadcaster.unsubscribe("test", eventReceiver1);
+
+        // Publish a second event.
+        List<Object> data2 = new ArrayList<>();
+        data2.add(2);
+        eventBroadcaster.publish("test", data2);
+
+        // Verify that only the first event has been received by receiver1...
+        verify(eventReceiver1, times(1)).handleEvent("test", data1);
+        verify(eventReceiver1, never()).handleEvent("test", data2);
+        // ...and that receiver 2 received both.
+        verify(eventReceiver2, times(1)).handleEvent("test", data1);
+        verify(eventReceiver2, times(1)).handleEvent("test", data2);
     }
 }
