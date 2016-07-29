@@ -62,6 +62,12 @@ public class EventBroadcaster {
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             throw new IllegalArgumentException("Unrecognized event message format.");
         }
+        passEventToReceivers(eventType, message.subList(0, message.size() - 1));
+    }
+
+
+    // Forward an event to the receivers.
+    private void passEventToReceivers(String eventType, List<Object> data){
         // Fetch the list of event receiver for this particular event type.
         List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
         if (thisEventReceivers == null) {
@@ -69,7 +75,7 @@ public class EventBroadcaster {
         }
         // Forward the event to the receivers.
         for (EventReceiver receiver : thisEventReceivers) {
-            receiver.handleEvent(eventType, message.subList(0, message.size() - 1));
+            receiver.handleEvent(eventType, data);
         }
     }
 
@@ -121,5 +127,6 @@ public class EventBroadcaster {
         List<Object> msg = new ArrayList<>(data);
         msg.add(eventType);
         room.onEventBroadcasterMessage(msg);
+        passEventToReceivers(eventType, data);
     }
 }

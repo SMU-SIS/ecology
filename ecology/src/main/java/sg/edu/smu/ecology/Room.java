@@ -31,9 +31,25 @@ public class Room {
      * @param ecology the ecology this room is part of
      */
     public Room(String name, Ecology ecology) {
+        if(name == null || name.length() == 0 || name.equals(" ")){
+            throw new IllegalArgumentException();
+        }
+
         this.name = name;
         this.ecology = ecology;
         this.eventBroadcaster = new EventBroadcaster(this);
+    }
+
+    /**
+     * Special constructor only for testing
+     * @param name the name of the room
+     * @param ecology the ecology this room is part of
+     * @param eventBroadcaster the event broadcaster that is part of this room
+     */
+    Room(String name, Ecology ecology, EventBroadcaster eventBroadcaster){
+        this.name = name;
+        this.ecology = ecology;
+        this.eventBroadcaster = eventBroadcaster;
     }
 
     /**
@@ -75,4 +91,5 @@ public class Room {
     private void onConnectorDisconnected() {
         // TODO
     }
+
 }

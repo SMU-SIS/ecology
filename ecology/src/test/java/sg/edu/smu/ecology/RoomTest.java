@@ -1,65 +1,76 @@
 package sg.edu.smu.ecology;
 
-import android.content.Context;
-
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.List;
+import java.util.Vector;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.verify;
 
 /**
- * Created by anurooppv on 21/7/2016.
+ * Created by anurooppv on 26/7/2016.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class RoomTest {
 
-    private Ecology ecologyObj;
+    @Mock
+    private Ecology ecology;
+    @Mock
+    private EventBroadcaster eventBroadcaster;
+
+    private Room room;
+    private final String roomName = "room";
 
     @Before
     public void setUp() throws Exception {
-        ecologyObj =  new Ecology(new Connector() {
-            @Override
-            public void sendMessage(List<Object> message) {
-
-            }
-
-            @Override
-            public void addReceiver(Receiver receiver) {
-
-            }
-
-            @Override
-            public void connect(Context activity) {
-
-            }
-
-            @Override
-            public void disconnect() {
-
-            }
-
-            @Override
-            public boolean isConnected() {
-                return false;
-            }
-        });
+        MockitoAnnotations.initMocks(this);
+        room = new Room(roomName, ecology, eventBroadcaster);
     }
 
-    @Test
-    public void testGetEventBroadcaster() throws Exception {
-        Room roomObj = new Room("roomAB", ecologyObj);
-        // Check if Event Broadcaster object is null or not
-        assertNotNull(roomObj.getEventBroadcaster());
+    @After
+    public void tearDown() throws Exception {
+        room = null;
     }
 
+    // To verify if eventbroadcaster receives the right message from room
     @Test
     public void testOnMessage() throws Exception {
+        // Test data
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test1");
 
+        assertEquals(eventBroadcaster, room.getEventBroadcaster());
+
+        room.onMessage(data);
+        // To verify if event broadcaster receives the correct data from room
+        verify(eventBroadcaster).onRoomMessage(data);
     }
 
+    // To verify if ecology receives the message from Room
     @Test
     public void testOnEventBroadcasterMessage() throws Exception {
+        // Test data
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test1");
 
+        room.onEventBroadcasterMessage(data);
+
+        // To verify ecology receives the message from room
+        verify(ecology).onRoomMessage(roomName, data);
     }
+
+    // Improper value is passed while creating a room
+    @Test(expected = IllegalArgumentException.class)
+    public void testIllegalArgumentException(){
+        room = new Room("", ecology);
+    }
+
 }
