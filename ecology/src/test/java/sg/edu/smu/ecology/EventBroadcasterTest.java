@@ -73,18 +73,23 @@ public class EventBroadcasterTest {
     // Check if the message reaches the correct room with correct data
     @Test
     public void testPublish(){
+        // Add an event receiver for the event "test".
+        eventBroadcaster.subscribe("test", eventReceiver1);
+
         // Test data
-        Vector<Object> data = new Vector<>();
+        List<Object> data = new ArrayList<>();
         data.add(1);
         data.add(23);
         eventBroadcaster.publish("test", data);
 
         // Publish method adds the event type at the end
-        Vector<Object> roomData = new Vector<>(data);
+        List<Object> roomData = new ArrayList<>(data);
         roomData.add("test");
 
-        // To verify if the right data reaches the right room
+        // Verify that the right data reaches the room.
         verify(room).onEventBroadcasterMessage(roomData);
+        // Verify that the event has also been received by the local receiver.
+        verify(eventReceiver1, times(1)).handleEvent("test", data);
     }
 
     // Check if message goes to an unsubscribed event receiver
