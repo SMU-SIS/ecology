@@ -32,8 +32,6 @@ public class EcologyTest {
     private Room room;
     @Mock
     private Ecology.RoomFactory roomFactory;
-    @Mock
-    private Connector.Receiver receiver;
 
     @Before
     public void setUp() throws Exception {
@@ -88,6 +86,8 @@ public class EcologyTest {
         // To capture the argument in the addReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
@@ -118,6 +118,8 @@ public class EcologyTest {
         // To capture the argument in the addReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
@@ -145,6 +147,8 @@ public class EcologyTest {
         // To capture the argument in the addReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
         // Receiver gets the message destined for a room
