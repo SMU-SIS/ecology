@@ -22,7 +22,8 @@ public class BroadcastManager extends BroadcastReceiver {
     private Wifip2pConnector wifip2pConnector;
     private Activity activity;
     private static DeviceStatusListener DeviceStatusListener;
-    private Boolean connected = false;
+    // If wifip2p is wifip2pConnected or not
+    private Boolean wifip2pConnected = false;
 
     public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
                             Wifip2pConnector wifip2pConnector, Activity activity) {
@@ -62,7 +63,7 @@ public class BroadcastManager extends BroadcastReceiver {
                 Log.i(TAG, "requestpeers");
                 manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
                         findFragmentByTag("peerList"));
-                if(!connected && DeviceStatusListener != null) {
+                if(!wifip2pConnected && DeviceStatusListener != null) {
                     DeviceStatusListener.handleDeviceStatusChange(WifiP2pDevice.INVITED);
                 }
             }
@@ -83,12 +84,13 @@ public class BroadcastManager extends BroadcastReceiver {
             WifiP2pDevice device = (WifiP2pDevice) intent
                     .getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
             Log.d(TAG, "Device status -" + device.status);
-            // This is called when device is available(Not connected) and connected
+            // This is called when device is available(Not Connected) or Connected
             if(DeviceStatusListener != null) {
                 DeviceStatusListener.handleDeviceStatusChange(device.status);
             }
             if(device.status == WifiP2pDevice.CONNECTED){
-                connected = true;
+                // Set to true when wifip2p is connected
+                wifip2pConnected = true;
             }
         }
         else if(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE.equals(action)){
@@ -96,6 +98,7 @@ public class BroadcastManager extends BroadcastReceiver {
         }
     }
 
+    // Interface for handling WiFiP2P device status
     public interface DeviceStatusListener {
         void handleDeviceStatusChange(int deviceStatus);
     }
