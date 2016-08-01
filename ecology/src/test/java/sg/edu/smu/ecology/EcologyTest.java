@@ -14,6 +14,7 @@ import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -154,5 +155,37 @@ public class EcologyTest {
         // Receiver gets the message destined for a room
         // Since the message is in inappropriate format, exception will be thrown
         receiver.onMessage(data);
+    }
+
+    // Check if connector connected to ecology message is received from connector
+    @Test
+    public void testConnectorConnected(){
+
+        // To verify if add receiver was called only once
+        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
+
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
+        receiver = receiverCaptor.getValue();
+
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // One more room is added to the ecology
+        Room room1 = mock(Room.class);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        room1 = ecology.getRoom("room1");
+
+        // Receiver receives the message that connector has been connected to the ecology
+        receiver.onConnectorConnected();
+
+        // To verify that all the rooms in the ecology receive the message
+        verify(room, times(1)).onEcologyConnected();
+        verify(room1, times(1)).onEcologyConnected();
+
     }
 }
