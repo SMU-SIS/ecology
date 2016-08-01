@@ -122,7 +122,7 @@ public class EventBroadcasterTest {
 
     // Check if a local event published is received by the event receivers
     @Test
-    public void testOnConnectorConnectedMessage(){
+    public void testOnPublishLocalEvents(){
         // Subscribe to "ecology:connected" events.
         eventBroadcaster.subscribe("ecology:connected", eventReceiver1);
 
