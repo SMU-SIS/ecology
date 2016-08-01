@@ -13,6 +13,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -67,8 +68,29 @@ public class EcologyTest {
     // Check if room is added or not
     @Test
     public void testGetRoom() throws Exception {
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
         room = ecology.getRoom("room");
-        assertEquals(room, ecology.getRoom("room"));
+
+        // To verify if room factory has been called with appropriate arguments
+        verify(roomFactory,times(1)).createRoom("room", ecology);
+
+        // To verify that roomFactory is not called on the second time
+        room = ecology.getRoom("room");
+        verify(roomFactory, times(1)).createRoom("room", ecology);
+
+        // To verify the object returned by the getRoom call is the same one returned by room factory
+        assertEquals(room, roomFactory.createRoom("room", ecology));
+
+        // To verify that objects returned are same for a given room name
+        assertEquals(ecology.getRoom("room"), ecology.getRoom("room"));
+
+        // To verify that room factory is called for a new room name
+        room = ecology.getRoom("room1");
+        verify(roomFactory, times(1)).createRoom("room1", ecology);
+
+        // To verify that objects returned are not same for different room names
+        assertNotEquals(ecology.getRoom("room"), ecology.getRoom("room1"));
     }
 
     // When message is received from a connector - check for correct room
