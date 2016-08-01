@@ -22,6 +22,7 @@ public class BroadcastManager extends BroadcastReceiver {
     private Wifip2pConnector wifip2pConnector;
     private Activity activity;
     private static DeviceStatusListener DeviceStatusListener;
+    private Boolean connected = false;
 
     public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
                             Wifip2pConnector wifip2pConnector, Activity activity) {
@@ -61,7 +62,9 @@ public class BroadcastManager extends BroadcastReceiver {
                 Log.i(TAG, "requestpeers");
                 manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
                         findFragmentByTag("peerList"));
-                DeviceStatusListener.handleDeviceStatusChange(WifiP2pDevice.INVITED);
+                if(!connected) {
+                    DeviceStatusListener.handleDeviceStatusChange(WifiP2pDevice.INVITED);
+                }
             }
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
@@ -82,6 +85,9 @@ public class BroadcastManager extends BroadcastReceiver {
             Log.d(TAG, "Device status -" + device.status);
             // This is called when device is available(Not connected) and connected
             DeviceStatusListener.handleDeviceStatusChange(device.status);
+            if(device.status == WifiP2pDevice.CONNECTED){
+                connected = true;
+            }
         }
         else if(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE.equals(action)){
             Log.i(TAG, "EXTRA_WIFI_P2P_DEVICE ");
