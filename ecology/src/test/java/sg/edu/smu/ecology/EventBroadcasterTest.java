@@ -120,7 +120,7 @@ public class EventBroadcasterTest {
         verify(eventReceiver2, times(1)).handleEvent("test", data2);
     }
 
-    // Check if a local event published is received by the event receivers
+    // Check if a local event published(direct call eg: ecology connected message) is received by the event receivers
     @Test
     public void testOnPublishLocalEvents(){
         // Subscribe to "ecology:connected" events.
