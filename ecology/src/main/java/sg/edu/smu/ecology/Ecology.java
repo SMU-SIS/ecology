@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
@@ -39,27 +38,7 @@ public class Ecology {
      *                         ecology.
      */
     public Ecology(Connector ecologyConnector) {
-        this.connector = ecologyConnector;
-        this.roomFactory = new RoomFactory();
-        // Use an intermediate receiver to allows private {@link onMessage},
-        // {@link onConnectorConnected} and {@link onConnectorDisconnected} on the ecology instance.
-        this.connector.addReceiver(new Connector.Receiver() {
-
-            @Override
-            public void onMessage(List<Object> message) {
-                Ecology.this.onConnectorMessage(message);
-            }
-
-            @Override
-            public void onConnectorConnected() {
-                Ecology.this.onConnectorConnected();
-            }
-
-            @Override
-            public void onConnectorDisconnected() {
-                Ecology.this.onConnectorDisconnected();
-            }
-        });
+        this(new RoomFactory(), ecologyConnector);
     }
 
     /**
@@ -68,7 +47,7 @@ public class Ecology {
      * @param connector the connector used to send messages to the other devices of the
      *                         ecology.
      */
-    Ecology(RoomFactory roomFactory, EcologyConnection connector){
+    Ecology(RoomFactory roomFactory, Connector connector){
         this.roomFactory = roomFactory;
         this.connector = connector;
 
