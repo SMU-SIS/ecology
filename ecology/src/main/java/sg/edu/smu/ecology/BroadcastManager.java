@@ -62,7 +62,7 @@ public class BroadcastManager extends BroadcastReceiver {
                 Log.i(TAG, "requestpeers");
                 manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
                         findFragmentByTag("peerList"));
-                if(!connected) {
+                if(!connected && DeviceStatusListener != null) {
                     DeviceStatusListener.handleDeviceStatusChange(WifiP2pDevice.INVITED);
                 }
             }
@@ -84,7 +84,9 @@ public class BroadcastManager extends BroadcastReceiver {
                     .getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
             Log.d(TAG, "Device status -" + device.status);
             // This is called when device is available(Not connected) and connected
-            DeviceStatusListener.handleDeviceStatusChange(device.status);
+            if(DeviceStatusListener != null) {
+                DeviceStatusListener.handleDeviceStatusChange(device.status);
+            }
             if(device.status == WifiP2pDevice.CONNECTED){
                 connected = true;
             }
