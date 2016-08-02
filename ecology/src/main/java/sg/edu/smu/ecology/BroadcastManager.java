@@ -1,6 +1,5 @@
 package sg.edu.smu.ecology;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,32 +15,16 @@ public class BroadcastManager extends BroadcastReceiver {
 
     private static final String TAG = BroadcastManager.class.getSimpleName();
 
-
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private Wifip2pConnector wifip2pConnector;
-    private Activity activity;
-    private static DeviceStatusListener DeviceStatusListener;
-    // If wifip2p is wifip2pConnected or not
-    private Boolean wifip2pConnected = false;
 
     public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                            Wifip2pConnector wifip2pConnector, Activity activity) {
+                            Wifip2pConnector wifip2pConnector) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.wifip2pConnector = wifip2pConnector;
-        this.activity = activity;
-    }
-
-    public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                            Wifip2pConnector wifip2pConnector, Activity activity, DeviceStatusListener DeviceStatusListener) {
-        super();
-        this.manager = manager;
-        this.channel = channel;
-        this.wifip2pConnector = wifip2pConnector;
-        this.activity = activity;
-        BroadcastManager.DeviceStatusListener = DeviceStatusListener;
     }
 
     @Override
@@ -59,14 +42,12 @@ public class BroadcastManager extends BroadcastReceiver {
             }
         }
         else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            if (manager != null) {
+            // Not required currently as we don't populate the peer list
+            /*if (manager != null) {
                 Log.i(TAG, "requestpeers");
                 manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
                         findFragmentByTag("peerList"));
-                if(!wifip2pConnected && DeviceStatusListener != null) {
-                    DeviceStatusListener.handleDeviceStatusChange(WifiP2pDevice.INVITED);
-                }
-            }
+            }*/
         }
         else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             if (manager != null) {
@@ -84,22 +65,6 @@ public class BroadcastManager extends BroadcastReceiver {
             WifiP2pDevice device = (WifiP2pDevice) intent
                     .getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
             Log.d(TAG, "Device status -" + device.status);
-            // This is called when device is available(Not Connected) or Connected
-            if(DeviceStatusListener != null) {
-                DeviceStatusListener.handleDeviceStatusChange(device.status);
-            }
-            if(device.status == WifiP2pDevice.CONNECTED){
-                // Set to true when wifip2p is connected
-                wifip2pConnected = true;
-            }
         }
-        else if(WifiP2pManager.EXTRA_WIFI_P2P_DEVICE.equals(action)){
-            Log.i(TAG, "EXTRA_WIFI_P2P_DEVICE ");
-        }
-    }
-
-    // Interface for handling WiFiP2P device status
-    public interface DeviceStatusListener {
-        void handleDeviceStatusChange(int deviceStatus);
     }
 }
