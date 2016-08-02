@@ -1,22 +1,15 @@
 package sg.edu.smu.ecology;
 
-import android.app.Service;
 import android.content.Context;
-import android.content.Intent;
-import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.util.Log;
 
 /**
  * Created by anurooppv on 1/8/2016.
  * This class is used to get Ecology instance required to connect and send messages to other devices
  * <p>
- * This service is started when the device is connected to the ecology and is stopped when the device
- * disconnects from ecology
  */
-public class EcologyService extends Service {
+public class EcologyCreator{
 
-    private static final String TAG = EcologyService.class.getSimpleName();
+    private static final String TAG = EcologyCreator.class.getSimpleName();
     private static Ecology ecology;
 
     // Initial connection to the ecology - returns the ecology instance
@@ -50,24 +43,6 @@ public class EcologyService extends Service {
         return ecology;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.i(TAG, "onCreate");
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i(TAG, "onDestroy");
-    }
-
     // Disconnects from the ecology
     public static void disconnect(Context context) {
         ecology.disconnect(context);
@@ -80,9 +55,4 @@ public class EcologyService extends Service {
         }
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
 }
