@@ -2,7 +2,7 @@ package sg.edu.smu.ecology;
 
 
 import android.content.Context;
-import android.content.Intent;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,9 +98,6 @@ public class Ecology {
      */
     void connect(Context context){
         connector.connect(context);
-        // Start the ecology service
-        Intent serviceIntent = new Intent(context, EcologyService.class);
-        context.startService(serviceIntent);
     }
 
     /**
@@ -108,9 +105,6 @@ public class Ecology {
      */
     void disconnect(Context context){
         connector.disconnect(context);
-        // Stop the ecology service
-        Intent serviceIntent = new Intent(context, EcologyService.class);
-        context.stopService(serviceIntent);
     }
 
     /**
@@ -119,11 +113,12 @@ public class Ecology {
      * @param message the message content
      */
     private void onConnectorMessage(List<Object> message) {
-        String targetRoomName;
+        String targetRoomName = null;
         try {
             targetRoomName = (String) message.get(message.size() - 1);
         } catch (ClassCastException | IndexOutOfBoundsException e) {
-            throw new IllegalArgumentException("Unrecognized message format.");
+            //throw new IllegalArgumentException("Unrecognized message format.");
+            Log.e(TAG, "Exception "+e.getMessage());
         }
 
         Room room = rooms.get(targetRoomName);
