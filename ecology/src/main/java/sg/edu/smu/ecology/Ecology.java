@@ -1,6 +1,9 @@
 package sg.edu.smu.ecology;
 
 
+import android.content.Context;
+import android.content.Intent;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +91,26 @@ public class Ecology {
                 Ecology.this.onConnectorDisconnected();
             }
         });
+    }
+
+    /**
+     * Connect to the ecology.
+     */
+    void connect(Context context){
+        connector.connect(context);
+        // Start the ecology service
+        Intent serviceIntent = new Intent(context, EcologyService.class);
+        context.startService(serviceIntent);
+    }
+
+    /**
+     * Disconnect from the ecology.
+     */
+    void disconnect(Context context){
+        connector.disconnect(context);
+        // Stop the ecology service
+        Intent serviceIntent = new Intent(context, EcologyService.class);
+        context.stopService(serviceIntent);
     }
 
     /**
