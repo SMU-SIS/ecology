@@ -28,14 +28,14 @@ public interface Connector {
 
     /**
      * Ask the connector to connect itself.
-     * @param activity
+     * @param context
      */
-    public void connect(Context activity);
+    public void connect(Context context);
 
     /**
      * Request a disconnection.
      */
-    public void disconnect();
+    public void disconnect(Context context);
 
     /**
      * @return true if the connector is currently connected.
