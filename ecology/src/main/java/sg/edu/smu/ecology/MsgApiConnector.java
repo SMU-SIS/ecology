@@ -34,7 +34,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private GoogleApiClient googleApiClient;
     private String nodeId = null;
     private static final String CAPABILITY_NAME = "mobile_news_feed_controller";
-    private static String MESSAGE_PATH = " ";
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private Connector.Receiver receiver;
@@ -68,6 +67,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         byte [] messageDataToSend = Arrays.copyOfRange(messageByteData, 0 , length);
         Log.i(TAG, "data " + Arrays.toString(messageDataToSend));
 
+        String MESSAGE_PATH = " ";
         if (eventType.equals("launch")) {
             MESSAGE_PATH = START_ACTIVITY_PATH_1;
         } else {
@@ -103,6 +103,9 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         this.receiver = receiver;
     }
 
+    /**
+     * Connect to the ecology.
+     */
     @Override
     public void connect(Context activity) {
 
@@ -117,8 +120,11 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     }
 
+    /**
+     * Disconnect from the ecology.
+     */
     @Override
-    public void disconnect() {
+    public void disconnect(Context context) {
         googleApiClient.disconnect();
     }
 
