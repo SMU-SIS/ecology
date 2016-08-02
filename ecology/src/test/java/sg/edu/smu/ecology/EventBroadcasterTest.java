@@ -8,9 +8,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -118,5 +118,19 @@ public class EventBroadcasterTest {
         // ...and that receiver 2 received both.
         verify(eventReceiver2, times(1)).handleEvent("test", data1);
         verify(eventReceiver2, times(1)).handleEvent("test", data2);
+    }
+
+    // Check if a local event published(direct call eg: ecology connected message) is received by the event receivers
+    @Test
+    public void testOnPublishLocalEvents(){
+        // Subscribe to "ecology:connected" events.
+        eventBroadcaster.subscribe("ecology:connected", eventReceiver1);
+
+        // Event broadcaster publishes a local event
+        eventBroadcaster.publishLocalEvent("ecology:connected", new ArrayList<Object>());
+
+        // To verify if the right event receiver receives the message
+        verify(eventReceiver1, times(1)).handleEvent("ecology:connected", new ArrayList<Object>());
+        verify(eventReceiver2, never()).handleEvent("ecology:connected", new ArrayList<Object>());
     }
 }

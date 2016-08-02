@@ -8,9 +8,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.ArrayList;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -71,6 +73,15 @@ public class RoomTest {
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalArgumentException(){
         room = new Room("", ecology);
+    }
+
+    // Check if connector connected to ecology message received is published as a local event
+    @Test
+    public void testOnConnectorConnectedMessage(){
+        // Room receives the message that connector has been connected to the ecology
+        room.onEcologyConnected();
+        String ecologyConnected = "ecology:connected";
+        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyConnected, new ArrayList<>());
     }
 
 }

@@ -13,7 +13,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,8 +34,6 @@ public class EcologyTest {
     private Room room;
     @Mock
     private Ecology.RoomFactory roomFactory;
-    @Mock
-    private Connector.Receiver receiver;
 
     @Before
     public void setUp() throws Exception {
@@ -68,8 +68,29 @@ public class EcologyTest {
     // Check if room is added or not
     @Test
     public void testGetRoom() throws Exception {
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
         room = ecology.getRoom("room");
-        assertEquals(room, ecology.getRoom("room"));
+
+        // To verify if room factory has been called with appropriate arguments
+        verify(roomFactory,times(1)).createRoom("room", ecology);
+
+        // To verify that roomFactory is not called on the second time
+        room = ecology.getRoom("room");
+        verify(roomFactory, times(1)).createRoom("room", ecology);
+
+        // To verify the object returned by the getRoom call is the same one returned by room factory
+        assertEquals(room, roomFactory.createRoom("room", ecology));
+
+        // To verify that objects returned are same for a given room name
+        assertEquals(ecology.getRoom("room"), ecology.getRoom("room"));
+
+        // To verify that room factory is called for a new room name
+        room = ecology.getRoom("room1");
+        verify(roomFactory, times(1)).createRoom("room1", ecology);
+
+        // To verify that objects returned are not same for different room names
+        assertNotEquals(ecology.getRoom("room"), ecology.getRoom("room1"));
     }
 
     // When message is received from a connector - check for correct room
@@ -88,6 +109,8 @@ public class EcologyTest {
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
@@ -118,6 +141,8 @@ public class EcologyTest {
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
@@ -145,10 +170,44 @@ public class EcologyTest {
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
         // Receiver gets the message destined for a room
         // Since the message is in inappropriate format, exception will be thrown
         receiver.onMessage(data);
+    }
+
+    // Check if connector connected to ecology message is received from connector
+    @Test
+    public void testConnectorConnected(){
+
+        // To verify if add receiver was called only once
+        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
+
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
+        receiver = receiverCaptor.getValue();
+
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // One more room is added to the ecology
+        Room room1 = mock(Room.class);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        room1 = ecology.getRoom("room1");
+
+        // Receiver receives the message that connector has been connected to the ecology
+        receiver.onConnectorConnected();
+
+        // To verify that all the rooms in the ecology receive the message
+        verify(room, times(1)).onEcologyConnected();
+        verify(room1, times(1)).onEcologyConnected();
+
     }
 }
