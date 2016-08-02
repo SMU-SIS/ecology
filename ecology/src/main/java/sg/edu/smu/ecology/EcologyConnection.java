@@ -10,7 +10,7 @@ import java.util.Vector;
 
 /**
  * Created by Quentin ROY (quentin@quentinroy.fr) on 18/6/16.
- * <p/>
+ * <p>
  * This class is responsible for the connection to the other devices that are part of the ecology.
  * In this goal, it uses different connectors. Connectors abstracts the way messages are sent
  * through the different supported network protocols.
@@ -47,7 +47,7 @@ public class EcologyConnection extends BaseConnector {
 
     /**
      * Adds a dependent connector to the ecology connection.
-     * <p/>
+     * <p>
      * Every message that is received from a dependent node need to be forwarded to the other
      * devices, and each message coming from any devices need to be forwarded to the every
      * dependent nodes.
@@ -103,9 +103,9 @@ public class EcologyConnection extends BaseConnector {
         // No forwarding of data if the dependent device doesn't have any core devices
         // Also no forwarding if the device has only one dependent device
         if (coreConnectorList.size() > 0 || dependentConnectorList.size() > 1) {
-            for (int i = 0; i < dependentConnectorList.size(); i++) {
+            for (Connector dependentConnector : dependentConnectorList) {
                 // Forward the message to the dependent devices
-                dependentConnectorList.get(i).sendMessage(message);
+                dependentConnector.sendMessage(message);
             }
         }
     }
@@ -116,18 +116,17 @@ public class EcologyConnection extends BaseConnector {
     @Override
     public void sendMessage(List<Object> message) {
         // Send message to all the connected core devices
-        for (int i = 0; i < coreConnectorList.size(); i++) {
-            coreConnectorList.get(i).sendMessage(message);
+        for (Connector coreConnector : coreConnectorList) {
+            coreConnector.sendMessage(message);
         }
 
         // Send message to all the connected dependent devices
-        for (int i = 0; i < dependentConnectorList.size(); i++) {
+        for (Connector dependentConnector : dependentConnectorList) {
             // Add device Id before sending messages to dependent devices
             Vector<Object> msg = new Vector<>(message);
             msg.add(android_id);
-            dependentConnectorList.get(i).sendMessage(msg);
+            dependentConnector.sendMessage(msg);
         }
-
     }
 
     /**
@@ -151,13 +150,13 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Disconnect from the ecology.
      */
-    public void disconnect() {
+    public void disconnect(Context context) {
         // Disconnect all connectors.
         for (Connector connector : dependentConnectorList) {
-            connector.disconnect();
+            connector.disconnect(context);
         }
         for (Connector connector : coreConnectorList) {
-            connector.disconnect();
+            connector.disconnect(context);
         }
     }
 
@@ -198,7 +197,7 @@ public class EcologyConnection extends BaseConnector {
 
     /**
      * Base class for the inner connector receivers.
-     * <p/>
+     * <p>
      * Forward {@link Connector.Receiver#onConnectorConnected()} and
      * {@link Connector.Receiver#onConnectorDisconnected()} to
      * {@link #onConnectorConnected(Connector)} and {@link #onConnectorDisconnected(Connector)}
@@ -223,7 +222,7 @@ public class EcologyConnection extends BaseConnector {
 
     /**
      * Dependent node connector receiver inner class.
-     * <p/>
+     * <p>
      * Forward {@link Connector.Receiver#onMessage(List<Object>)} to
      * {@link #onDependentMessage(List<Object>)}.
      */
@@ -240,7 +239,7 @@ public class EcologyConnection extends BaseConnector {
 
     /**
      * Core node connector receiver inner class.
-     * <p/>
+     * <p>
      * Forward {@link Connector.Receiver#onMessage(List<Object>)} to
      * {@link #onCoreMessage(List<Object>)}.
      */
