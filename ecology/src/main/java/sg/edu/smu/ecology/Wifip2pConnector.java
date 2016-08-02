@@ -26,6 +26,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private SocketData socketData;
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
+    private BroadcastManager broadcastManager = null;
 
     public Wifip2pConnector() {
         filterIntent();
@@ -36,10 +37,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-    }
-
-    public IntentFilter getIntentFilter() {
-        return intentFilter;
     }
 
     @Override
@@ -79,14 +76,27 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         this.receiver = receiver;
     }
 
+    /**
+     * Connect to the ecology.
+     */
     @Override
-    public void connect(Context activity) {
+    public void connect(Context context) {
 
+        // To register to the WiFiP2P framework
+        WifiP2pManager manager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
+        WifiP2pManager.Channel channel = manager.initialize(context, context.getMainLooper(), null);
+
+        // To notify about various events occurring with respect to the WiFiP2P connection
+        broadcastManager = new BroadcastManager(manager, channel, this);
+        context.registerReceiver(broadcastManager, intentFilter);
     }
 
+    /**
+     * Disconnect from the ecology.
+     */
     @Override
-    public void disconnect() {
-
+    public void disconnect(Context context) {
+        context.unregisterReceiver(broadcastManager);
     }
 
     @Override
