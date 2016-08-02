@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
@@ -43,7 +42,7 @@ public class Ecology {
         this.roomFactory = new RoomFactory();
         // Use an intermediate receiver to allows private {@link onMessage},
         // {@link onConnectorConnected} and {@link onConnectorDisconnected} on the ecology instance.
-        this.connector.addReceiver(new Connector.Receiver() {
+        this.connector.setReceiver(new Connector.Receiver() {
 
             @Override
             public void onMessage(List<Object> message) {
@@ -72,7 +71,7 @@ public class Ecology {
         this.roomFactory = roomFactory;
         this.connector = connector;
 
-        this.connector.addReceiver(new Connector.Receiver() {
+        this.connector.setReceiver(new Connector.Receiver() {
 
             @Override
             public void onMessage(List<Object> message) {

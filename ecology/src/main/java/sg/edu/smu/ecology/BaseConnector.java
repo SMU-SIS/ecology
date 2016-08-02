@@ -14,45 +14,16 @@ public abstract class BaseConnector implements Connector {
     /**
      * List of receivers that subscribed to the connector.
      */
-    private List<Receiver> receivers = new Vector<Receiver>();
+    private Receiver receiver;
 
-    public List<Receiver> getReceivers() {
-        return receivers;
+    protected Receiver getReceiver() {
+        return receiver;
     }
 
     /**
-     * @see Connector#addReceiver(Receiver)
+     * @see Connector#setReceiver(Receiver)
      */
-    public void addReceiver(Receiver receiver) {
-        receivers.add(receiver);
-    }
-
-    /**
-     * Pass a message to all receivers (see {@link Connector.Receiver#onMessage(List<Object>)}).
-     *
-     * @param message the message's content.
-     */
-    protected void passMessageToReceivers(List<Object> message) {
-        for (Receiver receiver : receivers) {
-            receiver.onMessage(message);
-        }
-    }
-
-    /**
-     *  Notify all receivers that its connector has been connected (see {@link Connector.Receiver#onConnectorConnected()}).
-     */
-    protected void notifyConnectedToReceivers() {
-        for (Receiver receiver : receivers) {
-            receiver.onConnectorConnected();
-        }
-    }
-
-    /**
-     *  Notify all receivers that its connector has been disconnected (see {@link Connector.Receiver#onConnectorDisconnected()}).
-     */
-    protected void notifyDisconnectedToReceivers() {
-        for (Receiver receiver : receivers) {
-            receiver.onConnectorDisconnected();
-        }
+    public void setReceiver(Receiver receiver) {
+        this.receiver = receiver;
     }
 }

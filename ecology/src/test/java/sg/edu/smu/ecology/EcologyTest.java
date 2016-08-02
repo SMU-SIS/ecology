@@ -83,11 +83,11 @@ public class EcologyTest {
         data.add(roomName);
 
         // To verify if add receiver was called only once
-        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
+        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        // To capture the argument in the addReceiver method
+        // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
@@ -113,11 +113,11 @@ public class EcologyTest {
         data.add(roomName);
 
         // To verify if add receiver was called only once
-        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
+        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        // To capture the argument in the addReceiver method
+        // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
@@ -140,11 +140,11 @@ public class EcologyTest {
         data.add(23);
 
         // To verify if add receiver was called only once
-        verify(ecologyConnection, times(1)).addReceiver(any(Connector.Receiver.class));
+        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        // To capture the argument in the addReceiver method
+        // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(ecologyConnection).addReceiver(receiverCaptor.capture());
+        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
         receiver = receiverCaptor.getValue();
 
         // Receiver gets the message destined for a room

@@ -31,16 +31,15 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         filterIntent();
     }
 
-    private Handler getHandler() {
-        return handler;
+    private void filterIntent() {
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
-    public IntentFilter getIntentFilter(){
+    public IntentFilter getIntentFilter() {
         return intentFilter;
-    }
-
-    private void setSocketData(SocketData socketData) {
-        this.socketData = socketData;
     }
 
     @Override
@@ -48,11 +47,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         int BUFFER_SIZE = 1024;
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
 
-        if(socketData != null){
+        if (socketData != null) {
             DataEncoder dataEncoder = new DataEncoder();
             MessageData messageData = new MessageData();
 
-            for(int i = 0; i<message.size(); i++){
+            for (int i = 0; i < message.size(); i++) {
                 messageData.addArgument(message.get(i));
             }
 
@@ -63,8 +62,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
             }
 
             int length = ioBuffer.position();
-            byte [] eventData = ioBuffer.array();
-            byte [] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
+            byte[] eventData = ioBuffer.array();
+            byte[] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
 
             // Write length of the data first
             socketData.writeInt(length);
@@ -76,7 +75,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     }
 
     @Override
-    public void addReceiver(Receiver receiver) {
+    public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
     }
 
@@ -95,14 +94,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         return false;
     }
 
-    private void filterIntent()
-    {
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-    }
-
     // The requested connection info is available
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
@@ -114,19 +105,21 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 handler = new OwnerSocketHandler(this.getHandler());
                 handler.start();
             } catch (Exception e) {
-                Log.d(TAG,
-                        "Failed to create a server thread - " + e.getMessage());
+                Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
             }
         } else {
             Log.d(TAG, "Connected as peer");
-            handler = new MemberSocketHandler(
-                    (this).getHandler(),p2pInfo.groupOwnerAddress);
+            handler = new MemberSocketHandler(this.getHandler(), p2pInfo.groupOwnerAddress);
             handler.start();
         }
     }
 
+    private Handler getHandler() {
+        return handler;
+    }
+
     // Get Wi-Fi P2p configuration for setting up a connection
-    public WifiP2pConfig getWifiConfig(Peer peer){
+    public WifiP2pConfig getWifiConfig(Peer peer) {
         WifiP2pConfig config = new WifiP2pConfig();
         config.deviceAddress = peer.getDevice().deviceAddress;
         config.wps.setup = WpsInfo.PBC;
@@ -134,7 +127,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     }
 
     // Scan for the available peers around
-    public void scanPeers(WifiP2pManager manager, WifiP2pManager.Channel channel){
+    public void scanPeers(WifiP2pManager manager, WifiP2pManager.Channel channel) {
         manager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -162,12 +155,12 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
                 List<Object> data;
                 data = messageData.getArguments();
-                Log.i(TAG, "data "+data);
+                Log.i(TAG, "data " + data);
                 String eventTypeReceived = null;
 
                 try {
                     eventTypeReceived = (String) data.get(data.size() - 2);
-                }catch (ArrayIndexOutOfBoundsException e){
+                } catch (ArrayIndexOutOfBoundsException e) {
                     e.printStackTrace();
                 }
 
@@ -184,5 +177,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 receiver.onConnectorConnected();
         }
         return true;
+    }
+
+    private void setSocketData(SocketData socketData) {
+        this.socketData = socketData;
     }
 }

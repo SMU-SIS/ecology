@@ -3,6 +3,8 @@ package sg.edu.smu.ecology;
 import android.content.Context;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
 
@@ -40,7 +42,7 @@ public class EcologyConnection extends BaseConnector {
         coreConnectorList.add(connector);
         // Add an inner receiver to the connector to forward the connector's messages
         // to this instance appropriate handlers.
-        connector.addReceiver(new CoreConnectorReceiver(connector));
+        connector.setReceiver(new CoreConnectorReceiver(connector));
     }
 
     /**
@@ -56,7 +58,7 @@ public class EcologyConnection extends BaseConnector {
         dependentConnectorList.add(connector);
         // Add an inner receiver to the connector to forward the connector's messages
         // to this instance appropriate handlers.
-        connector.addReceiver(new DependentConnectorReceiver(connector));
+        connector.setReceiver(new DependentConnectorReceiver(connector));
     }
 
     /**
@@ -65,7 +67,18 @@ public class EcologyConnection extends BaseConnector {
      * @param message the message data content.
      */
     private void onCoreMessage(List<Object> message) {
-        passMessageToReceivers(message);
+        List<Object> msg = new ArrayList<>(message);
+        getReceiver().onMessage(msg);
+
+
+        // Add the device id of the message sender
+        List<Object> dependentMessage = new ArrayList<>(msg);
+        dependentMessage.add(android_id);
+        dependentMessage = Collections.unmodifiableList(dependentMessage);
+        // Forwards the message to all the dependent devices after adding the device ID
+        for (Connector dependentConnector : dependentConnectorList) {
+            dependentConnector.sendMessage(dependentMessage);
+        }
     }
 
     /**
@@ -74,7 +87,27 @@ public class EcologyConnection extends BaseConnector {
      * @param message the message data content.
      */
     private void onDependentMessage(List<Object> message) {
-        passMessageToReceivers(message);
+        List<Object> msg = new ArrayList<>(message);
+        // Check if the message is from the same device or not
+        if (!android_id.equals(msg.get(msg.size() - 1))) {
+            getReceiver().onMessage(msg.subList(0, msg.size() - 1));
+        }
+
+        List<Object> coreMessage = Collections.unmodifiableList(msg.subList(0, msg.size() - 1));
+        // Forward all the dependent messages to all the connected core devices
+        for (Connector coreConnector : coreConnectorList) {
+            // Remove the device ID before forwarding the message
+            coreConnector.sendMessage(coreMessage);
+        }
+
+        // No forwarding of data if the dependent device doesn't have any core devices
+        // Also no forwarding if the device has only one dependent device
+        if (coreConnectorList.size() > 0 || dependentConnectorList.size() > 1) {
+            for (int i = 0; i < dependentConnectorList.size(); i++) {
+                // Forward the message to the dependent devices
+                dependentConnectorList.get(i).sendMessage(message);
+            }
+        }
     }
 
     /**
@@ -82,15 +115,13 @@ public class EcologyConnection extends BaseConnector {
      */
     @Override
     public void sendMessage(List<Object> message) {
-
         // Send message to all the connected core devices
-        for(int i = 0; i< coreConnectorList.size(); i++){
+        for (int i = 0; i < coreConnectorList.size(); i++) {
             coreConnectorList.get(i).sendMessage(message);
-
         }
 
         // Send message to all the connected dependent devices
-        for(int i = 0; i< dependentConnectorList.size(); i++){
+        for (int i = 0; i < dependentConnectorList.size(); i++) {
             // Add device Id before sending messages to dependent devices
             Vector<Object> msg = new Vector<>(message);
             msg.add(android_id);
@@ -153,7 +184,7 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorConnected(Connector connector) {
-        notifyConnectedToReceivers();
+        getReceiver().onConnectorConnected();
     }
 
     /**
@@ -162,7 +193,7 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorDisconnected(Connector connector) {
-        notifyDisconnectedToReceivers();
+        getReceiver().onConnectorDisconnected();
     }
 
     /**
@@ -203,28 +234,7 @@ public class EcologyConnection extends BaseConnector {
 
         @Override
         public void onMessage(List<Object> message) {
-
-            Vector<Object> msg = new Vector<>(message);
-            // Check if the message is from the same device or not
-            if(!android_id.equals(msg.get(msg.size() - 1))) {
-                onDependentMessage(msg.subList(0, msg.size() - 1));
-            }
-
-            // Forward all the dependent messages to all the connected core devices
-            for (int i = 0; i < coreConnectorList.size(); i++) {
-                // Remove the device ID before forwarding the message
-                coreConnectorList.get(i).sendMessage(msg.subList(0, msg.size() - 1));
-            }
-
-            // No forwarding of data if the dependent device doesn't have any core devices
-            // Also no forwarding if the device has only one dependent device
-            if(coreConnectorList.size() > 0 || dependentConnectorList.size() > 1) {
-                for (int i = 0; i < dependentConnectorList.size(); i++) {
-                    // Forward the message to the dependent devices
-                    dependentConnectorList.get(i).sendMessage(message);
-                }
-            }
-
+            onDependentMessage(message);
         }
     }
 
@@ -242,16 +252,6 @@ public class EcologyConnection extends BaseConnector {
         @Override
         public void onMessage(List<Object> message) {
             onCoreMessage(message);
-
-            // Forwards the message to all the dependent devices after adding the device ID
-            // except the initial ecology:connected event
-
-            for (int i = 0; i < dependentConnectorList.size(); i++) {
-                // Add the device id of the message sender
-                Vector<Object> msg = new Vector<>(message);
-                msg.add(android_id);
-                dependentConnectorList.get(i).sendMessage(msg);
-            }
         }
     }
 }

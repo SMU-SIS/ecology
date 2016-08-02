@@ -20,11 +20,11 @@ public interface Connector {
     public void sendMessage(List<Object> message);
 
     /**
-     * Add a receiver to the connector.
+     * Set the receiver of the connector.
      *
      * @param receiver
      */
-    public void addReceiver(Receiver receiver);
+    public void setReceiver(Receiver receiver);
 
     /**
      * Ask the connector to connect itself.

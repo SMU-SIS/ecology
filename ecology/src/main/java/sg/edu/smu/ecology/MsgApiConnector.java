@@ -99,7 +99,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     }
 
     @Override
-    public void addReceiver(Receiver receiver) {
+    public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
     }
 
