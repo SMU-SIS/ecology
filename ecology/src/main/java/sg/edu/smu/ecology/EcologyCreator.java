@@ -44,8 +44,8 @@ public class EcologyCreator{
     }
 
     // Disconnects from the ecology
-    public static void disconnect(Context context) {
-        ecology.disconnect(context);
+    public static void disconnect() {
+        ecology.disconnect();
         ecology = null;
     }
 
