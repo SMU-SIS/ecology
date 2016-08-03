@@ -28,6 +28,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
 
+    /**
+     * Used to save the application context
+     */
+    private Context applicationContext;
+
     public Wifip2pConnector() {
         filterIntent();
     }
@@ -81,22 +86,23 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      */
     @Override
     public void connect(Context context) {
+        applicationContext = context;
 
         // To register to the WiFiP2P framework
-        WifiP2pManager manager = (WifiP2pManager) context.getSystemService(Context.WIFI_P2P_SERVICE);
-        WifiP2pManager.Channel channel = manager.initialize(context, context.getMainLooper(), null);
+        WifiP2pManager manager = (WifiP2pManager) applicationContext.getSystemService(Context.WIFI_P2P_SERVICE);
+        WifiP2pManager.Channel channel = manager.initialize(applicationContext, applicationContext.getMainLooper(), null);
 
         // To notify about various events occurring with respect to the WiFiP2P connection
         broadcastManager = new BroadcastManager(manager, channel, this);
-        context.registerReceiver(broadcastManager, intentFilter);
+        applicationContext.registerReceiver(broadcastManager, intentFilter);
     }
 
     /**
      * Disconnect from the ecology.
      */
     @Override
-    public void disconnect(Context context) {
-        context.unregisterReceiver(broadcastManager);
+    public void disconnect() {
+        applicationContext.unregisterReceiver(broadcastManager);
     }
 
     @Override

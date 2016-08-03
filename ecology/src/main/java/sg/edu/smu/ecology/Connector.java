@@ -35,7 +35,7 @@ public interface Connector {
     /**
      * Request a disconnection.
      */
-    public void disconnect(Context context);
+    public void disconnect();
 
     /**
      * @return true if the connector is currently connected.

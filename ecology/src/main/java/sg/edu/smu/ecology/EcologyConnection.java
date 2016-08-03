@@ -150,13 +150,13 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Disconnect from the ecology.
      */
-    public void disconnect(Context context) {
+    public void disconnect() {
         // Disconnect all connectors.
         for (Connector connector : dependentConnectorList) {
-            connector.disconnect(context);
+            connector.disconnect();
         }
         for (Connector connector : coreConnectorList) {
-            connector.disconnect(context);
+            connector.disconnect();
         }
     }
 

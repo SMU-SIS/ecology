@@ -124,7 +124,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * Disconnect from the ecology.
      */
     @Override
-    public void disconnect(Context context) {
+    public void disconnect() {
         googleApiClient.disconnect();
     }
 

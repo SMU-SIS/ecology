@@ -37,11 +37,6 @@ public class Ecology {
     private Map<String, Room> rooms = new HashMap<>();
 
     /**
-     * Used to save the application context
-     */
-    private Context applicationContext;
-
-    /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
      */
@@ -82,15 +77,14 @@ public class Ecology {
      * Connect to the ecology.
      */
     void connect(Context context){
-        applicationContext = context;
-        connector.connect(applicationContext);
+        connector.connect(context);
     }
 
     /**
      * Disconnect from the ecology.
      */
     void disconnect(){
-        connector.disconnect(applicationContext);
+        connector.disconnect();
     }
 
     /**
