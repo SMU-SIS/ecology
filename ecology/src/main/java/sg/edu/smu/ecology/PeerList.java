@@ -17,8 +17,6 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import sg.edu.smu.magi.R;
-
 /**
  * Created by anurooppv on 14/7/2016.
  */
