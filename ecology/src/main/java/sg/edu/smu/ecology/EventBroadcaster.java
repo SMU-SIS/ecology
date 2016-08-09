@@ -71,18 +71,17 @@ public class EventBroadcaster {
 
 
     // Forward an event to the receivers.
-    private void passEventToReceivers(final String eventType, final List<Object> data){
+    private void passEventToReceivers(final String eventType, final List<Object> data) {
         // Fetch the list of event receiver for this particular event type.
-        List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
-        if (thisEventReceivers == null) {
-            return;
-        }
-        // Forward the event to the receivers.
-        for (final EventReceiver receiver : thisEventReceivers) {
+        final List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
+        if (thisEventReceivers != null) {
             mainLoopHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    receiver.handleEvent(eventType, data);
+                    // Distribute the event to the receivers.
+                    for (final EventReceiver receiver : thisEventReceivers) {
+                        receiver.handleEvent(eventType, data);
+                    }
                 }
             });
         }
