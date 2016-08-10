@@ -18,8 +18,12 @@ import java.util.Vector;
 public class EcologyConnection extends BaseConnector {
 
     private final static String TAG = EcologyConnection.class.getSimpleName();
-    //
+
+    // To store the device ID
     private String android_id;
+
+    // To store the number of connectors connected to the ecology   
+    private int numberOfConnectorsConnected = 0;
 
     /**
      * List of core node connectors, see {@link #addCoreConnector(Connector)}.
@@ -183,7 +187,13 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorConnected(Connector connector) {
-        getReceiver().onConnectorConnected();
+        numberOfConnectorsConnected++;
+
+        // To check if all the added connectors have been connected to the ecology
+        if(numberOfConnectorsConnected == (coreConnectorList.size() + dependentConnectorList.size())) {
+            getReceiver().onConnectorConnected();
+            numberOfConnectorsConnected = 0;
+        }
     }
 
     /**
