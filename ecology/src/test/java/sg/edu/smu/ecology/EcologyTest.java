@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.util.Log;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Vector;
@@ -15,6 +18,7 @@ import java.util.Vector;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -24,6 +28,7 @@ import static org.mockito.Mockito.verify;
  * Created by anurooppv on 26/7/2016.
  */
 @RunWith(PowerMockRunner.class)
+@PrepareForTest( Log.class )
 public class EcologyTest {
 
     private Ecology ecology;
@@ -34,6 +39,12 @@ public class EcologyTest {
     private Room room;
     @Mock
     private Ecology.RoomFactory roomFactory;
+    @Mock
+    private Log log;
+    @Mock
+    private Wifip2pConnector wifip2pConnector;
+    @Mock
+    private MsgApiConnector msgApiConnector;
 
     @Before
     public void setUp() throws Exception {
@@ -157,8 +168,11 @@ public class EcologyTest {
     }
 
     // When message is received from a connector - check for incorrect message format
-    @Test(expected = IllegalArgumentException.class)
-    public void testIncorrectReceiverMessage(){
+    @Test
+    public void testIncorrectReceiverMessage() {
+        PowerMockito.mockStatic(Log.class);
+        PowerMockito.when(Log.e(anyString(), anyString())).thenReturn(0);
+
         // Test data - no room name is added
         Vector<Object> data = new Vector<>();
         data.add(1);
@@ -176,6 +190,8 @@ public class EcologyTest {
 
         // Receiver gets the message destined for a room
         // Since the message is in inappropriate format, exception will be thrown
+
+        PowerMockito.verifyStatic(times(1));
         receiver.onMessage(data);
     }
 
@@ -209,5 +225,36 @@ public class EcologyTest {
         verify(room, times(1)).onEcologyConnected();
         verify(room1, times(1)).onEcologyConnected();
 
+    }
+
+    @Test
+    public void testEcologyConnected() throws Exception {
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver1;
+        receiver1 = receiverCaptor1.getValue();
+
+        ecologyConnection.addDependentConnector(msgApiConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver2;
+        receiver2 = receiverCaptor2.getValue();
+
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> ecologyreceiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).setReceiver(ecologyreceiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver ecologyReceiver;
+        ecologyReceiver = ecologyreceiverCaptor.getValue();
+
+        receiver1.onConnectorConnected();
+        receiver2.onConnectorConnected();
+
+        verify(ecologyReceiver, times(2)).onConnectorConnected();
     }
 }

@@ -6,12 +6,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -133,4 +136,34 @@ public class EventBroadcasterTest {
         verify(eventReceiver1, times(1)).handleEvent("ecology:connected", new ArrayList<Object>());
         verify(eventReceiver2, never()).handleEvent("ecology:connected", new ArrayList<Object>());
     }
+
+    @Test
+    public void testEventReceiverDataModification(){
+        eventBroadcaster.subscribe("test", eventReceiver1);
+        eventBroadcaster.subscribe("test", eventReceiver2);
+
+        // Test data
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add(3);
+        data.add("test");
+
+        final Vector<Object> data2 = new Vector<>();
+        data2.add(1);
+        data2.add(5);
+        data2.add("test");
+
+        doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                args[1] = data2;
+                return null;
+            }
+        }).when(eventReceiver1).handleEvent("test", data.subList(0, data.size() - 1));
+        
+        eventBroadcaster.onRoomMessage(data);
+        verify(eventReceiver2, times(0)).handleEvent("test", data.subList(0, data.size() - 1));
+    }
+
 }
