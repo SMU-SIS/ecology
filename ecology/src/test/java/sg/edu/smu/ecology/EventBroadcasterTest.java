@@ -134,16 +134,16 @@ public class EventBroadcasterTest {
         verify(eventReceiver2, never()).handleEvent("ecology:connected", new ArrayList<Object>());
     }
 
-    @Test
+    @Test(expected = UnsupportedOperationException.class )
     public void testEventReceiverDataModification(){
         eventBroadcaster.subscribe("test", new EventReceiver() {
             @Override
             public void handleEvent(String eventType, List<Object> eventData) {
-                // First event receiver modifies the received data
+                // First event receiver tries to modify the received data
                 try {
                     eventData.add(2);
                 }catch (Exception e){
-                    e.printStackTrace();
+                    throw new UnsupportedOperationException("Cannot modify the received data");
                 }
             }
         });
@@ -156,18 +156,8 @@ public class EventBroadcasterTest {
         originalData.add(3);
         originalData.add("test");
 
-        Vector<Object> modifiedData = new Vector<>(originalData);
-        // Event receiver tried to add 2 - but eventually it won't be able to add
-        modifiedData.add(2);
-
         // Event broadcaster receives the message from the room
         eventBroadcaster.onRoomMessage(originalData);
-
-        // To verify that the original data reaches the second event receiver
-        verify(eventReceiver2, times(1)).handleEvent("test", originalData.subList(0, originalData.size() - 1));
-
-        // To verify that the modified data didn't reach the second event receiver
-        verify(eventReceiver2, never()).handleEvent("test", modifiedData.subList(0, modifiedData.size() - 1));
     }
 
 }
