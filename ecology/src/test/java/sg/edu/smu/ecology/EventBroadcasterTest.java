@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -134,16 +135,75 @@ public class EventBroadcasterTest {
         verify(eventReceiver2, never()).handleEvent("ecology:connected", new ArrayList<Object>());
     }
 
-    @Test(expected = UnsupportedOperationException.class )
+    // To verify that the receiver cannot modify the received data - UnsupportedOperationException is thrown
+    @Test
     public void testEventReceiverDataModification(){
         eventBroadcaster.subscribe("test", new EventReceiver() {
             @Override
             public void handleEvent(String eventType, List<Object> eventData) {
-                // First event receiver tries to modify the received data
-                try {
+                // First event receiver tries to modify the received data in all possible ways
+
+                try{
                     eventData.add(2);
                 }catch (Exception e){
-                    throw new UnsupportedOperationException("Cannot modify the received data");
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    eventData.add(1, 5);
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    Vector<Object> data = new Vector<>();
+                    data.add(1);
+                    data.add(3);
+                    eventData.addAll(data);
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    Vector<Object> data = new Vector<>();
+                    data.add(1);
+                    data.add(3);
+                    eventData.addAll(1, data);
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    eventData.clear();
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    eventData.set(1, 3);
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    eventData.remove(1);
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    eventData.remove("test");
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try{
+                    Vector<Object> data = new Vector<>();
+                    data.add(1);
+                    data.add(3);
+                    eventData.removeAll(data);
+                }catch (Exception e){
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
             }
         });
