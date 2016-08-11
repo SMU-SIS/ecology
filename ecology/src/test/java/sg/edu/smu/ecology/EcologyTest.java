@@ -48,6 +48,9 @@ public class EcologyTest {
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         ecology = new Ecology(roomFactory,ecologyConnection);
+
+        // Prepare the mock
+        PowerMockito.mockStatic(Log.class);
     }
 
     @After
@@ -177,9 +180,6 @@ public class EcologyTest {
         // Create a local mock receiver
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
-
-        // Prepare the mock
-        PowerMockito.mockStatic(Log.class);
 
         // Test data - no room name is added
         Vector<Object> data;
