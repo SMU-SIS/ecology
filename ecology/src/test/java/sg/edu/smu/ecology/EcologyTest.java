@@ -40,8 +40,6 @@ public class EcologyTest {
     @Mock
     private Ecology.RoomFactory roomFactory;
     @Mock
-    private Log log;
-    @Mock
     private Wifip2pConnector wifip2pConnector;
     @Mock
     private MsgApiConnector msgApiConnector;
@@ -169,15 +167,7 @@ public class EcologyTest {
 
     // When message is received from a connector - check for incorrect message format
     @Test
-    public void testIncorrectReceiverMessage() {
-        PowerMockito.mockStatic(Log.class);
-        PowerMockito.when(Log.e(anyString(), anyString())).thenReturn(0);
-
-        // Test data - no room name is added
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add(23);
-
+    public void testIncorrectReceiverMessage(){
         // To verify if add receiver was called only once
         verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
@@ -188,11 +178,30 @@ public class EcologyTest {
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
-        // Receiver gets the message destined for a room
-        // Since the message is in inappropriate format, exception will be thrown
+        // Prepare the mock
+        PowerMockito.mockStatic(Log.class);
 
-        PowerMockito.verifyStatic(times(1));
+        // Test data - no room name is added
+        Vector<Object> data;
+        data = new Vector<>();
+        data.add(1);
+        data.add(23);
+
+        // Receiver receives the message
         receiver.onMessage(data);
+
+        // Verify the mock
+        PowerMockito.verifyStatic(times(1));
+
+        // Expected - in general
+        Log.e(anyString(), anyString());
+
+        // Expected - if we want to verify ClassCastException
+        //String TAG = Ecology.class.getSimpleName();
+        //Log.e(TAG, "Exception java.lang.Integer cannot be cast to java.lang.String");
+
+        // Expected - if we want to verify IndexOutOfBoundsException - this case empty data must be passed
+        //Log.e(TAG,"Exception -1");
     }
 
     // Check if connector connected to ecology message is received from connector
