@@ -6,15 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -139,31 +136,38 @@ public class EventBroadcasterTest {
 
     @Test
     public void testEventReceiverDataModification(){
-        eventBroadcaster.subscribe("test", eventReceiver1);
+        eventBroadcaster.subscribe("test", new EventReceiver() {
+            @Override
+            public void handleEvent(String eventType, List<Object> eventData) {
+                // First event receiver modifies the received data
+                try {
+                    eventData.add(2);
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
         eventBroadcaster.subscribe("test", eventReceiver2);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add(3);
-        data.add("test");
+        Vector<Object> originalData = new Vector<>();
+        originalData.add(1);
+        originalData.add(3);
+        originalData.add("test");
 
-        final Vector<Object> data2 = new Vector<>();
-        data2.add(1);
-        data2.add(5);
-        data2.add("test");
+        Vector<Object> modifiedData = new Vector<>(originalData);
+        // Event receiver tried to add 2 - but eventually it won't be able to add
+        modifiedData.add(2);
 
-        doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                Object[] args = invocation.getArguments();
-                args[1] = data2;
-                return null;
-            }
-        }).when(eventReceiver1).handleEvent("test", data.subList(0, data.size() - 1));
-        
-        eventBroadcaster.onRoomMessage(data);
-        verify(eventReceiver2, times(0)).handleEvent("test", data.subList(0, data.size() - 1));
+        // Event broadcaster receives the message from the room
+        eventBroadcaster.onRoomMessage(originalData);
+
+        // To verify that the original data reaches the second event receiver
+        verify(eventReceiver2, times(1)).handleEvent("test", originalData.subList(0, originalData.size() - 1));
+
+        // To verify that the modified data didn't reach the second event receiver
+        verify(eventReceiver2, never()).handleEvent("test", modifiedData.subList(0, modifiedData.size() - 1));
     }
 
 }
