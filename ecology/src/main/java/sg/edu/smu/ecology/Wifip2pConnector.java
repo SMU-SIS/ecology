@@ -23,7 +23,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     private final static String TAG = Wifip2pConnector.class.getSimpleName();
     private final IntentFilter intentFilter = new IntentFilter();
-    private SocketData socketData;
+    // Says if the socket of the connector should be started as a server socket or a normal socket.
+    private final boolean isServer;
+    private SocketReadWriter socketData;
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
@@ -33,7 +35,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      */
     private Context applicationContext;
 
-    public Wifip2pConnector() {
+    public Wifip2pConnector(boolean isServer) {
+        this.isServer = isServer;
         filterIntent();
     }
 
@@ -115,17 +118,17 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
         Log.d(TAG, "onConnectionInfoAvailable");
         Thread handler = null;
-        if (p2pInfo.isGroupOwner) {
+        if (isServer) {
             Log.d(TAG, "Connected as group owner");
             try {
-                handler = new OwnerSocketHandler(this.getHandler());
+                handler = new ServerSocketConnectionStarter(this.getHandler());
                 handler.start();
             } catch (Exception e) {
                 Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
             }
         } else {
             Log.d(TAG, "Connected as peer");
-            handler = new MemberSocketHandler(this.getHandler(), p2pInfo.groupOwnerAddress);
+            handler = new SocketConnectionStarter(this.getHandler(), p2pInfo.groupOwnerAddress);
             handler.start();
         }
     }
@@ -188,14 +191,14 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
             case Settings.MY_HANDLE:
                 Log.d(TAG, " MY HANDLE");
                 Object obj = msg.obj;
-                setSocketData((SocketData) obj);
+                setSocketData((SocketReadWriter) obj);
 
                 receiver.onConnectorConnected();
         }
         return true;
     }
 
-    private void setSocketData(SocketData socketData) {
+    private void setSocketData(SocketReadWriter socketData) {
         this.socketData = socketData;
     }
 }

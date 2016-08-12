@@ -13,14 +13,14 @@ import java.util.Arrays;
 /**
  * Created by anurooppv on 1/6/2016.
  */
-public class SocketData implements Runnable {
-    private static final String TAG = SocketData.class.getSimpleName();
+public class SocketReadWriter implements Runnable {
+    private static final String TAG = SocketReadWriter.class.getSimpleName();
 
     private Handler handler;
     private Socket socket = null;
     private DataOutputStream outputStream;
 
-    public SocketData(Socket socket, Handler handler) {
+    public SocketReadWriter(Socket socket, Handler handler) {
         this.socket = socket;
         this.handler = handler;
     }
@@ -31,7 +31,7 @@ public class SocketData implements Runnable {
             DataInputStream inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
 
-            Log.i(TAG, "EventBroadcaster run");
+            Log.i(TAG, "Socket read/writer started");
             handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
 
             while (true) {
@@ -39,17 +39,17 @@ public class SocketData implements Runnable {
                     int toRead = inputStream.readInt();
                     int currentRead = 0;
 
-                    while(currentRead < toRead){
+                    while (currentRead < toRead) {
                         byte[] dataBuffer = new byte[toRead];
 
                         currentRead += inputStream.read(dataBuffer, currentRead, toRead - currentRead);
-                        Log.i(TAG, "buffer "+ Arrays.toString(dataBuffer));
+                        Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
 
                         handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
                     }
                 } catch (EOFException e) {
                     break;
-                }catch (IOException e) {
+                } catch (IOException e) {
                     Log.e(TAG, "Exception during read", e);
                 }
             }
@@ -72,10 +72,10 @@ public class SocketData implements Runnable {
         }
     }
 
-    public void writeInt(int length){
+    public void writeInt(int length) {
         try {
             outputStream.writeInt(length);
-        }catch (IOException e) {
+        } catch (IOException e) {
             Log.e(TAG, "Exception during write int", e);
         }
     }

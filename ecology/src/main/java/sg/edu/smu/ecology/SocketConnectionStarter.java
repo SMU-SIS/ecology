@@ -11,14 +11,14 @@ import java.net.Socket;
 /**
  * Created by tnnguyen on 28/4/16.
  */
-public class MemberSocketHandler extends Thread {
-    private static final String TAG = MemberSocketHandler.class.getSimpleName();
+public class SocketConnectionStarter extends Thread {
+    private static final String TAG = SocketConnectionStarter.class.getSimpleName();
 
     private Handler handler;
     private InetAddress address;
-    private SocketData socketCreator;
+    private SocketReadWriter socketCreator;
 
-    public MemberSocketHandler(Handler handler, InetAddress groupOwnerAddress) {
+    public SocketConnectionStarter(Handler handler, InetAddress groupOwnerAddress) {
         this.handler = handler;
         this.address = groupOwnerAddress;
     }
@@ -29,9 +29,10 @@ public class MemberSocketHandler extends Thread {
         try {
             socket.setReuseAddress(true);
             socket.bind(null);
-            Log.d(TAG, "MemberSocketHandler run EventBroadcaster ");
-            socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT), Settings.TIME_OUT);
-            socketCreator = new SocketData(socket, handler);
+            Log.d(TAG, "connection attempt");
+            socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
+                    Settings.TIME_OUT);
+            socketCreator = new SocketReadWriter(socket, handler);
             new Thread(socketCreator).start();
         } catch (IOException e) {
             e.printStackTrace();

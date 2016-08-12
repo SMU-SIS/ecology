@@ -12,9 +12,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by tnnguyen on 28/4/16.
  */
-public class OwnerSocketHandler extends Thread {
+public class ServerSocketConnectionStarter extends Thread {
 
-    private static final String TAG = OwnerSocketHandler.class.getSimpleName();
+    private static final String TAG = ServerSocketConnectionStarter.class.getSimpleName();
 
     ServerSocket socket = null;
     private final int THREAD_COUNT = 10;
@@ -24,9 +24,8 @@ public class OwnerSocketHandler extends Thread {
             THREAD_COUNT, THREAD_COUNT, 10, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>());
 
-    public OwnerSocketHandler(Handler handler) throws IOException {
+    public ServerSocketConnectionStarter(Handler handler) throws IOException {
         try {
-
             socket = new ServerSocket(Settings.SERVER_PORT);
             this.handler = handler;
         } catch (IOException e) {
@@ -40,8 +39,8 @@ public class OwnerSocketHandler extends Thread {
     public void run() {
         while (true) {
             try {
-                Log.d(TAG, "OwnerSocketHandler run EventBroadcaster ");
-                pool.execute(new SocketData(socket.accept(), handler));
+                Log.d(TAG, "connection attempt");
+                pool.execute(new SocketReadWriter(socket.accept(), handler));
             } catch (IOException e) {
                 try {
                     if (socket != null && !socket.isClosed())
