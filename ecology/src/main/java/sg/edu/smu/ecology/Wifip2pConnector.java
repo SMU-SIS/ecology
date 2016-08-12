@@ -23,8 +23,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     private final static String TAG = Wifip2pConnector.class.getSimpleName();
     private final IntentFilter intentFilter = new IntentFilter();
-    // Says if the socket of the connector should be started as a server socket or a normal socket.
-    private final boolean isServer;
     private SocketReadWriter socketData;
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
@@ -35,8 +33,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      */
     private Context applicationContext;
 
-    public Wifip2pConnector(boolean isServer) {
-        this.isServer = isServer;
+    public Wifip2pConnector() {
         filterIntent();
     }
 
@@ -118,8 +115,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
         Log.d(TAG, "onConnectionInfoAvailable");
         Thread handler = null;
-        if (isServer) {
-            Log.d(TAG, "Connected as group owner");
+        if (p2pInfo.isGroupOwner) {
+            Log.d(TAG, "Connected as server");
             try {
                 handler = new ServerSocketConnectionStarter(this.getHandler());
                 handler.start();
