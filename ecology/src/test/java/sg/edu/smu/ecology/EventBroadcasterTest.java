@@ -9,6 +9,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -44,7 +45,7 @@ public class EventBroadcasterTest {
 
     // Check if the message comes to the right event receiver
     @Test
-    public void testMessageReception(){
+    public void testMessageReception() {
         eventBroadcaster.subscribe("test1", eventReceiver1);
         eventBroadcaster.subscribe("test2", eventReceiver2);
 
@@ -73,7 +74,7 @@ public class EventBroadcasterTest {
 
     // Check if the message reaches the correct room with correct data
     @Test
-    public void testPublish(){
+    public void testPublish() {
         // Add an event receiver for the event "test".
         eventBroadcaster.subscribe("test", eventReceiver1);
 
@@ -95,7 +96,7 @@ public class EventBroadcasterTest {
 
     // Check if message goes to an unsubscribed event receiver
     @Test
-    public void testUnsubscribe(){
+    public void testUnsubscribe() {
         // Subscribe to "test" events.
         eventBroadcaster.subscribe("test", eventReceiver1);
         eventBroadcaster.subscribe("test", eventReceiver2);
@@ -123,7 +124,7 @@ public class EventBroadcasterTest {
 
     // Check if a local event published(direct call eg: ecology connected message) is received by the event receivers
     @Test
-    public void testOnPublishLocalEvents(){
+    public void testOnPublishLocalEvents() {
         // Subscribe to "ecology:connected" events.
         eventBroadcaster.subscribe("ecology:connected", eventReceiver1);
 
@@ -137,87 +138,71 @@ public class EventBroadcasterTest {
 
     // To verify that the receiver cannot modify the received data - UnsupportedOperationException is thrown
     @Test
-    public void testEventReceiverDataModification(){
+    public void testEventReceiverDataModification() {
         eventBroadcaster.subscribe("test", new EventReceiver() {
             @Override
             public void handleEvent(String eventType, List<Object> eventData) {
-                // First event receiver tries to modify the received data in all possible ways
+                // Make sure that every modifying methods of the eventData's list fails with an
+                // exception.
 
-                try{
+                try {
                     eventData.add(2);
-                }catch (Exception e){
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
+                try {
                     eventData.add(1, 5);
-                }catch (Exception e){
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
-                    Vector<Object> data = new Vector<>();
-                    data.add(1);
-                    data.add(3);
-                    eventData.addAll(data);
-                }catch (Exception e){
+                try {
+                    eventData.addAll(Arrays.asList(1, 3));
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
-                    Vector<Object> data = new Vector<>();
-                    data.add(1);
-                    data.add(3);
-                    eventData.addAll(1, data);
-                }catch (Exception e){
+                try {
+                    eventData.addAll(1, Arrays.asList(4, 1));
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
+                try {
                     eventData.clear();
-                }catch (Exception e){
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
+                try {
                     eventData.set(1, 3);
-                }catch (Exception e){
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
+                try {
                     eventData.remove(1);
-                }catch (Exception e){
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
-                    eventData.remove("test");
-                }catch (Exception e){
+                try {
+                    eventData.remove("a string");
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
-                try{
-                    Vector<Object> data = new Vector<>();
-                    data.add(1);
-                    data.add(3);
-                    eventData.removeAll(data);
-                }catch (Exception e){
+                try {
+                    eventData.removeAll(Arrays.asList(5, new Object()));
+                } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
             }
         });
 
-        eventBroadcaster.subscribe("test", eventReceiver2);
-
-        // Test data
-        Vector<Object> originalData = new Vector<>();
-        originalData.add(1);
-        originalData.add(3);
-        originalData.add("test");
-
-        // Event broadcaster receives the message from the room
-        eventBroadcaster.onRoomMessage(originalData);
+        // Send the message to the eventBroadcaster (last argument is the event type).
+        eventBroadcaster.onRoomMessage(Arrays.<Object>asList(1, 4, "a string", "test"));
     }
 
 }
