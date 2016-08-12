@@ -2,6 +2,7 @@ package sg.edu.smu.ecology;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -145,24 +146,33 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     private void setupMessageApiConnection(){
 
+
         Log.i(TAG, "setupMessageApiConnection");
+
+        // Handle the results of the capability checker thread.
+        final Handler handler = new Handler();
 
         // Manually retrieving the results of reachable nodes with the message_wearable capability
         new Thread("CapCheck") {
             @Override
             public void run() {
-                CapabilityApi.GetCapabilityResult result =
+                final CapabilityApi.GetCapabilityResult result =
                         Wearable.CapabilityApi.getCapability(
                                 googleApiClient, CAPABILITY_NAME,
                                 CapabilityApi.FILTER_REACHABLE).await();
 
-                try {
-                    nodeId = updateMessageCapability(result.getCapability());
-                    Log.i(TAG, "nodeId " + nodeId);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                // Handle the results through the handlers to get out of this thread.
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            nodeId = updateMessageCapability(result.getCapability());
+                            Log.i(TAG, "nodeId " + nodeId);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         }.start();
 
