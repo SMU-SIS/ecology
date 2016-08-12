@@ -38,6 +38,9 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private Connector.Receiver receiver;
 
+    // Registers if the connector is connected.
+    private Boolean onConnectorConnected = false;
+
     @Override
     public void sendMessage(List<Object> message) {
         int BUFFER_SIZE = 1024;
@@ -125,12 +128,13 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      */
     @Override
     public void disconnect() {
+        onConnectorConnected = false;
         googleApiClient.disconnect();
     }
 
     @Override
     public boolean isConnected() {
-        return false;
+        return onConnectorConnected;
     }
 
     private Collection<String> getNodes() {
@@ -195,6 +199,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         Log.i(TAG, "nodeId " + nodeId);
 
         if( nodeId != null){
+            onConnectorConnected = true;
             receiver.onConnectorConnected();
         }
 
