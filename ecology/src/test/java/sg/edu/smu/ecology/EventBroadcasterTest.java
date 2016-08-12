@@ -9,9 +9,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,7 +45,7 @@ public class EventBroadcasterTest {
 
     // Check if the message comes to the right event receiver
     @Test
-    public void testMessageReception(){
+    public void testMessageReception() {
         eventBroadcaster.subscribe("test1", eventReceiver1);
         eventBroadcaster.subscribe("test2", eventReceiver2);
 
@@ -72,7 +74,7 @@ public class EventBroadcasterTest {
 
     // Check if the message reaches the correct room with correct data
     @Test
-    public void testPublish(){
+    public void testPublish() {
         // Add an event receiver for the event "test".
         eventBroadcaster.subscribe("test", eventReceiver1);
 
@@ -94,7 +96,7 @@ public class EventBroadcasterTest {
 
     // Check if message goes to an unsubscribed event receiver
     @Test
-    public void testUnsubscribe(){
+    public void testUnsubscribe() {
         // Subscribe to "test" events.
         eventBroadcaster.subscribe("test", eventReceiver1);
         eventBroadcaster.subscribe("test", eventReceiver2);
@@ -122,7 +124,7 @@ public class EventBroadcasterTest {
 
     // Check if a local event published(direct call eg: ecology connected message) is received by the event receivers
     @Test
-    public void testOnPublishLocalEvents(){
+    public void testOnPublishLocalEvents() {
         // Subscribe to "ecology:connected" events.
         eventBroadcaster.subscribe("ecology:connected", eventReceiver1);
 
@@ -133,4 +135,74 @@ public class EventBroadcasterTest {
         verify(eventReceiver1, times(1)).handleEvent("ecology:connected", new ArrayList<Object>());
         verify(eventReceiver2, never()).handleEvent("ecology:connected", new ArrayList<Object>());
     }
+
+    // To verify that the receiver cannot modify the received data - UnsupportedOperationException is thrown
+    @Test
+    public void testEventReceiverDataModification() {
+        eventBroadcaster.subscribe("test", new EventReceiver() {
+            @Override
+            public void handleEvent(String eventType, List<Object> eventData) {
+                // Make sure that every modifying methods of the eventData's list fails with an
+                // exception.
+
+                try {
+                    eventData.add(2);
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.add(1, 5);
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.addAll(Arrays.asList(1, 3));
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.addAll(1, Arrays.asList(4, 1));
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.clear();
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.set(1, 3);
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.remove(1);
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.remove("a string");
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+
+                try {
+                    eventData.removeAll(Arrays.asList(5, new Object()));
+                } catch (Exception e) {
+                    assertEquals(e.getClass(), UnsupportedOperationException.class);
+                }
+            }
+        });
+
+        // Send the message to the eventBroadcaster (last argument is the event type).
+        eventBroadcaster.onRoomMessage(Arrays.<Object>asList(1, 4, "a string", "test"));
+    }
+
 }

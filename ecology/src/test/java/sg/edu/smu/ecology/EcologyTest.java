@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.util.Log;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +10,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Vector;
@@ -15,6 +18,7 @@ import java.util.Vector;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -24,6 +28,7 @@ import static org.mockito.Mockito.verify;
  * Created by anurooppv on 26/7/2016.
  */
 @RunWith(PowerMockRunner.class)
+@PrepareForTest( Log.class )
 public class EcologyTest {
 
     private Ecology ecology;
@@ -34,11 +39,18 @@ public class EcologyTest {
     private Room room;
     @Mock
     private Ecology.RoomFactory roomFactory;
+    @Mock
+    private Wifip2pConnector wifip2pConnector;
+    @Mock
+    private MsgApiConnector msgApiConnector;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         ecology = new Ecology(roomFactory,ecologyConnection);
+
+        // Prepare the mock
+        PowerMockito.mockStatic(Log.class);
     }
 
     @After
@@ -157,13 +169,8 @@ public class EcologyTest {
     }
 
     // When message is received from a connector - check for incorrect message format
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testIncorrectReceiverMessage(){
-        // Test data - no room name is added
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add(23);
-
         // To verify if add receiver was called only once
         verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
@@ -174,9 +181,27 @@ public class EcologyTest {
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
-        // Receiver gets the message destined for a room
-        // Since the message is in inappropriate format, exception will be thrown
+        // Test data - no room name is added
+        Vector<Object> data;
+        data = new Vector<>();
+        data.add(1);
+        data.add(23);
+
+        // Receiver receives the message
         receiver.onMessage(data);
+
+        // Verify the mock
+        PowerMockito.verifyStatic(times(1));
+
+        // Expected - in general
+        Log.e(anyString(), anyString());
+
+        // Expected - if we want to verify ClassCastException
+        //String TAG = Ecology.class.getSimpleName();
+        //Log.e(TAG, "Exception java.lang.Integer cannot be cast to java.lang.String");
+
+        // Expected - if we want to verify IndexOutOfBoundsException - this case empty data must be passed
+        //Log.e(TAG,"Exception -1");
     }
 
     // Check if connector connected to ecology message is received from connector
