@@ -6,6 +6,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.api.mockito.PowerMockito;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -58,8 +59,13 @@ public class EcologyConnectionTest {
 
         ecologyConnection.setReceiver(receiver);
 
+        // Mock isConnected method for wifip2pConnector
+        PowerMockito.when(wifip2pConnector.isConnected()).thenReturn(true);
         // Connector 1 gets connected
         receiver1.onConnectorConnected();
+
+        // Mock isConnected method for msgApiConnector
+        PowerMockito.when(msgApiConnector.isConnected()).thenReturn(true);
         // Connector 2 gets connected
         receiver2.onConnectorConnected();
 
