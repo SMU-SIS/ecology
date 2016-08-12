@@ -2,6 +2,7 @@ package sg.edu.smu.ecology;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -37,6 +38,9 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private Connector.Receiver receiver;
+
+    // Registers if the connector is connected.
+    private Boolean onConnectorConnected = false;
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -125,12 +129,13 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      */
     @Override
     public void disconnect() {
+        onConnectorConnected = false;
         googleApiClient.disconnect();
     }
 
     @Override
     public boolean isConnected() {
-        return false;
+        return onConnectorConnected;
     }
 
     private Collection<String> getNodes() {
@@ -145,24 +150,33 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     private void setupMessageApiConnection(){
 
+
         Log.i(TAG, "setupMessageApiConnection");
+
+        // Handle the results of the capability checker thread.
+        final Handler handler = new Handler();
 
         // Manually retrieving the results of reachable nodes with the message_wearable capability
         new Thread("CapCheck") {
             @Override
             public void run() {
-                CapabilityApi.GetCapabilityResult result =
+                final CapabilityApi.GetCapabilityResult result =
                         Wearable.CapabilityApi.getCapability(
                                 googleApiClient, CAPABILITY_NAME,
                                 CapabilityApi.FILTER_REACHABLE).await();
 
-                try {
-                    nodeId = updateMessageCapability(result.getCapability());
-                    Log.i(TAG, "nodeId " + nodeId);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+                // Handle the results through the handlers to get out of this thread.
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            nodeId = updateMessageCapability(result.getCapability());
+                            Log.i(TAG, "nodeId " + nodeId);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
         }.start();
 
@@ -195,6 +209,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         Log.i(TAG, "nodeId " + nodeId);
 
         if( nodeId != null){
+            onConnectorConnected = true;
             receiver.onConnectorConnected();
         }
 

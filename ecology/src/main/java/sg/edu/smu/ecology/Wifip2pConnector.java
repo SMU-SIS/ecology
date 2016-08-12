@@ -28,6 +28,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
 
+    // Registers if the connector is connected.
+    private Boolean onConnectorConnected = false;
+
     /**
      * Used to save the application context
      */
@@ -102,12 +105,13 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      */
     @Override
     public void disconnect() {
+        onConnectorConnected = false;
         applicationContext.unregisterReceiver(broadcastManager);
     }
 
     @Override
     public boolean isConnected() {
-        return false;
+        return onConnectorConnected;
     }
 
     // The requested connection info is available
@@ -189,6 +193,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 Log.d(TAG, " MY HANDLE");
                 Object obj = msg.obj;
                 setSocketData((SocketReadWriter) obj);
+
+                onConnectorConnected = true;
 
                 receiver.onConnectorConnected();
         }

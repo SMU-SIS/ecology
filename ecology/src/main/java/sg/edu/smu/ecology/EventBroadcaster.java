@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,9 +74,13 @@ public class EventBroadcaster {
         if (thisEventReceivers == null) {
             return;
         }
+
+        // Event receivers cannot modify the received data
+        List<Object> receivedMessage = Collections.unmodifiableList(data);
+
         // Forward the event to the receivers.
         for (EventReceiver receiver : thisEventReceivers) {
-            receiver.handleEvent(eventType, data);
+            receiver.handleEvent(eventType, receivedMessage);
         }
     }
 

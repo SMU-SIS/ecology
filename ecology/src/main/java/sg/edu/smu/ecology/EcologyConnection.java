@@ -18,8 +18,12 @@ import java.util.Vector;
 public class EcologyConnection extends BaseConnector {
 
     private final static String TAG = EcologyConnection.class.getSimpleName();
-    //
+
+    // To store the device ID
     private String android_id;
+
+    // Registers if the ecology connection is connected.
+    private boolean isConnected = false;
 
     /**
      * List of core node connectors, see {@link #addCoreConnector(Connector)}.
@@ -161,20 +165,10 @@ public class EcologyConnection extends BaseConnector {
     }
 
     /**
-     * @return true if every connector are connected.
+     * @return true if all connectors are connected.
      */
     public boolean isConnected() {
-        for (Connector connector : dependentConnectorList) {
-            if (!connector.isConnected()) {
-                return false;
-            }
-        }
-        for (Connector connector : coreConnectorList) {
-            if (!connector.isConnected()) {
-                return false;
-            }
-        }
-        return true;
+        return isConnected;
     }
 
     /**
@@ -183,6 +177,19 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorConnected(Connector connector) {
+        for (Connector thisConnector : dependentConnectorList) {
+            if (!thisConnector.isConnected()) {
+                return;
+            }
+        }
+        for (Connector thisConnector : coreConnectorList) {
+            if (!thisConnector.isConnected()) {
+                return;
+            }
+        }
+        // If we reach this point, we know that all sub-connectors are now connected.
+        isConnected = true;
+        // Notify the receiver that the EcologyConnection is now connected.
         getReceiver().onConnectorConnected();
     }
 
@@ -192,7 +199,11 @@ public class EcologyConnection extends BaseConnector {
      * @param connector
      */
     private void onConnectorDisconnected(Connector connector) {
-        getReceiver().onConnectorDisconnected();
+        // If we were previously connected, we notify the receiver of the disconnection.
+        if(isConnected) {
+            isConnected = false;
+            getReceiver().onConnectorDisconnected();
+        }
     }
 
     /**
