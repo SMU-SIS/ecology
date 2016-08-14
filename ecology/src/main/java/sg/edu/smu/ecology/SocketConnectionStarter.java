@@ -53,12 +53,11 @@ public class SocketConnectionStarter extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
             try {
-                Log.i(TAG, "Socket close");
+                Log.i(TAG, "socket close");
                 socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         }
     }
