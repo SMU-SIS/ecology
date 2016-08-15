@@ -52,5 +52,6 @@ public class ServerSocketConnectionStarter extends Thread {
                 break;
             }
         }
+        Log.d(TAG, "done");
     }
 }

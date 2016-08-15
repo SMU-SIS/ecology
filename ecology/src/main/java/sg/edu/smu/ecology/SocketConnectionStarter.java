@@ -48,12 +48,13 @@ public class SocketConnectionStarter extends Thread {
                 // When connected, set this to true
                 connectedToServer = true;
             } catch (ConnectException e) {
-                Log.i(TAG, "Error while connecting... Reconnecting " + e.getMessage());
+                Log.i(TAG, e.getMessage());
+                Log.d(TAG, "Waiting for 1sec before new connection attempt");
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e1) {
                     // restore interrupted status
-                    Thread.currentThread().interrupt();
+                    interrupt();
                 }
             } catch (SocketTimeoutException e) {
                 Log.i(TAG, "Connection: " + e.getMessage() + ".");
@@ -61,7 +62,7 @@ public class SocketConnectionStarter extends Thread {
                     Thread.sleep(1000);
                 } catch (InterruptedException e1) {
                     // restore interrupted status
-                    Thread.currentThread().interrupt();
+                    interrupt();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -74,10 +75,8 @@ public class SocketConnectionStarter extends Thread {
                     e1.printStackTrace();
                 }
                 return;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
             }
         }
+        Log.d(TAG, "done");
     }
 }
