@@ -30,11 +30,9 @@ public class SocketConnectionStarter extends Thread {
     public void run() {
         // To record the status of the connection
         boolean connectedToServer = false;
-        int maxNumberOfRconnections = 50;
-        int currentNumberOfReconnections = 0;
 
         // Try connecting till the connection is setup
-        while (!connectedToServer) {
+        while (!connectedToServer && !isInterrupted()) {
             try {
                 socket = new Socket();
                 socket.setReuseAddress(true);
@@ -51,25 +49,19 @@ public class SocketConnectionStarter extends Thread {
                 connectedToServer = true;
             } catch (ConnectException e) {
                 Log.i(TAG, "Error while connecting... Reconnecting " + e.getMessage());
-                currentNumberOfReconnections++;
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-
-                // Stop reconnecting when the number of attempts reaches max number of reconnections
-                if (currentNumberOfReconnections == maxNumberOfRconnections) {
-                    currentNumberOfReconnections = 0;
-                    Log.i(TAG, "Reconnections stopped");
-                    connectedToServer = true;
+                    // restore interrupted status
+                    Thread.currentThread().interrupt();
                 }
             } catch (SocketTimeoutException e) {
                 Log.i(TAG, "Connection: " + e.getMessage() + ".");
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e1) {
-                    e1.printStackTrace();
+                    // restore interrupted status
+                    Thread.currentThread().interrupt();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
