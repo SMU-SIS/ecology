@@ -30,7 +30,7 @@ public class SocketConnectionStarter extends Thread {
     public void run() {
         // To record the status of the connection
         boolean connectedToServer = false;
-        int maxNumberOfRconnections = 20;
+        int maxNumberOfRconnections = 50;
         int currentNumberOfReconnections = 0;
 
         // Try connecting till the connection is setup
