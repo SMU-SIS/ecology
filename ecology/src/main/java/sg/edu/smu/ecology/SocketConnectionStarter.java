@@ -8,6 +8,7 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by tnnguyen on 28/4/16.
@@ -49,7 +50,7 @@ public class SocketConnectionStarter extends Thread {
                 // When connected, set this to true
                 connectedToServer = true;
             } catch (ConnectException e) {
-                Log.i(TAG, "Error while connecting. " + e.getMessage());
+                Log.i(TAG, "Error while connecting... Reconnecting " + e.getMessage());
                 currentNumberOfReconnections++;
                 try {
                     Thread.sleep(1000);
@@ -58,10 +59,17 @@ public class SocketConnectionStarter extends Thread {
                 }
 
                 // Stop reconnecting when the number of attempts reaches max number of reconnections
-                if(currentNumberOfReconnections == maxNumberOfRconnections){
+                if (currentNumberOfReconnections == maxNumberOfRconnections) {
                     currentNumberOfReconnections = 0;
                     Log.i(TAG, "Reconnections stopped");
                     connectedToServer = true;
+                }
+            } catch (SocketTimeoutException e) {
+                Log.i(TAG, "Connection: " + e.getMessage() + ".");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
