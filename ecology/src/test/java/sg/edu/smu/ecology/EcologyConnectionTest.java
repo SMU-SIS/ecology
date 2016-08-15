@@ -1,6 +1,5 @@
 package sg.edu.smu.ecology;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.provider.Settings;
 import android.util.Log;
@@ -16,8 +15,11 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Vector;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,10 +143,9 @@ public class EcologyConnectionTest {
 
         Context context = mock(Context.class);
 
-        ContentResolver mockContentResolver = mock(ContentResolver.class);
-
+        String androidId = "android_id";
         // Mock android id
-        when(Settings.Secure.getString(mockContentResolver, Settings.Secure.ANDROID_ID)).thenReturn("android_id");
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
 
         ecologyConnection.connect(context);
 
@@ -167,5 +168,238 @@ public class EcologyConnectionTest {
         // To verify that all the added connectors' disconnect method is called once
         verify(wifip2pConnector, times(1)).disconnect();
         verify(msgApiConnector, times(1)).disconnect();
+    }
+
+    @Test
+    public void testSendMessage(){
+        // Add a core connector
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+
+        Context context = mock(Context.class);
+
+        String androidId = "android_id";
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
+
+        ecologyConnection.connect(context);
+
+        // Test data
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test");
+
+        ecologyConnection.sendMessage(data);
+
+        verify(wifip2pConnector, times(1)).sendMessage(data);
+
+        // Adds android id at the end of the message while sending it using a dependent connector
+        data.add(androidId);
+        verify(msgApiConnector, times(1)).sendMessage(data);
+    }
+
+    // To verify that ecology connection receiver receives the message when a core connector receives
+    // a message. Also if there are no added dependent connectors, there won't be any forwarding of
+    // the received message
+    @Test
+    public void testOnMessageCore(){
+        // Add a core connector
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver1;
+        receiver1 = receiverCaptor1.getValue();
+
+        Context context = mock(Context.class);
+
+        String androidId = "android_id";
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
+
+        ecologyConnection.connect(context);
+
+        ecologyConnection.setReceiver(receiver);
+
+        // Test data
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test");
+
+        // Core connector receiver receives the message
+        receiver1.onMessage(data);
+
+        verify(receiver, times(1)).onMessage(data);
+
+        // Android id will be added before forwarding the message
+        data.add(androidId);
+        // To verify that there is no forwarding of message
+        verify(msgApiConnector, never()).sendMessage(data);
+    }
+
+    // To verify that ecology connection receiver receives the message when a core connector receives
+    // a message. Also there will be forwarding of the received message as the ecology has
+    // dependent connectors
+    @Test
+    public void testOnMessageCoreWithDependents(){
+        // Add a core connector
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver1;
+        receiver1 = receiverCaptor1.getValue();
+
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+
+        Context context = mock(Context.class);
+
+        String androidId = "android_id";
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
+
+        ecologyConnection.connect(context);
+
+        ecologyConnection.setReceiver(receiver);
+
+        // Test data
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test");
+
+        // Core connector receiver receives the message
+        receiver1.onMessage(data);
+
+        verify(receiver, times(1)).onMessage(data);
+
+        // Android id will be added before forwarding the message
+        data.add(androidId);
+        // To verify that there is forwarding of messages to dependent connectors
+        verify(msgApiConnector, times(1)).sendMessage(data);
+    }
+
+    // To verify that ecology connection receiver receives the message when a dependent connector
+    // receives a message from another device. No forwarding of message will happen if there are
+    // no added core connectors
+    @Test
+    public void testOnMessageDependent(){
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver2;
+        receiver2 = receiverCaptor2.getValue();
+
+        Context context = mock(Context.class);
+
+        String androidId1 = "android_id1";
+        String androidId2 = "android_id2";
+
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId1);
+
+        ecologyConnection.connect(context);
+
+        ecologyConnection.setReceiver(receiver);
+
+        // Test data - contains a different android id
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test");
+        data.add(androidId2);
+
+        // Dependent connector receiver receives the message
+        receiver2.onMessage(data);
+
+        verify(receiver, times(1)).onMessage(data.subList(0, data.size() - 1));
+        verify(wifip2pConnector, never()).sendMessage(data.subList(0, data.size() - 1));
+    }
+
+    // To verify that ecology connection receiver doesn't receive the message when a dependent
+    // connector receives it's own message
+    @Test
+    public void testOnDependentMessageSameDevice(){
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver2;
+        receiver2 = receiverCaptor2.getValue();
+
+        Context context = mock(Context.class);
+
+        String androidId = "android_id";
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
+
+        ecologyConnection.connect(context);
+
+        ecologyConnection.setReceiver(receiver);
+
+        // Test data - contains the same android id
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test");
+        data.add(androidId);
+
+        // Dependent connector receiver receives the message
+        receiver2.onMessage(data);
+
+        verify(receiver, times(0)).onMessage(data.subList(0, data.size() - 1));
+        verify(wifip2pConnector, never()).sendMessage(data.subList(0, data.size() - 1));
+    }
+
+    // To verify that ecology connection receiver receives the message when a dependent connector
+    // receives a message from another device and the message will be forwarded to the core
+    // connectors
+    @Test
+    public void testOnMessageDependentWithCoreConnectors(){
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver2;
+        receiver2 = receiverCaptor2.getValue();
+
+        // Add a core connector
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+
+        Context context = mock(Context.class);
+
+        String androidId1 = "android_id1";
+        String androidId2 = "android_id2";
+
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId1);
+
+        ecologyConnection.connect(context);
+
+        ecologyConnection.setReceiver(receiver);
+
+        // Test data - contains a different android id
+        Vector<Object> data = new Vector<>();
+        data.add(1);
+        data.add("test");
+        data.add(androidId2);
+
+        // Dependent connector receiver receives the message
+        receiver2.onMessage(data);
+
+        // Android id will be removed before passing to ecology connection receiver
+        // To verify that receiver receives the message
+        verify(receiver, times(1)).onMessage(data.subList(0, data.size() - 1));
+        // To verify that the received message is forwarded to core connector
+        verify(wifip2pConnector, times(1)).sendMessage(data.subList(0, data.size() - 1));
     }
 }
