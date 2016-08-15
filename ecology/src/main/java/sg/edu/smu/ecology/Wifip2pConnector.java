@@ -35,6 +35,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * Used to save the application context
      */
     private Context applicationContext;
+    // The thread responsible for initializing the connection.
+    private Thread connectionStarter = null;
 
     public Wifip2pConnector() {
         filterIntent();
@@ -107,6 +109,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void disconnect() {
         onConnectorConnected = false;
         applicationContext.unregisterReceiver(broadcastManager);
+        if (connectionStarter.isAlive() && !connectionStarter.isInterrupted()) {
+            connectionStarter.interrupt();
+        }
     }
 
     @Override
@@ -118,19 +123,18 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
         Log.d(TAG, "onConnectionInfoAvailable");
-        Thread handler = null;
         if (p2pInfo.isGroupOwner) {
             Log.d(TAG, "Connected as server");
             try {
-                handler = new ServerSocketConnectionStarter(this.getHandler());
-                handler.start();
+                connectionStarter = new ServerSocketConnectionStarter(this.getHandler());
+                connectionStarter.start();
             } catch (Exception e) {
                 Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
             }
         } else {
             Log.d(TAG, "Connected as peer");
-            handler = new SocketConnectionStarter(this.getHandler(), p2pInfo.groupOwnerAddress);
-            handler.start();
+            connectionStarter = new SocketConnectionStarter(this.getHandler(), p2pInfo.groupOwnerAddress);
+            connectionStarter.start();
         }
     }
 
