@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.content.ContentResolver;
+import android.content.Context;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -15,8 +17,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by anurooppv on 21/7/2016.
@@ -124,6 +128,29 @@ public class EcologyConnectionTest {
 
         // To check that when all the connectors are connected, isConnected returns true
         assertEquals(true, ecologyConnection.isConnected());
+    }
+
+    // To test ecology connect method
+    @Test
+    public void testConnectMethod(){
+        // Add a core connector
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+
+        Context context = mock(Context.class);
+
+        ContentResolver mockContentResolver = mock(ContentResolver.class);
+
+        // Mock android id
+        when(Settings.Secure.getString(mockContentResolver, Settings.Secure.ANDROID_ID)).thenReturn("android_id");
+
+        ecologyConnection.connect(context);
+
+        // To verify that all the added connectors' connect method is called once
+        verify(wifip2pConnector, times(1)).connect(context);
+        verify(msgApiConnector, times(1)).connect(context);
     }
 
 }
