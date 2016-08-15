@@ -153,4 +153,19 @@ public class EcologyConnectionTest {
         verify(msgApiConnector, times(1)).connect(context);
     }
 
+    // To test ecology disconnect method
+    @Test
+    public void testDisconnect(){
+        // Add a core connector
+        ecologyConnection.addCoreConnector(wifip2pConnector);
+
+        // Add a dependent connector
+        ecologyConnection.addDependentConnector(msgApiConnector);
+
+        ecologyConnection.disconnect();
+
+        // To verify that all the added connectors' disconnect method is called once
+        verify(wifip2pConnector, times(1)).disconnect();
+        verify(msgApiConnector, times(1)).disconnect();
+    }
 }
