@@ -3,7 +3,6 @@ package sg.edu.smu.ecology;
 import android.os.Handler;
 import android.util.Log;
 
-import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,7 +17,6 @@ public class SocketConnectionStarter extends Thread {
     private Handler handler;
     private InetAddress address;
     private SocketReadWriter socketCreator;
-    private boolean connectedToServer = false;
 
     public SocketConnectionStarter(Handler handler, InetAddress groupOwnerAddress) {
         this.handler = handler;
@@ -27,37 +25,35 @@ public class SocketConnectionStarter extends Thread {
 
     @Override
     public void run() {
-        Socket socket = new Socket();
-        try {
-            socket.setReuseAddress(true);
-            socket.bind(null);
-            while(!connectedToServer) {
-                try {
-                    Log.d(TAG, "connection attempt");
-                    socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
-                            Settings.TIME_OUT);
-                    socketCreator = new SocketReadWriter(socket, handler);
-                    new Thread(socketCreator).start();
-                    Log.i(TAG, "socketCreator " + socketCreator);
-                    connectedToServer = true;
-                } catch (ConnectException e) {
-                    Log.i(TAG,"Error while connecting. " + e.getMessage());
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                } catch (Exception e){
-                    //Log.i(TAG,"Exception "+e.getMessage());
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        // To record the status of the connection
+        boolean connectedToServer = false;
+
+        // Try connecting till the connection is setup
+        while (!connectedToServer) {
             try {
-                Log.i(TAG, "socket close");
-                socket.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
+                Socket socket = new Socket();
+                socket.setReuseAddress(true);
+                socket.bind(null);
+
+                Log.d(TAG, "connection attempt");
+
+                socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
+                        Settings.TIME_OUT);
+                socketCreator = new SocketReadWriter(socket, handler);
+                new Thread(socketCreator).start();
+
+                // When connected, set this to true
+                connectedToServer = true;
+            } catch (ConnectException e) {
+                Log.i(TAG, "Error while connecting. " + e.getMessage());
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return;
             }
         }
     }
