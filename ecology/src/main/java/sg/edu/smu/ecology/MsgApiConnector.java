@@ -39,12 +39,14 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
     private Connector.Receiver receiver;
 
+    // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
+    private static final int BUFFER_SIZE = 1024;
+
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
 
     @Override
     public void sendMessage(List<Object> message) {
-        int BUFFER_SIZE = 1024;
         // Retrieve eventType
         final String eventType = (String) message.get(message.size() - 3);
 
@@ -64,11 +66,14 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
             e.printStackTrace();
         }
 
+        // To store the length of the message
         int length = ioBuffer.position();
 
+        // Contains the whole IoBuffer
         byte[] messageByteData = ioBuffer.array();
 
-        byte [] messageDataToSend = Arrays.copyOfRange(messageByteData, 0 , length);
+        // Actual message data is retrieved
+        byte[] messageDataToSend = Arrays.copyOfRange(messageByteData, 0, length);
         Log.i(TAG, "data " + Arrays.toString(messageDataToSend));
 
         String MESSAGE_PATH = " ";
@@ -111,15 +116,16 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * Connect to the ecology.
      */
     @Override
-    public void connect(Context activity) {
+    public void connect(Context context) {
 
-        googleApiClient = new GoogleApiClient.Builder(activity)
+        googleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
                 .build();
 
         googleApiClient.connect();
 
+        // Add listener to receive messages
         Wearable.MessageApi.addListener(googleApiClient, this);
 
     }
@@ -148,10 +154,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         return results;
     }
 
-    private void setupMessageApiConnection(){
-
-
-        Log.i(TAG, "setupMessageApiConnection");
+    private void setupMessageApiConnection() {
 
         // Handle the results of the capability checker thread.
         final Handler handler = new Handler();
@@ -208,7 +211,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         nodeId = pickBestNodeId(connectedNodes);
         Log.i(TAG, "nodeId " + nodeId);
 
-        if( nodeId != null){
+        if (nodeId != null) {
             onConnectorConnected = true;
             receiver.onConnectorConnected();
         }

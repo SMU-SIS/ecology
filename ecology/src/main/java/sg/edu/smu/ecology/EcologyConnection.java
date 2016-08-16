@@ -20,7 +20,7 @@ public class EcologyConnection extends BaseConnector {
     private final static String TAG = EcologyConnection.class.getSimpleName();
 
     // To store the device ID
-    private String android_id;
+    private String androidId;
 
     // Registers if the ecology connection is connected.
     private boolean isConnected = false;
@@ -77,7 +77,7 @@ public class EcologyConnection extends BaseConnector {
 
         // Add the device id of the message sender
         List<Object> dependentMessage = new ArrayList<>(msg);
-        dependentMessage.add(android_id);
+        dependentMessage.add(androidId);
         dependentMessage = Collections.unmodifiableList(dependentMessage);
         // Forwards the message to all the dependent devices after adding the device ID
         for (Connector dependentConnector : dependentConnectorList) {
@@ -93,7 +93,7 @@ public class EcologyConnection extends BaseConnector {
     private void onDependentMessage(List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
         // Check if the message is from the same device or not
-        if (!android_id.equals(msg.get(msg.size() - 1))) {
+        if (!androidId.equals(msg.get(msg.size() - 1))) {
             getReceiver().onMessage(msg.subList(0, msg.size() - 1));
         }
 
@@ -128,7 +128,7 @@ public class EcologyConnection extends BaseConnector {
         for (Connector dependentConnector : dependentConnectorList) {
             // Add device Id before sending messages to dependent devices
             Vector<Object> msg = new Vector<>(message);
-            msg.add(android_id);
+            msg.add(androidId);
             dependentConnector.sendMessage(msg);
         }
     }
@@ -136,18 +136,18 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Connect to the ecology.
      */
-    public void connect(Context activity) {
+    public void connect(Context context) {
         // Device Id of the connected device
-        android_id = android.provider.Settings.Secure.getString(activity.getContentResolver(),
+        androidId = android.provider.Settings.Secure.getString(context.getContentResolver(),
                 android.provider.Settings.Secure.ANDROID_ID);
-        Log.i(TAG, "my android id " + android_id);
+        Log.i(TAG, "my android id " + androidId);
 
         // Connect all connectors.
         for (Connector connector : dependentConnectorList) {
-            connector.connect(activity);
+            connector.connect(context);
         }
         for (Connector connector : coreConnectorList) {
-            connector.connect(activity);
+            connector.connect(context);
         }
     }
 
