@@ -109,7 +109,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void disconnect() {
         onConnectorConnected = false;
         applicationContext.unregisterReceiver(broadcastManager);
-        if (connectionStarter.isAlive() && !connectionStarter.isInterrupted()) {
+        if (connectionStarter != null && connectionStarter.isAlive() && !connectionStarter.isInterrupted()) {
             connectionStarter.interrupt();
         }
     }
