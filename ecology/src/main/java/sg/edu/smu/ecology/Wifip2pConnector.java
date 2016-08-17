@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
+import java.net.InetAddress;
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +44,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     // The thread responsible for initializing the connection.
     private Thread connectionStarter = null;
+
+    // To store the group owner's address
+    private InetAddress groupOwnerAddress;
 
     public Wifip2pConnector() {
         filterIntent();
@@ -148,7 +152,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
             }
         } else {
             Log.d(TAG, "Connected as peer");
-            connectionStarter = new SocketConnectionStarter(this.getHandler(), p2pInfo.groupOwnerAddress);
+            groupOwnerAddress = p2pInfo.groupOwnerAddress;
+            connectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
             connectionStarter.start();
         }
     }
@@ -216,6 +221,16 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 onConnectorConnected = true;
 
                 receiver.onConnectorConnected();
+                break;
+
+            case Settings.SOCKET_CLOSE:
+                Log.d(TAG, "Socket Close");
+                onConnectorConnected = false;
+
+                receiver.onConnectorDisconnected();
+                connectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
+                connectionStarter.start();
+                break;
         }
         return true;
     }
