@@ -48,6 +48,7 @@ public class SocketReadWriter implements Runnable {
                         handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
                     }
                 } catch (EOFException e) {
+                    Log.i(TAG, "EOFException");
                     break;
                 } catch (IOException e) {
                     Log.e(TAG, "Exception during read", e);
@@ -58,6 +59,9 @@ public class SocketReadWriter implements Runnable {
         } finally {
             try {
                 socket.close();
+                Log.i(TAG, "socket close");
+
+                handler.obtainMessage(Settings.SOCKET_CLOSE, null).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
             }
