@@ -30,6 +30,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
+    private SocketConnectionStarter socketConnectionStarter;
 
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
@@ -153,7 +154,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         } else {
             Log.d(TAG, "Connected as peer");
             groupOwnerAddress = p2pInfo.groupOwnerAddress;
-            connectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
+
+            socketConnectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
+
+            connectionStarter = socketConnectionStarter;
             connectionStarter.start();
         }
     }
@@ -228,8 +232,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 onConnectorConnected = false;
 
                 receiver.onConnectorDisconnected();
-                connectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
-                connectionStarter.start();
+
+                // For only client - start looking for server connections
+                if (groupOwnerAddress != null) {
+                    socketConnectionStarter.setConnectedToServer(false);
+                }
                 break;
         }
         return true;
