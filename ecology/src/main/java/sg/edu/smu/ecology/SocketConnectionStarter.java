@@ -20,33 +20,39 @@ public class SocketConnectionStarter extends Thread {
     private InetAddress address;
     private SocketReadWriter socketReadWriter;
     private Socket socket = null;
+    // To record the status of the connection
+    private boolean connectedToServer = false;
 
     public SocketConnectionStarter(Handler handler, InetAddress groupOwnerAddress) {
         this.handler = handler;
         this.address = groupOwnerAddress;
     }
 
+    public void setConnectedToServer(boolean connectedToServer) {
+        this.connectedToServer = connectedToServer;
+    }
+
     @Override
     public void run() {
-        // To record the status of the connection
-        boolean connectedToServer = false;
-
         // Try connecting till the connection is setup
-        while (!connectedToServer && !isInterrupted()) {
+        while (!isInterrupted()) {
             try {
-                socket = new Socket();
-                socket.setReuseAddress(true);
-                socket.bind(null);
+                // If not connected to server, try to connect
+                if (!connectedToServer) {
+                    Log.d(TAG, "connection attempt");
 
-                Log.d(TAG, "connection attempt");
+                    socket = new Socket();
+                    socket.setReuseAddress(true);
+                    socket.bind(null);
 
-                socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
-                        Settings.TIME_OUT);
-                socketReadWriter = new SocketReadWriter(socket, handler);
-                new Thread(socketReadWriter).start();
+                    socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
+                            Settings.TIME_OUT);
+                    socketReadWriter = new SocketReadWriter(socket, handler);
+                    new Thread(socketReadWriter).start();
 
-                // When connected, set this to true
-                connectedToServer = true;
+                    // When connected, set this to true
+                    connectedToServer = true;
+                }
             } catch (ConnectException e) {
                 Log.i(TAG, e.getMessage());
                 Log.d(TAG, "Waiting for 1sec before new connection attempt");
