@@ -121,7 +121,9 @@ public class Ecology {
      * Called when the ecology connector is disconnected.
      */
     private void onConnectorDisconnected() {
-        // TODO
+        for (Room room : rooms.values()) {
+            room.onEcologyDisconnected();
+        }
     }
 
     /**
