@@ -30,6 +30,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
 
+    // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
+    private static final int BUFFER_SIZE = 1024;
+
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
 
@@ -55,7 +58,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     @Override
     public void sendMessage(List<Object> message) {
-        int BUFFER_SIZE = 1024;
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
 
         if (socketReadWriter != null) {
@@ -72,8 +74,13 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 e.printStackTrace();
             }
 
+            // To store the length of the message
             int length = ioBuffer.position();
+
+            // Contains the whole IoBuffer
             byte[] eventData = ioBuffer.array();
+
+            // Actual message data is retrieved
             byte[] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
 
             // Write length of the data first
