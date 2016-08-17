@@ -18,7 +18,7 @@ public class SocketConnectionStarter extends Thread {
 
     private Handler handler;
     private InetAddress address;
-    private SocketReadWriter socketCreator;
+    private SocketReadWriter socketReadWriter;
     private Socket socket = null;
 
     public SocketConnectionStarter(Handler handler, InetAddress groupOwnerAddress) {
@@ -42,8 +42,8 @@ public class SocketConnectionStarter extends Thread {
 
                 socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
                         Settings.TIME_OUT);
-                socketCreator = new SocketReadWriter(socket, handler);
-                new Thread(socketCreator).start();
+                socketReadWriter = new SocketReadWriter(socket, handler);
+                new Thread(socketReadWriter).start();
 
                 // When connected, set this to true
                 connectedToServer = true;

@@ -66,9 +66,8 @@ public class EventBroadcaster {
         passEventToReceivers(eventType, message.subList(0, message.size() - 1));
     }
 
-
     // Forward an event to the receivers.
-    private void passEventToReceivers(String eventType, List<Object> data){
+    private void passEventToReceivers(String eventType, List<Object> data) {
         // Fetch the list of event receiver for this particular event type.
         List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
         if (thisEventReceivers == null) {
@@ -83,7 +82,6 @@ public class EventBroadcaster {
             receiver.handleEvent(eventType, receivedMessage);
         }
     }
-
 
     /**
      * Register an event receiver for the events of a certain type.
