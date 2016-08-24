@@ -33,6 +33,14 @@ public class SocketConnectionStarter extends Thread {
     }
 
     @Override
+    public void interrupt() {
+        super.interrupt();
+        if (socketReadWriter != null) {
+            socketReadWriter.onInterrupt();
+        }
+    }
+
+    @Override
     public void run() {
         // Try connecting till the connection is setup
         while (!isInterrupted()) {
