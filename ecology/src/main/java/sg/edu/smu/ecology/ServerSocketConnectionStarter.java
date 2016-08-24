@@ -19,6 +19,7 @@ public class ServerSocketConnectionStarter extends Thread {
     ServerSocket socket = null;
     private final int THREAD_COUNT = 10;
     private Handler handler;
+    private SocketReadWriter socketReadWriter;
 
     private final ThreadPoolExecutor pool = new ThreadPoolExecutor(
             THREAD_COUNT, THREAD_COUNT, 10, TimeUnit.SECONDS,
@@ -36,11 +37,26 @@ public class ServerSocketConnectionStarter extends Thread {
     }
 
     @Override
+    public void interrupt() {
+        super.interrupt();
+        if (socketReadWriter != null) {
+            socketReadWriter.onInterrupt();
+        }
+        try {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        } catch (IOException ioe) {
+        }
+    }
+
+    @Override
     public void run() {
-        while (true) {
+        while (!isInterrupted()) {
             try {
                 Log.d(TAG, "connection attempt");
-                pool.execute(new SocketReadWriter(socket.accept(), handler));
+                socketReadWriter = new SocketReadWriter(socket.accept(), handler);
+                pool.execute(socketReadWriter);
             } catch (IOException e) {
                 try {
                     if (socket != null && !socket.isClosed())

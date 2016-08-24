@@ -16,6 +16,7 @@ import java.util.Arrays;
 public class SocketReadWriter implements Runnable {
     private static final String TAG = SocketReadWriter.class.getSimpleName();
 
+    private static final int END_OF_FILE = -1;
     private Handler handler;
     private Socket socket = null;
     private DataOutputStream outputStream;
@@ -23,6 +24,12 @@ public class SocketReadWriter implements Runnable {
     public SocketReadWriter(Socket socket, Handler handler) {
         this.socket = socket;
         this.handler = handler;
+    }
+
+    // This method is called when the device is disconnected from ecology
+    public void onInterrupt(){
+        // To indicate that the device is disconnected from ecology
+        writeInt(-1);
     }
 
     @Override
@@ -38,6 +45,11 @@ public class SocketReadWriter implements Runnable {
                 try {
                     int toRead = inputStream.readInt();
                     int currentRead = 0;
+
+                    // This indicates that the other device is disconnected from ecology
+                    if(toRead == END_OF_FILE){
+                        break;
+                    }
 
                     while (currentRead < toRead) {
                         byte[] dataBuffer = new byte[toRead];
