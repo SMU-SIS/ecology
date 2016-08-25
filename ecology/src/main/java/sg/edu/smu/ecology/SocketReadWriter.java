@@ -29,7 +29,9 @@ public class SocketReadWriter implements Runnable {
     // This method is called when the device is disconnected from ecology
     public void onInterrupt(){
         // To indicate that the device is disconnected from ecology
-        writeInt(-1);
+        if(!socket.isClosed()) {
+            writeInt(END_OF_FILE);
+        }
     }
 
     @Override
