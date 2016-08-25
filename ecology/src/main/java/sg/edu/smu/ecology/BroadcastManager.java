@@ -18,6 +18,7 @@ public class BroadcastManager extends BroadcastReceiver {
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private Wifip2pConnector wifip2pConnector;
+    private Boolean wifip2pConnected = false;
 
     public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
                             Wifip2pConnector wifip2pConnector) {
@@ -56,7 +57,14 @@ public class BroadcastManager extends BroadcastReceiver {
                 Log.i(TAG, "networkinfo "+networkInfo);
                 if (networkInfo.isConnected()) {
                     Log.d(TAG, "Connected to peer network.");
+                    wifip2pConnected = true;
                     manager.requestConnectionInfo(channel, wifip2pConnector);
+                }else{
+                    if(wifip2pConnected) {
+                        Log.d(TAG, "disconnect wifip2p");
+                        wifip2pConnector.disconnect();
+                        wifip2pConnected = false;
+                    }
                 }
             }
         }
