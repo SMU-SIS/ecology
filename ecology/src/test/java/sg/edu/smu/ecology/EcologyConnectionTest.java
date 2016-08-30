@@ -32,9 +32,9 @@ import static org.mockito.Mockito.when;
 public class EcologyConnectionTest {
 
     @Mock
-    private Wifip2pConnector wifip2pConnector;
+    private Connector connector1;
     @Mock
-    private MsgApiConnector msgApiConnector;
+    private Connector connector2;
     @Mock
     private Connector.Receiver receiver;
 
@@ -59,32 +59,32 @@ public class EcologyConnectionTest {
     @Test
     public void testEcologyConnected() throws Exception {
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        verify(connector1).setReceiver(receiverCaptor1.capture());
         // Create a local mock receiver
         Connector.Receiver receiver1;
         receiver1 = receiverCaptor1.getValue();
 
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        verify(connector2).setReceiver(receiverCaptor2.capture());
         // Create a local mock receiver
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
 
         ecologyConnection.setReceiver(receiver);
 
-        // Mock isConnected method for wifip2pConnector
-        PowerMockito.when(wifip2pConnector.isConnected()).thenReturn(true);
+        // Mock isConnected method for connector1
+        PowerMockito.when(connector1.isConnected()).thenReturn(true);
         // Connector 1 gets connected
         receiver1.onConnectorConnected();
 
-        // Mock isConnected method for msgApiConnector
-        PowerMockito.when(msgApiConnector.isConnected()).thenReturn(true);
+        // Mock isConnected method for connector2
+        PowerMockito.when(connector2.isConnected()).thenReturn(true);
         // Connector 2 gets connected
         receiver2.onConnectorConnected();
 
@@ -96,35 +96,35 @@ public class EcologyConnectionTest {
     @Test
     public void testIsConnected(){
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        verify(connector1).setReceiver(receiverCaptor1.capture());
         // Create a local mock receiver
         Connector.Receiver receiver1;
         receiver1 = receiverCaptor1.getValue();
 
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        verify(connector2).setReceiver(receiverCaptor2.capture());
         // Create a local mock receiver
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
 
         ecologyConnection.setReceiver(receiver);
 
-        // Mock isConnected method for wifip2pConnector
-        PowerMockito.when(wifip2pConnector.isConnected()).thenReturn(true);
+        // Mock isConnected method for connector1
+        PowerMockito.when(connector1.isConnected()).thenReturn(true);
         // Connector 1 gets connected
         receiver1.onConnectorConnected();
 
         // To check that when only one connector among two is connected, isConnected returns false
         assertEquals(false, ecologyConnection.isConnected());
 
-        // Mock isConnected method for msgApiConnector
-        PowerMockito.when(msgApiConnector.isConnected()).thenReturn(true);
+        // Mock isConnected method for connector2
+        PowerMockito.when(connector2.isConnected()).thenReturn(true);
         // Connector 2 gets connected
         receiver2.onConnectorConnected();
 
@@ -136,10 +136,10 @@ public class EcologyConnectionTest {
     @Test
     public void testConnectMethod(){
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
 
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
 
         Context context = mock(Context.class);
 
@@ -150,33 +150,33 @@ public class EcologyConnectionTest {
         ecologyConnection.connect(context);
 
         // To verify that all the added connectors' connect method is called once
-        verify(wifip2pConnector, times(1)).connect(context);
-        verify(msgApiConnector, times(1)).connect(context);
+        verify(connector1, times(1)).connect(context);
+        verify(connector2, times(1)).connect(context);
     }
 
     // To test ecology disconnect method
     @Test
     public void testDisconnect(){
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
 
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
 
         ecologyConnection.disconnect();
 
         // To verify that all the added connectors' disconnect method is called once
-        verify(wifip2pConnector, times(1)).disconnect();
-        verify(msgApiConnector, times(1)).disconnect();
+        verify(connector1, times(1)).disconnect();
+        verify(connector2, times(1)).disconnect();
     }
 
     @Test
     public void testSendMessage(){
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
 
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
 
         Context context = mock(Context.class);
 
@@ -193,11 +193,11 @@ public class EcologyConnectionTest {
 
         ecologyConnection.sendMessage(data);
 
-        verify(wifip2pConnector, times(1)).sendMessage(data);
+        verify(connector1, times(1)).sendMessage(data);
 
         // Adds android id at the end of the message while sending it using a dependent connector
         data.add(androidId);
-        verify(msgApiConnector, times(1)).sendMessage(data);
+        verify(connector2, times(1)).sendMessage(data);
     }
 
     // To verify that ecology connection receiver receives the message when a core connector receives
@@ -206,10 +206,10 @@ public class EcologyConnectionTest {
     @Test
     public void testOnMessageCore(){
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        verify(connector1).setReceiver(receiverCaptor1.capture());
         // Create a local mock receiver
         Connector.Receiver receiver1;
         receiver1 = receiverCaptor1.getValue();
@@ -237,7 +237,7 @@ public class EcologyConnectionTest {
         // Android id will be added before forwarding the message
         data.add(androidId);
         // To verify that there is no forwarding of message
-        verify(msgApiConnector, never()).sendMessage(data);
+        verify(connector2, never()).sendMessage(data);
     }
 
     // To verify that ecology connection receiver receives the message when a core connector receives
@@ -246,16 +246,16 @@ public class EcologyConnectionTest {
     @Test
     public void testOnMessageCoreWithDependents(){
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(wifip2pConnector).setReceiver(receiverCaptor1.capture());
+        verify(connector1).setReceiver(receiverCaptor1.capture());
         // Create a local mock receiver
         Connector.Receiver receiver1;
         receiver1 = receiverCaptor1.getValue();
 
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
 
         Context context = mock(Context.class);
 
@@ -280,7 +280,7 @@ public class EcologyConnectionTest {
         // Android id will be added before forwarding the message
         data.add(androidId);
         // To verify that there is forwarding of messages to dependent connectors
-        verify(msgApiConnector, times(1)).sendMessage(data);
+        verify(connector2, times(1)).sendMessage(data);
     }
 
     // To verify that ecology connection receiver receives the message when a dependent connector
@@ -289,10 +289,10 @@ public class EcologyConnectionTest {
     @Test
     public void testOnMessageDependent(){
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        verify(connector2).setReceiver(receiverCaptor2.capture());
         // Create a local mock receiver
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
@@ -319,7 +319,7 @@ public class EcologyConnectionTest {
         receiver2.onMessage(data);
 
         verify(receiver, times(1)).onMessage(data.subList(0, data.size() - 1));
-        verify(wifip2pConnector, never()).sendMessage(data.subList(0, data.size() - 1));
+        verify(connector1, never()).sendMessage(data.subList(0, data.size() - 1));
     }
 
     // To verify that ecology connection receiver doesn't receive the message when a dependent
@@ -327,10 +327,10 @@ public class EcologyConnectionTest {
     @Test
     public void testOnDependentMessageSameDevice(){
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        verify(connector2).setReceiver(receiverCaptor2.capture());
         // Create a local mock receiver
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
@@ -355,7 +355,7 @@ public class EcologyConnectionTest {
         receiver2.onMessage(data);
 
         verify(receiver, times(0)).onMessage(data.subList(0, data.size() - 1));
-        verify(wifip2pConnector, never()).sendMessage(data.subList(0, data.size() - 1));
+        verify(connector1, never()).sendMessage(data.subList(0, data.size() - 1));
     }
 
     // To verify that ecology connection receiver receives the message when a dependent connector
@@ -364,16 +364,16 @@ public class EcologyConnectionTest {
     @Test
     public void testOnMessageDependentWithCoreConnectors(){
         // Add a dependent connector
-        ecologyConnection.addDependentConnector(msgApiConnector);
+        ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(msgApiConnector).setReceiver(receiverCaptor2.capture());
+        verify(connector2).setReceiver(receiverCaptor2.capture());
         // Create a local mock receiver
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
 
         // Add a core connector
-        ecologyConnection.addCoreConnector(wifip2pConnector);
+        ecologyConnection.addCoreConnector(connector1);
 
         Context context = mock(Context.class);
 
@@ -400,6 +400,6 @@ public class EcologyConnectionTest {
         // To verify that receiver receives the message
         verify(receiver, times(1)).onMessage(data.subList(0, data.size() - 1));
         // To verify that the received message is forwarded to core connector
-        verify(wifip2pConnector, times(1)).sendMessage(data.subList(0, data.size() - 1));
+        verify(connector1, times(1)).sendMessage(data.subList(0, data.size() - 1));
     }
 }
