@@ -62,9 +62,9 @@ public class EcologyConnectionTest {
         ecologyConnection = null;
     }
 
-    // To test "ecology:connected" message sending
+    // To test if the receiver is notified when a connectors get connected
     @Test
-    public void testEcologyConnected() throws Exception {
+    public void testEcologyConnected(){
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
@@ -171,6 +171,7 @@ public class EcologyConnectionTest {
         verify(connector2, times(1)).disconnect();
     }
 
+    // To test that send message method of all the connectors are invoked
     @Test
     public void testSendMessage(){
         // Add a core connector
