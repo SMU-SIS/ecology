@@ -53,7 +53,7 @@ public class EcologyConnectionTest {
         PowerMockito.mockStatic(Settings.Secure.class);
         PowerMockito.mockStatic(Log.class);
 
-        // Mock android id
+        // Mock android id retreival
         when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
     }
 
