@@ -37,8 +37,12 @@ public class EcologyConnectionTest {
     private Connector connector2;
     @Mock
     private Connector.Receiver receiver;
+    @Mock
+    private Context context;
 
     private EcologyConnection ecologyConnection;
+
+    private String androidId = "android_id";
 
     @Before
     public void setUp() throws Exception {
@@ -48,6 +52,9 @@ public class EcologyConnectionTest {
         // Prepare the mock for static classes
         PowerMockito.mockStatic(Settings.Secure.class);
         PowerMockito.mockStatic(Log.class);
+
+        // Mock android id
+        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
     }
 
     @After
@@ -141,12 +148,6 @@ public class EcologyConnectionTest {
         // Add a dependent connector
         ecologyConnection.addDependentConnector(connector2);
 
-        Context context = mock(Context.class);
-
-        String androidId = "android_id";
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
-
         ecologyConnection.connect(context);
 
         // To verify that all the added connectors' connect method is called once
@@ -178,12 +179,6 @@ public class EcologyConnectionTest {
         // Add a dependent connector
         ecologyConnection.addDependentConnector(connector2);
 
-        Context context = mock(Context.class);
-
-        String androidId = "android_id";
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
-
         ecologyConnection.connect(context);
 
         // Test data
@@ -213,12 +208,6 @@ public class EcologyConnectionTest {
         // Create a local mock receiver
         Connector.Receiver receiver1;
         receiver1 = receiverCaptor1.getValue();
-
-        Context context = mock(Context.class);
-
-        String androidId = "android_id";
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
 
         ecologyConnection.connect(context);
 
@@ -257,12 +246,6 @@ public class EcologyConnectionTest {
         // Add a dependent connector
         ecologyConnection.addDependentConnector(connector2);
 
-        Context context = mock(Context.class);
-
-        String androidId = "android_id";
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
-
         ecologyConnection.connect(context);
 
         ecologyConnection.setReceiver(receiver);
@@ -297,13 +280,7 @@ public class EcologyConnectionTest {
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
 
-        Context context = mock(Context.class);
-
-        String androidId1 = "android_id1";
         String androidId2 = "android_id2";
-
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId1);
 
         ecologyConnection.connect(context);
 
@@ -334,12 +311,6 @@ public class EcologyConnectionTest {
         // Create a local mock receiver
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
-
-        Context context = mock(Context.class);
-
-        String androidId = "android_id";
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
 
         ecologyConnection.connect(context);
 
@@ -375,13 +346,7 @@ public class EcologyConnectionTest {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
 
-        Context context = mock(Context.class);
-
-        String androidId1 = "android_id1";
         String androidId2 = "android_id2";
-
-        // Mock android id
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId1);
 
         ecologyConnection.connect(context);
 
