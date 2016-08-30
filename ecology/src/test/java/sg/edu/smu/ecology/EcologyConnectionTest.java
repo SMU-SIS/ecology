@@ -95,8 +95,34 @@ public class EcologyConnectionTest {
         // Connector 2 gets connected
         receiver2.onConnectorConnected();
 
-        // Ecology must be connected only once even if there are multiple connectors
+        // Receiver must be notified only once even if there are multiple connectors
         verify(receiver, times(1)).onConnectorConnected();
+    }
+
+    // To test if the receiver is notified when a connector gets disconnected
+    @Test
+    public void testEcologyDisconnected(){
+        // Add a core connector
+        ecologyConnection.addCoreConnector(connector1);
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(connector1).setReceiver(receiverCaptor1.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver1;
+        receiver1 = receiverCaptor1.getValue();
+
+        ecologyConnection.setReceiver(receiver);
+
+        // Mock isConnected method for connector1
+        PowerMockito.when(connector1.isConnected()).thenReturn(true);
+        // Connector 1 gets connected
+        receiver1.onConnectorConnected();
+
+        // Connector 1 gets disconnected
+        receiver1.onConnectorDisconnected();
+
+        // To verify that the receiver is notified about the disconnection
+        verify(receiver, times(1)).onConnectorDisconnected();
     }
 
     // To test isConnected method
