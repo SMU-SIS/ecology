@@ -61,8 +61,8 @@ public class BroadcastManager extends BroadcastReceiver {
                     manager.requestConnectionInfo(channel, wifip2pConnector);
                 }else{
                     if(wifip2pConnected) {
-                        Log.d(TAG, "disconnect wifip2p");
-                        wifip2pConnector.disconnect();
+                        Log.d(TAG, "WiFiP2P connection is lost");
+                        wifip2pConnector.connectionLost();
                         wifip2pConnected = false;
                     }
                 }

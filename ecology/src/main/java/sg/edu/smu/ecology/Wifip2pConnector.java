@@ -126,16 +126,16 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void disconnect() {
         onConnectorConnected = false;
 
-        // Unregister the broadcast receiver if it's registered
-        try {
-            applicationContext.unregisterReceiver(broadcastManager);
-        }catch (IllegalArgumentException e){
-            Log.d(TAG, " Receiver has been already unregistered");
-        }
+        applicationContext.unregisterReceiver(broadcastManager);
 
         if (connectionStarter != null && connectionStarter.isAlive() && !connectionStarter.isInterrupted()) {
             connectionStarter.interrupt();
         }
+    }
+
+    // Called when the wifip2p connection is lost.  
+    void connectionLost() {
+        receiver.onConnectorDisconnected();
     }
 
     @Override
