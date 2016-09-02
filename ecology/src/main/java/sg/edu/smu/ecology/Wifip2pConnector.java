@@ -134,7 +134,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     }
 
     // Called when the wifip2p connection is lost.  
-    void connectionLost() {
+    void onWifiP2pConnectionDisconnected() {
         receiver.onConnectorDisconnected();
     }
 
