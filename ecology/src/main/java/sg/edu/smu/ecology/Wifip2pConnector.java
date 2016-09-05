@@ -12,6 +12,7 @@ import android.util.Log;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
+import java.net.InetAddress;
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
 import java.util.List;
@@ -29,6 +30,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
+    private SocketConnectionStarter socketConnectionStarter;
 
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
@@ -43,6 +45,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     // The thread responsible for initializing the connection.
     private Thread connectionStarter = null;
+
+    // To store the group owner's address
+    private InetAddress groupOwnerAddress;
 
     public Wifip2pConnector() {
         filterIntent();
@@ -121,12 +126,16 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void disconnect() {
         onConnectorConnected = false;
 
-        // Unregister the broadcast receiver
         applicationContext.unregisterReceiver(broadcastManager);
 
         if (connectionStarter != null && connectionStarter.isAlive() && !connectionStarter.isInterrupted()) {
             connectionStarter.interrupt();
         }
+    }
+
+    // Called when the wifip2p connection is lost.  
+    void onWifiP2pConnectionDisconnected() {
+        receiver.onConnectorDisconnected();
     }
 
     @Override
@@ -148,7 +157,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
             }
         } else {
             Log.d(TAG, "Connected as peer");
-            connectionStarter = new SocketConnectionStarter(this.getHandler(), p2pInfo.groupOwnerAddress);
+            groupOwnerAddress = p2pInfo.groupOwnerAddress;
+
+            socketConnectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
+
+            connectionStarter = socketConnectionStarter;
             connectionStarter.start();
         }
     }
@@ -216,6 +229,19 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 onConnectorConnected = true;
 
                 receiver.onConnectorConnected();
+                break;
+
+            case Settings.SOCKET_CLOSE:
+                Log.d(TAG, "Socket Close");
+                onConnectorConnected = false;
+
+                receiver.onConnectorDisconnected();
+
+                // For only client - start looking for server connections
+                if (groupOwnerAddress != null) {
+                    socketConnectionStarter.setConnectedToServer(false);
+                }
+                break;
         }
         return true;
     }

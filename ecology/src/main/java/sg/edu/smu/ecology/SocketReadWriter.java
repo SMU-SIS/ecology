@@ -16,6 +16,7 @@ import java.util.Arrays;
 public class SocketReadWriter implements Runnable {
     private static final String TAG = SocketReadWriter.class.getSimpleName();
 
+    private static final int END_OF_FILE = -1;
     private Handler handler;
     private Socket socket = null;
     private DataOutputStream outputStream;
@@ -23,6 +24,14 @@ public class SocketReadWriter implements Runnable {
     public SocketReadWriter(Socket socket, Handler handler) {
         this.socket = socket;
         this.handler = handler;
+    }
+
+    // This method is called when the device is disconnected from ecology
+    public void onInterrupt(){
+        // To indicate that the device is disconnected from ecology
+        if(!socket.isClosed()) {
+            writeInt(END_OF_FILE);
+        }
     }
 
     @Override
@@ -39,6 +48,11 @@ public class SocketReadWriter implements Runnable {
                     int toRead = inputStream.readInt();
                     int currentRead = 0;
 
+                    // This indicates that the other device is disconnected from ecology
+                    if(toRead == END_OF_FILE){
+                        break;
+                    }
+
                     while (currentRead < toRead) {
                         byte[] dataBuffer = new byte[toRead];
 
@@ -48,6 +62,7 @@ public class SocketReadWriter implements Runnable {
                         handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
                     }
                 } catch (EOFException e) {
+                    Log.i(TAG, "EOFException");
                     break;
                 } catch (IOException e) {
                     Log.e(TAG, "Exception during read", e);
@@ -58,6 +73,9 @@ public class SocketReadWriter implements Runnable {
         } finally {
             try {
                 socket.close();
+                Log.i(TAG, "socket close");
+
+                handler.obtainMessage(Settings.SOCKET_CLOSE, null).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
             }
