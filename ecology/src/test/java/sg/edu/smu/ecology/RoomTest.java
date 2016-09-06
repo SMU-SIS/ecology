@@ -21,13 +21,12 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class RoomTest {
 
+    private final String roomName = "room";
     @Mock
     private Ecology ecology;
     @Mock
     private EventBroadcaster eventBroadcaster;
-
     private Room room;
-    private final String roomName = "room";
 
     @Before
     public void setUp() throws Exception {
@@ -71,13 +70,13 @@ public class RoomTest {
 
     // Improper value is passed while creating a room
     @Test(expected = IllegalArgumentException.class)
-    public void testIllegalArgumentException(){
+    public void testIllegalArgumentException() {
         room = new Room("", ecology);
     }
 
     // Check if connector connected to ecology message received is published as a local event
     @Test
-    public void testOnConnectorConnectedMessage(){
+    public void testOnConnectorConnectedMessage() {
         // Room receives the message that connector has been connected to the ecology
         room.onEcologyConnected();
         String ecologyConnected = "ecology:connected";
@@ -86,7 +85,7 @@ public class RoomTest {
 
     // Check if connector disconnected from ecology message received is published as a local event
     @Test
-    public void testOnConnectorDisonnectedMessage(){
+    public void testOnConnectorDisonnectedMessage() {
         // Room receives the message that connector has been disconnected from the ecology
         room.onEcologyDisconnected();
         String ecologyDisonnected = "ecology:disconnected";
