@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
  * Created by anurooppv on 26/7/2016.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest( Log.class )
+@PrepareForTest(Log.class)
 public class EcologyTest {
 
     private Ecology ecology;
@@ -47,7 +47,7 @@ public class EcologyTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ecology = new Ecology(roomFactory,ecologyConnection);
+        ecology = new Ecology(roomFactory, ecologyConnection);
 
         // Prepare the mock
         PowerMockito.mockStatic(Log.class);
@@ -85,7 +85,7 @@ public class EcologyTest {
         room = ecology.getRoom("room");
 
         // To verify if room factory has been called with appropriate arguments
-        verify(roomFactory,times(1)).createRoom("room", ecology);
+        verify(roomFactory, times(1)).createRoom("room", ecology);
 
         // To verify that roomFactory is not called on the second time
         room = ecology.getRoom("room");
@@ -107,7 +107,7 @@ public class EcologyTest {
 
     // When message is received from a connector - check for correct room
     @Test
-    public void testCorrectRoomMessage() throws Exception{
+    public void testCorrectRoomMessage() throws Exception {
         // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
@@ -138,7 +138,7 @@ public class EcologyTest {
 
     //When message is received from a connector - check for inappropriate rooms
     @Test
-    public void testNoRoomFoundReceiverMessage(){
+    public void testNoRoomFoundReceiverMessage() {
         // Test data
         Vector<Object> data = new Vector<>();
         data.add(1);
@@ -170,7 +170,7 @@ public class EcologyTest {
 
     // When message is received from a connector - check for incorrect message format
     @Test
-    public void testIncorrectReceiverMessage(){
+    public void testIncorrectReceiverMessage() {
         // To verify if add receiver was called only once
         verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
@@ -205,9 +205,9 @@ public class EcologyTest {
     }
 
     // Check if connector connected to ecology message is received from connector
+    // Also to verify that all the rooms in the ecology receive this message
     @Test
-    public void testConnectorConnected(){
-
+    public void testConnectorConnected() {
         // To verify if add receiver was called only once
         verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
 
@@ -233,6 +233,36 @@ public class EcologyTest {
         // To verify that all the rooms in the ecology receive the message
         verify(room, times(1)).onEcologyConnected();
         verify(room1, times(1)).onEcologyConnected();
+    }
 
+    // Check if connector disconnected from ecology message is received from connector
+    // Also to verify that all the rooms in the ecology receive this message
+    @Test
+    public void testConnectorDisonnected() {
+        // To verify if add receiver was called only once
+        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
+
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
+        receiver = receiverCaptor.getValue();
+
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // One more room is added to the ecology
+        Room room1 = mock(Room.class);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        room1 = ecology.getRoom("room1");
+
+        // Receiver receives the message that connector has been disconnected from the ecology
+        receiver.onConnectorDisconnected();
+
+        // To verify that all the rooms in the ecology receive the message
+        verify(room, times(1)).onEcologyDisconnected();
+        verify(room1, times(1)).onEcologyDisconnected();
     }
 }

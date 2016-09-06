@@ -18,7 +18,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -28,7 +27,7 @@ import static org.mockito.Mockito.when;
  * Created by anurooppv on 21/7/2016.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest( {Settings.Secure.class, Log.class} )
+@PrepareForTest({Settings.Secure.class, Log.class})
 public class EcologyConnectionTest {
 
     @Mock
@@ -64,7 +63,7 @@ public class EcologyConnectionTest {
 
     // To test if the receiver is notified when a connectors get connected
     @Test
-    public void testEcologyConnected(){
+    public void testEcologyConnected() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
@@ -101,7 +100,7 @@ public class EcologyConnectionTest {
 
     // To test if the receiver is notified when a connector gets disconnected
     @Test
-    public void testEcologyDisconnected(){
+    public void testEcologyDisconnected() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
@@ -127,7 +126,7 @@ public class EcologyConnectionTest {
 
     // To test isConnected method
     @Test
-    public void testIsConnected(){
+    public void testIsConnected() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
@@ -167,7 +166,7 @@ public class EcologyConnectionTest {
 
     // To test ecology connect method
     @Test
-    public void testConnectMethod(){
+    public void testConnectMethod() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
 
@@ -183,7 +182,7 @@ public class EcologyConnectionTest {
 
     // To test ecology disconnect method
     @Test
-    public void testDisconnect(){
+    public void testDisconnect() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
 
@@ -199,7 +198,7 @@ public class EcologyConnectionTest {
 
     // To test that send message method of all the connectors are invoked
     @Test
-    public void testSendMessage(){
+    public void testSendMessage() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
 
@@ -226,7 +225,7 @@ public class EcologyConnectionTest {
     // a message. Also if there are no added dependent connectors, there won't be any forwarding of
     // the received message
     @Test
-    public void testOnMessageCore(){
+    public void testOnMessageCore() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
@@ -260,7 +259,7 @@ public class EcologyConnectionTest {
     // a message. Also there will be forwarding of the received message as the ecology has
     // dependent connectors
     @Test
-    public void testOnMessageCoreWithDependents(){
+    public void testOnMessageCoreWithDependents() {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
         // To capture the argument in the setReceiver method
@@ -297,7 +296,7 @@ public class EcologyConnectionTest {
     // receives a message from another device. No forwarding of message will happen if there are
     // no added core connectors
     @Test
-    public void testOnMessageDependent(){
+    public void testOnMessageDependent() {
         // Add a dependent connector
         ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
@@ -329,7 +328,7 @@ public class EcologyConnectionTest {
     // To verify that ecology connection receiver doesn't receive the message when a dependent
     // connector receives it's own message
     @Test
-    public void testOnDependentMessageSameDevice(){
+    public void testOnDependentMessageSameDevice() {
         // Add a dependent connector
         ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
@@ -360,7 +359,7 @@ public class EcologyConnectionTest {
     // receives a message from another device and the message will be forwarded to the core
     // connectors
     @Test
-    public void testOnMessageDependentWithCoreConnectors(){
+    public void testOnMessageDependentWithCoreConnectors() {
         // Add a dependent connector
         ecologyConnection.addDependentConnector(connector2);
         // To capture the argument in the setReceiver method
