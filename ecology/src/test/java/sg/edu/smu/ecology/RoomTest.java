@@ -84,4 +84,12 @@ public class RoomTest {
         verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyConnected, new ArrayList<>());
     }
 
+    // Check if connector disconnected from ecology message received is published as a local event
+    @Test
+    public void testOnConnectorDisonnectedMessage(){
+        // Room receives the message that connector has been disconnected from the ecology
+        room.onEcologyDisconnected();
+        String ecologyDisonnected = "ecology:disconnected";
+        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyDisonnected, new ArrayList<>());
+    }
 }
