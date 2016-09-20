@@ -88,25 +88,12 @@ public class EcologyConnection extends BaseConnector {
      */
     private void onDependentMessage(List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
-        // Check if the message is from the same device or not
-        if (!androidId.equals(msg.get(msg.size() - 1))) {
-            getReceiver().onMessage(msg.subList(0, msg.size() - 1));
-        }
+        getReceiver().onMessage(msg);
 
-        List<Object> coreMessage = Collections.unmodifiableList(msg.subList(0, msg.size() - 1));
-        // Forward all the dependent messages to all the connected core devices
+        List<Object> coreMessage = Collections.unmodifiableList(msg);
+        // Forward the dependent messages to all the connected core devices
         for (Connector coreConnector : coreConnectorList) {
-            // Remove the device ID before forwarding the message
             coreConnector.sendMessage(coreMessage);
-        }
-
-        // No forwarding of data if the dependent device doesn't have any core devices
-        // Also no forwarding if the device has only one dependent device
-        if (coreConnectorList.size() > 0 || dependentConnectorList.size() > 1) {
-            for (Connector dependentConnector : dependentConnectorList) {
-                // Forward the message to the dependent devices
-                dependentConnector.sendMessage(message);
-            }
         }
     }
 
