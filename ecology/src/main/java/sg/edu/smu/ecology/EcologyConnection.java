@@ -74,12 +74,8 @@ public class EcologyConnection extends BaseConnector {
         List<Object> msg = new ArrayList<>(message);
         getReceiver().onMessage(msg);
 
-
-        // Add the device id of the message sender
-        List<Object> dependentMessage = new ArrayList<>(msg);
-        dependentMessage.add(androidId);
-        dependentMessage = Collections.unmodifiableList(dependentMessage);
-        // Forwards the message to all the dependent devices after adding the device ID
+        List<Object> dependentMessage = Collections.unmodifiableList(msg);
+        // Forwards the message to all the dependent devices
         for (Connector dependentConnector : dependentConnectorList) {
             dependentConnector.sendMessage(dependentMessage);
         }
