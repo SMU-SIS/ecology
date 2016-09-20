@@ -126,10 +126,7 @@ public class EcologyConnection extends BaseConnector {
 
         // Send message to all the connected dependent devices
         for (Connector dependentConnector : dependentConnectorList) {
-            // Add device Id before sending messages to dependent devices
-            Vector<Object> msg = new Vector<>(message);
-            msg.add(androidId);
-            dependentConnector.sendMessage(msg);
+            dependentConnector.sendMessage(message);
         }
     }
 
