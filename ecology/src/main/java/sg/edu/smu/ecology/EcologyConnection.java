@@ -19,9 +19,6 @@ public class EcologyConnection extends BaseConnector {
 
     private final static String TAG = EcologyConnection.class.getSimpleName();
 
-    // To store the device ID
-    private String androidId;
-
     // Registers if the ecology connection is connected.
     private boolean isConnected = false;
 
@@ -74,12 +71,8 @@ public class EcologyConnection extends BaseConnector {
         List<Object> msg = new ArrayList<>(message);
         getReceiver().onMessage(msg);
 
-
-        // Add the device id of the message sender
-        List<Object> dependentMessage = new ArrayList<>(msg);
-        dependentMessage.add(androidId);
-        dependentMessage = Collections.unmodifiableList(dependentMessage);
-        // Forwards the message to all the dependent devices after adding the device ID
+        List<Object> dependentMessage = Collections.unmodifiableList(msg);
+        // Forwards the message to all the dependent devices
         for (Connector dependentConnector : dependentConnectorList) {
             dependentConnector.sendMessage(dependentMessage);
         }
@@ -92,25 +85,12 @@ public class EcologyConnection extends BaseConnector {
      */
     private void onDependentMessage(List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
-        // Check if the message is from the same device or not
-        if (!androidId.equals(msg.get(msg.size() - 1))) {
-            getReceiver().onMessage(msg.subList(0, msg.size() - 1));
-        }
+        getReceiver().onMessage(msg);
 
-        List<Object> coreMessage = Collections.unmodifiableList(msg.subList(0, msg.size() - 1));
-        // Forward all the dependent messages to all the connected core devices
+        List<Object> coreMessage = Collections.unmodifiableList(msg);
+        // Forward the dependent messages to all the connected core devices
         for (Connector coreConnector : coreConnectorList) {
-            // Remove the device ID before forwarding the message
             coreConnector.sendMessage(coreMessage);
-        }
-
-        // No forwarding of data if the dependent device doesn't have any core devices
-        // Also no forwarding if the device has only one dependent device
-        if (coreConnectorList.size() > 0 || dependentConnectorList.size() > 1) {
-            for (Connector dependentConnector : dependentConnectorList) {
-                // Forward the message to the dependent devices
-                dependentConnector.sendMessage(message);
-            }
         }
     }
 
@@ -126,10 +106,7 @@ public class EcologyConnection extends BaseConnector {
 
         // Send message to all the connected dependent devices
         for (Connector dependentConnector : dependentConnectorList) {
-            // Add device Id before sending messages to dependent devices
-            Vector<Object> msg = new Vector<>(message);
-            msg.add(androidId);
-            dependentConnector.sendMessage(msg);
+            dependentConnector.sendMessage(message);
         }
     }
 
@@ -137,11 +114,6 @@ public class EcologyConnection extends BaseConnector {
      * Connect to the ecology.
      */
     public void connect(Context context) {
-        // Device Id of the connected device
-        androidId = android.provider.Settings.Secure.getString(context.getContentResolver(),
-                android.provider.Settings.Secure.ANDROID_ID);
-        Log.i(TAG, "my android id " + androidId);
-
         // Connect all connectors.
         for (Connector connector : dependentConnectorList) {
             connector.connect(context);
