@@ -19,9 +19,6 @@ public class EcologyConnection extends BaseConnector {
 
     private final static String TAG = EcologyConnection.class.getSimpleName();
 
-    // To store the device ID
-    private String androidId;
-
     // Registers if the ecology connection is connected.
     private boolean isConnected = false;
 
@@ -117,11 +114,6 @@ public class EcologyConnection extends BaseConnector {
      * Connect to the ecology.
      */
     public void connect(Context context) {
-        // Device Id of the connected device
-        androidId = android.provider.Settings.Secure.getString(context.getContentResolver(),
-                android.provider.Settings.Secure.ANDROID_ID);
-        Log.i(TAG, "my android id " + androidId);
-
         // Connect all connectors.
         for (Connector connector : dependentConnectorList) {
             connector.connect(context);
