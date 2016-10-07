@@ -51,17 +51,11 @@ public class EventBroadcasterTest {
         eventBroadcaster.subscribe("test2", eventReceiver2);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test1");
-
+        List<Object> data = Arrays.<Object>asList(11, "test1");
         eventBroadcaster.onRoomMessage(data);
 
         // Test data
-        Vector<Object> data2 = new Vector<>();
-        data2.add(1);
-        data2.add("test2");
-
+        List<Object> data2 = Arrays.<Object>asList(21, "test2");
         eventBroadcaster.onRoomMessage(data2);
 
         // To verify that the right event receiver is being called the message is received
@@ -69,8 +63,8 @@ public class EventBroadcasterTest {
         verify(eventReceiver2, never()).handleEvent("test1", data.subList(0, data.size() - 1));
 
         // To verify that the right event receiver is being called the message is received
-        verify(eventReceiver2).handleEvent("test2", data.subList(0, data.size() - 1));
-        verify(eventReceiver1, never()).handleEvent("test2", data.subList(0, data.size() - 1));
+        verify(eventReceiver2).handleEvent("test2", data2.subList(0, data.size() - 1));
+        verify(eventReceiver1, never()).handleEvent("test2", data2.subList(0, data.size() - 1));
     }
 
     // Check if the message reaches the correct room with correct data
@@ -94,9 +88,7 @@ public class EventBroadcasterTest {
         eventBroadcaster.subscribe("test", eventReceiver1);
 
         // Test data
-        List<Object> data = new ArrayList<>();
-        data.add(1);
-        data.add(23);
+        List<Object> data = Arrays.<Object>asList(1, 23);
         eventBroadcaster.publish("test", data);
 
         // Publish method adds the event type at the end
@@ -142,16 +134,14 @@ public class EventBroadcasterTest {
         eventBroadcaster.subscribe("test", eventReceiver2);
 
         // Publish a first event.
-        List<Object> data1 = new ArrayList<>();
-        data1.add(1);
+        List<Object> data1 = Collections.<Object>singletonList(1);
         eventBroadcaster.publish("test", data1);
 
         // Unsubscribe to "test" events.
         eventBroadcaster.unsubscribe("test", eventReceiver1);
 
         // Publish a second event.
-        List<Object> data2 = new ArrayList<>();
-        data2.add(2);
+        List<Object> data2 = Collections.<Object>singletonList(2);
         eventBroadcaster.publish("test", data2);
 
         // Verify that only the first event has been received by receiver1...
@@ -169,11 +159,14 @@ public class EventBroadcasterTest {
         eventBroadcaster.subscribe("ecology:connected", eventReceiver1);
 
         // Event broadcaster publishes a local event
-        eventBroadcaster.publishLocalEvent("ecology:connected", new ArrayList<Object>());
+        eventBroadcaster.publishLocalEvent("ecology:connected",
+                Collections.<Object>singletonList("test arg"));
 
         // To verify if the right event receiver receives the message
-        verify(eventReceiver1, times(1)).handleEvent("ecology:connected", new ArrayList<Object>());
-        verify(eventReceiver2, never()).handleEvent("ecology:connected", new ArrayList<Object>());
+        verify(eventReceiver1, times(1)).handleEvent("ecology:connected",
+                Collections.<Object>singletonList("test arg"));
+        verify(eventReceiver2, never()).handleEvent("ecology:connected",
+                Collections.<Object>singletonList("test arg"));
     }
 
     // To verify that the receiver cannot modify the received data - UnsupportedOperationException is thrown
