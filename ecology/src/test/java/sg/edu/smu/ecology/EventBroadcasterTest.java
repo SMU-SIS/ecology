@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -179,54 +180,63 @@ public class EventBroadcasterTest {
 
                 try {
                     eventData.add(2);
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.add(1, 5);
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.addAll(Arrays.asList(1, 3));
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.addAll(1, Arrays.asList(4, 1));
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.clear();
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.set(1, 3);
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.remove(1);
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.remove("a string");
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
 
                 try {
                     eventData.removeAll(Arrays.asList(5, new Object()));
+                    fail("Expected Unsupported exception to be thrown");
                 } catch (Exception e) {
                     assertEquals(e.getClass(), UnsupportedOperationException.class);
                 }
