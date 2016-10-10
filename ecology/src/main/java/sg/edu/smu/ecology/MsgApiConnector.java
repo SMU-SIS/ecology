@@ -3,12 +3,11 @@ package sg.edu.smu.ecology;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.CapabilityApi;
-import com.google.android.gms.wearable.CapabilityInfo;
 import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
@@ -17,13 +16,10 @@ import com.google.android.gms.wearable.Wearable;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
-import java.io.IOException;
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Vector;
 
 /**
  * Created by anurooppv on 22/7/2016.
@@ -33,10 +29,10 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private final static String TAG = MsgApiConnector.class.getSimpleName();
 
     private GoogleApiClient googleApiClient;
-    private String nodeId = null;
-    private static final String CAPABILITY_NAME = "mobile_news_feed_controller";
-    private static final String MESSAGE_PATH_EVENT = "/mobile_news_feed_controller";
-    private static final String START_ACTIVITY_PATH_1 = "/start_mobile_activity";
+    // To store the node Id of all the connected devices
+    private List<String> nodeId = new Vector<>();
+    private static final String MESSAGE_PATH_EVENT = "/ecology_message";
+    private static final String START_ACTIVITY_PATH = "/start_mobile_activity";
     private Connector.Receiver receiver;
 
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
@@ -48,7 +44,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     @Override
     public void sendMessage(List<Object> message) {
         // Retrieve eventType
-        final String eventType = (String) message.get(message.size() - 3);
+        final String eventType = (String) message.get(message.size() - 2);
 
         DataEncoder dataEncoder = new DataEncoder();
         IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
@@ -78,27 +74,30 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
         String MESSAGE_PATH = " ";
         if (eventType.equals("launch")) {
-            MESSAGE_PATH = START_ACTIVITY_PATH_1;
+            MESSAGE_PATH = START_ACTIVITY_PATH;
         } else {
             MESSAGE_PATH = MESSAGE_PATH_EVENT;
         }
 
-        if (nodeId != null) {
-            Wearable.MessageApi.sendMessage(googleApiClient, nodeId,
-                    MESSAGE_PATH, messageDataToSend).setResultCallback(
-                    new ResultCallback<MessageApi.SendMessageResult>() {
-                        @Override
-                        public void onResult(MessageApi.SendMessageResult sendMessageResult) {
-                            Log.i(TAG, "MessageData Sent " + eventType);
+        if (nodeId.size() > 0) {
+            for (String nodeIdValue : nodeId) {
+                Log.i(TAG, "node "+nodeIdValue);
+                Wearable.MessageApi.sendMessage(googleApiClient, nodeIdValue,
+                        MESSAGE_PATH, messageDataToSend).setResultCallback(
+                        new ResultCallback<MessageApi.SendMessageResult>() {
+                            @Override
+                            public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
+                                Log.i(TAG, "MessageData Sent " + eventType);
 
-                            if (!sendMessageResult.getStatus().isSuccess()) {
-                                // Failed to send messageData
-                                Log.i(TAG, "MessageData Failed");
+                                if (!sendMessageResult.getStatus().isSuccess()) {
+                                    // Failed to send messageData
+                                    Log.i(TAG, "MessageData Failed");
+                                }
                             }
                         }
-                    }
 
-            );
+                );
+            }
         } else {
             // Unable to retrieve node with transcription capability
             Log.i(TAG, "Message not sent - Node Id is null ");
@@ -144,92 +143,35 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         return onConnectorConnected;
     }
 
-    private Collection<String> getNodes() {
-        HashSet<String> results = new HashSet<String>();
-        NodeApi.GetConnectedNodesResult nodes =
-                Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
-        for (Node node : nodes.getNodes()) {
-            results.add(node.getId());
-        }
-        return results;
-    }
-
     private void setupMessageApiConnection() {
 
         // Handle the results of the capability checker thread.
         final Handler handler = new Handler();
 
-        // Manually retrieving the results of reachable nodes with the message_wearable capability
+        // Retrieve the list of nodes connected to the device.
         new Thread("CapCheck") {
             @Override
             public void run() {
-                final CapabilityApi.GetCapabilityResult result =
-                        Wearable.CapabilityApi.getCapability(
-                                googleApiClient, CAPABILITY_NAME,
-                                CapabilityApi.FILTER_REACHABLE).await();
+                final NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( googleApiClient ).await();
 
                 // Handle the results through the handlers to get out of this thread.
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            nodeId = updateMessageCapability(result.getCapability());
-                            Log.i(TAG, "nodeId " + nodeId);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        for(Node node : nodes.getNodes()) {
+                            nodeId.add(node.getId());
+                            Log.i(TAG, "Node Id "+node.getId());
+                        }
+
+                        if(nodeId.size() > 0){
+                            onConnectorConnected = true;
+                            receiver.onConnectorConnected();
                         }
                     }
                 });
             }
         }.start();
 
-        //Registering the listener and retrieving the results of reachable nodes with the message_wearable capability
-        CapabilityApi.CapabilityListener capabilityListener =
-                new CapabilityApi.CapabilityListener() {
-                    @Override
-                    public void onCapabilityChanged(CapabilityInfo capabilityInfo) {
-                        try {
-                            nodeId = updateMessageCapability(capabilityInfo);
-                            Log.i(TAG, "nodeId " + nodeId);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                };
-
-        Wearable.CapabilityApi.addCapabilityListener(
-                googleApiClient,
-                capabilityListener,
-                CAPABILITY_NAME);
-
-    }
-
-    //Determining the best node to use
-    private String updateMessageCapability(CapabilityInfo capabilityInfo) throws IOException {
-        Set<Node> connectedNodes = capabilityInfo.getNodes();
-
-        nodeId = pickBestNodeId(connectedNodes);
-        Log.i(TAG, "nodeId " + nodeId);
-
-        if (nodeId != null) {
-            onConnectorConnected = true;
-            receiver.onConnectorConnected();
-        }
-
-        return nodeId;
-    }
-
-    private String pickBestNodeId(Set<Node> nodes) {
-        String bestNodeId = null;
-        // Find a nearby node or pick one arbitrarily
-        for (Node node : nodes) {
-            if (node.isNearby()) {
-                return node.getId();
-            }
-            bestNodeId = node.getId();
-        }
-        Log.i(TAG, "pickBestNodeId " + bestNodeId);
-        return bestNodeId;
     }
 
     @Override

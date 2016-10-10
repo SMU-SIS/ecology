@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -133,6 +134,27 @@ public class EventBroadcaster {
         room.onEventBroadcasterMessage(msg);
         // Pass the event to the local receivers.
         publishLocalEvent(eventType, data);
+    }
+
+    /**
+     * Publish an event. The event will be transmitted to any receiver that subscribe to the event's
+     * type from any device of the ecology.
+     *
+     * @param eventType the event type
+     */
+    public void publish(String eventType){
+        publish(eventType, Collections.emptyList());
+    }
+
+    /**
+     * Publish an event. The event will be transmitted to any receiver that subscribe to the event's
+     * type from any device of the ecology.
+     *
+     * @param eventType the event type
+     * @param dataArgs  the event's data
+     */
+    public void publishWithArgs(String eventType, Object... dataArgs) {
+        publish(eventType, Arrays.asList(dataArgs));
     }
 
     /**
