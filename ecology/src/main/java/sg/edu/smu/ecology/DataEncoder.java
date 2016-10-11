@@ -30,6 +30,13 @@ public class DataEncoder {
         }
     }
 
+    /**
+     * Write the arguments as bytes into the buffer
+     *
+     * @param arg    the argument
+     * @param buffer the IOBuffer to store the bytes
+     * @throws CharacterCodingException
+     */
     private void write(Object arg, IoBuffer buffer)
             throws CharacterCodingException {
         if (arg == null) {
@@ -78,6 +85,13 @@ public class DataEncoder {
         }
     }
 
+    /**
+     * Write the string data bytes into the buffer
+     *
+     * @param s      the string to be encoded
+     * @param buffer the IOBuffer to store the bytes
+     * @throws CharacterCodingException
+     */
     private void write(String s, IoBuffer buffer)
             throws CharacterCodingException {
         int initialBufferLength = buffer.position();
@@ -86,13 +100,18 @@ public class DataEncoder {
         padBuffer((buffer.position() - initialBufferLength), buffer);
     }
 
-    private void padBuffer(int itemLength, IoBuffer buffer) {
-        int mod = itemLength % 4;
+    /**
+     * Add required paddings of 0 in the buffer
+     *
+     * @param bytesLength bytes length of the string
+     * @param buffer      the IOBuffer to store the bytes
+     */
+    private void padBuffer(int bytesLength, IoBuffer buffer) {
+        int mod = bytesLength % 4;
         if (mod > 0) {
             byte[] padding = new byte[4 - mod];
             buffer.put(padding);
         }
     }
-
 
 }
