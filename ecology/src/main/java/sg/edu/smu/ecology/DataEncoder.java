@@ -80,9 +80,10 @@ public class DataEncoder {
 
     private void write(String s, IoBuffer buffer)
             throws CharacterCodingException {
+        int initialBufferLength = buffer.position();
         buffer.putString(s, cse);
         buffer.put((byte) 0);
-        padBuffer(s.length() + 1, buffer);
+        padBuffer((buffer.position() - initialBufferLength), buffer);
     }
 
     private void padBuffer(int itemLength, IoBuffer buffer) {
