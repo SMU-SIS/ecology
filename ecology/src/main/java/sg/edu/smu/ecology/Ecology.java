@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
- * <p/>
+ * <p>
  * Main Ecology class. Represents a group of devices closely linked together.
  */
 public class Ecology {
@@ -46,11 +46,12 @@ public class Ecology {
 
     /**
      * Special constructor only for testing
+     *
      * @param roomFactory to create rooms part of this ecology
-     * @param connector the connector used to send messages to the other devices of the
-     *                         ecology.
+     * @param connector   the connector used to send messages to the other devices of the
+     *                    ecology.
      */
-    Ecology(RoomFactory roomFactory, Connector connector){
+    Ecology(RoomFactory roomFactory, Connector connector) {
         this.roomFactory = roomFactory;
         this.connector = connector;
 
@@ -76,14 +77,14 @@ public class Ecology {
     /**
      * Connect to the ecology.
      */
-    void connect(Context context){
+    void connect(Context context) {
         connector.connect(context);
     }
 
     /**
      * Disconnect from the ecology.
      */
-    void disconnect(){
+    void disconnect() {
         connector.disconnect();
     }
 
@@ -98,7 +99,7 @@ public class Ecology {
             targetRoomName = (String) message.get(message.size() - 1);
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             //throw new IllegalArgumentException("Unrecognized message format.");
-            Log.e(TAG, "Exception "+e.getMessage());
+            Log.e(TAG, "Exception " + e.getMessage());
         }
 
         Room room = rooms.get(targetRoomName);
@@ -121,7 +122,9 @@ public class Ecology {
      * Called when the ecology connector is disconnected.
      */
     private void onConnectorDisconnected() {
-        // TODO
+        for (Room room : rooms.values()) {
+            room.onEcologyDisconnected();
+        }
     }
 
     /**
@@ -151,8 +154,8 @@ public class Ecology {
         return room;
     }
 
-    static class RoomFactory{
-        public Room createRoom(String roomName, Ecology ecology){
+    static class RoomFactory {
+        public Room createRoom(String roomName, Ecology ecology) {
             return new Room(roomName, ecology);
         }
     }

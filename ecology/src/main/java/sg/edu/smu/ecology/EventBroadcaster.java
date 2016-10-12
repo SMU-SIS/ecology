@@ -1,6 +1,8 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,20 +67,22 @@ public class EventBroadcaster {
         passEventToReceivers(eventType, message.subList(0, message.size() - 1));
     }
 
-
     // Forward an event to the receivers.
-    private void passEventToReceivers(String eventType, List<Object> data){
+    private void passEventToReceivers(String eventType, List<Object> data) {
         // Fetch the list of event receiver for this particular event type.
         List<EventReceiver> thisEventReceivers = eventReceivers.get(eventType);
         if (thisEventReceivers == null) {
             return;
         }
+
+        // Event receivers cannot modify the received data
+        List<Object> receivedMessage = Collections.unmodifiableList(data);
+
         // Forward the event to the receivers.
         for (EventReceiver receiver : thisEventReceivers) {
-            receiver.handleEvent(eventType, data);
+            receiver.handleEvent(eventType, receivedMessage);
         }
     }
-
 
     /**
      * Register an event receiver for the events of a certain type.
@@ -130,6 +134,27 @@ public class EventBroadcaster {
         room.onEventBroadcasterMessage(msg);
         // Pass the event to the local receivers.
         publishLocalEvent(eventType, data);
+    }
+
+    /**
+     * Publish an event. The event will be transmitted to any receiver that subscribe to the event's
+     * type from any device of the ecology.
+     *
+     * @param eventType the event type
+     */
+    public void publish(String eventType){
+        publish(eventType, Collections.emptyList());
+    }
+
+    /**
+     * Publish an event. The event will be transmitted to any receiver that subscribe to the event's
+     * type from any device of the ecology.
+     *
+     * @param eventType the event type
+     * @param dataArgs  the event's data
+     */
+    public void publishWithArgs(String eventType, Object... dataArgs) {
+        publish(eventType, Arrays.asList(dataArgs));
     }
 
     /**
