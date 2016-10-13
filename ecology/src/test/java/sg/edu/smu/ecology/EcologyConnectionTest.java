@@ -228,7 +228,6 @@ public class EcologyConnectionTest {
         receiver1.onMessage(data);
 
         verify(receiver, times(1)).onMessage(data);
-        ;
         // To verify that there is no forwarding of message
         verify(connector2, never()).sendMessage(data);
     }
