@@ -1,8 +1,6 @@
 package sg.edu.smu.ecology;
 
 import android.content.Context;
-import android.provider.Settings;
-import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -12,16 +10,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Vector;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by anurooppv on 21/7/2016.
@@ -198,9 +195,7 @@ public class EcologyConnectionTest {
         ecologyConnection.connect(context);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         ecologyConnection.sendMessage(data);
 
@@ -227,14 +222,13 @@ public class EcologyConnectionTest {
         ecologyConnection.setReceiver(receiver);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Core connector receiver receives the message
         receiver1.onMessage(data);
 
-        verify(receiver, times(1)).onMessage(data);;
+        verify(receiver, times(1)).onMessage(data);
+        ;
         // To verify that there is no forwarding of message
         verify(connector2, never()).sendMessage(data);
     }
@@ -261,9 +255,7 @@ public class EcologyConnectionTest {
         ecologyConnection.setReceiver(receiver);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Core connector receiver receives the message
         receiver1.onMessage(data);
@@ -293,9 +285,7 @@ public class EcologyConnectionTest {
         ecologyConnection.setReceiver(receiver);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Dependent connector receiver receives the message
         receiver2.onMessage(data);
@@ -326,9 +316,7 @@ public class EcologyConnectionTest {
         ecologyConnection.setReceiver(receiver);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Dependent connector receiver receives the message
         receiver2.onMessage(data);
