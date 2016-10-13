@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -33,6 +34,7 @@ public class BluetoothConnector implements Connector {
     private OutputStreamWriter outputStreamWriter;
     private BufferedReader reader;
     private Connector.Receiver receiver;
+    private List<BluetoothDevice> pairedDevices = new Vector<>();
 
     /**
      * Used to save the application context
@@ -63,9 +65,11 @@ public class BluetoothConnector implements Connector {
         // To enable bluetooth if not already enabled.
         if (!mBluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult((Activity)applicationContext,enableBtIntent, REQUEST_ENABLE_BT, null);
+            startActivityForResult((Activity)applicationContext,enableBtIntent,
+                    REQUEST_ENABLE_BT, null);
         }
 
+        addPairedDevices();
     }
 
     @Override
@@ -78,18 +82,15 @@ public class BluetoothConnector implements Connector {
         return false;
     }
 
-    private void fetchPairedDeviceList(){
+    private void addPairedDevices(){
         // Get the paired devices' list
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
-        Vector<BluetoothSocket> sockets = new Vector<>();
 
         // If there are paired devices
         if (pairedDevices.size() > 0) {
             // Loop through paired devices
             for (BluetoothDevice device : pairedDevices) {
-                // Add the name and address to an array adapter to show in a ListView
-                //createBluetoothSocketStreams(connectBluetoothDevice(device));
-                bluetoothSocket = connectBluetoothDevice(device);
+                pairedDevices.add(device);
             }
         }
     }
