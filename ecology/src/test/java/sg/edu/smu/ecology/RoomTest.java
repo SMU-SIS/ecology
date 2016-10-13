@@ -9,7 +9,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
@@ -43,9 +44,7 @@ public class RoomTest {
     @Test
     public void testOnMessage() throws Exception {
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test1");
+        List<Object> data = Arrays.<Object>asList(1, "test1");
 
         assertEquals(eventBroadcaster, room.getEventBroadcaster());
 
@@ -58,9 +57,7 @@ public class RoomTest {
     @Test
     public void testOnEventBroadcasterMessage() throws Exception {
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test1");
+        List<Object> data = Arrays.<Object>asList(1, "test1");
 
         room.onEventBroadcasterMessage(data);
 
