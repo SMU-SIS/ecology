@@ -13,6 +13,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
@@ -62,9 +64,7 @@ public class EcologyTest {
     @Test
     public void testOnRoomMessage() throws Exception {
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         String roomName = "room";
         ecology.onRoomMessage(roomName, data);
@@ -108,12 +108,9 @@ public class EcologyTest {
     // When message is received from a connector - check for correct room
     @Test
     public void testCorrectRoomMessage() throws Exception {
-        // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
         String roomName = "room";
-        data.add(roomName);
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, "test", roomName);
 
         // To verify if add receiver was called only once
         verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
@@ -139,13 +136,10 @@ public class EcologyTest {
     //When message is received from a connector - check for inappropriate rooms
     @Test
     public void testNoRoomFoundReceiverMessage() {
-        // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
         // Different room name
         String roomName = "room2";
-        data.add(roomName);
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, "test", roomName);
 
         // To verify if add receiver was called only once
         verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
@@ -182,10 +176,7 @@ public class EcologyTest {
         receiver = receiverCaptor.getValue();
 
         // Test data - no room name is added
-        Vector<Object> data;
-        data = new Vector<>();
-        data.add(1);
-        data.add(23);
+        List<Object> data = Arrays.<Object>asList(1, 23);
 
         // Receiver receives the message
         receiver.onMessage(data);
