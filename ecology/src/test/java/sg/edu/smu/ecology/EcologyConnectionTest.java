@@ -1,8 +1,6 @@
 package sg.edu.smu.ecology;
 
 import android.content.Context;
-import android.provider.Settings;
-import android.util.Log;
 
 import org.junit.After;
 import org.junit.Before;
@@ -12,22 +10,20 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.Vector;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Created by anurooppv on 21/7/2016.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Settings.Secure.class, Log.class})
 public class EcologyConnectionTest {
 
     @Mock
@@ -41,19 +37,10 @@ public class EcologyConnectionTest {
 
     private EcologyConnection ecologyConnection;
 
-    private String androidId = "android_id";
-
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         ecologyConnection = new EcologyConnection();
-
-        // Prepare the mock for static classes
-        PowerMockito.mockStatic(Settings.Secure.class);
-        PowerMockito.mockStatic(Log.class);
-
-        // Mock android id retreival
-        when(Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID)).thenReturn(androidId);
     }
 
     @After
@@ -208,16 +195,11 @@ public class EcologyConnectionTest {
         ecologyConnection.connect(context);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         ecologyConnection.sendMessage(data);
 
         verify(connector1, times(1)).sendMessage(data);
-
-        // Adds android id at the end of the message while sending it using a dependent connector
-        data.add(androidId);
         verify(connector2, times(1)).sendMessage(data);
     }
 
@@ -240,17 +222,12 @@ public class EcologyConnectionTest {
         ecologyConnection.setReceiver(receiver);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Core connector receiver receives the message
         receiver1.onMessage(data);
 
         verify(receiver, times(1)).onMessage(data);
-
-        // Android id will be added before forwarding the message
-        data.add(androidId);
         // To verify that there is no forwarding of message
         verify(connector2, never()).sendMessage(data);
     }
@@ -277,17 +254,13 @@ public class EcologyConnectionTest {
         ecologyConnection.setReceiver(receiver);
 
         // Test data
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Core connector receiver receives the message
         receiver1.onMessage(data);
 
         verify(receiver, times(1)).onMessage(data);
 
-        // Android id will be added before forwarding the message
-        data.add(androidId);
         // To verify that there is forwarding of messages to dependent connectors
         verify(connector2, times(1)).sendMessage(data);
     }
@@ -306,53 +279,18 @@ public class EcologyConnectionTest {
         Connector.Receiver receiver2;
         receiver2 = receiverCaptor2.getValue();
 
-        String androidId2 = "android_id2";
-
         ecologyConnection.connect(context);
 
         ecologyConnection.setReceiver(receiver);
 
-        // Test data - contains a different android id
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
-        data.add(androidId2);
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Dependent connector receiver receives the message
         receiver2.onMessage(data);
 
-        verify(receiver, times(1)).onMessage(data.subList(0, data.size() - 1));
-        verify(connector1, never()).sendMessage(data.subList(0, data.size() - 1));
-    }
-
-    // To verify that ecology connection receiver doesn't receive the message when a dependent
-    // connector receives it's own message
-    @Test
-    public void testOnDependentMessageSameDevice() {
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector2).setReceiver(receiverCaptor2.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver2;
-        receiver2 = receiverCaptor2.getValue();
-
-        ecologyConnection.connect(context);
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Test data - contains the same android id
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
-        data.add(androidId);
-
-        // Dependent connector receiver receives the message
-        receiver2.onMessage(data);
-
-        verify(receiver, times(0)).onMessage(data.subList(0, data.size() - 1));
-        verify(connector1, never()).sendMessage(data.subList(0, data.size() - 1));
+        verify(receiver, times(1)).onMessage(data);
+        verify(connector1, never()).sendMessage(data);
     }
 
     // To verify that ecology connection receiver receives the message when a dependent connector
@@ -372,25 +310,19 @@ public class EcologyConnectionTest {
         // Add a core connector
         ecologyConnection.addCoreConnector(connector1);
 
-        String androidId2 = "android_id2";
-
         ecologyConnection.connect(context);
 
         ecologyConnection.setReceiver(receiver);
 
-        // Test data - contains a different android id
-        Vector<Object> data = new Vector<>();
-        data.add(1);
-        data.add("test");
-        data.add(androidId2);
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, "test");
 
         // Dependent connector receiver receives the message
         receiver2.onMessage(data);
 
-        // Android id will be removed before passing to ecology connection receiver
         // To verify that receiver receives the message
-        verify(receiver, times(1)).onMessage(data.subList(0, data.size() - 1));
+        verify(receiver, times(1)).onMessage(data);
         // To verify that the received message is forwarded to core connector
-        verify(connector1, times(1)).sendMessage(data.subList(0, data.size() - 1));
+        verify(connector1, times(1)).sendMessage(data);
     }
 }
