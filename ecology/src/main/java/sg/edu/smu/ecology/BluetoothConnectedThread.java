@@ -6,9 +6,9 @@ import android.util.Log;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Arrays;
 
 /**
  * Created by anurooppv on 13/10/2016.
@@ -18,55 +18,70 @@ import java.io.OutputStream;
  * This thread runs during a connection with a remote bluetooth device.
  * It handles all the incoming and outgoing messages.
  */
-public class BluetoothConnectedThread extends Thread{
+public class BluetoothConnectedThread extends Thread {
     private static final String TAG = BluetoothConnectedThread.class.getSimpleName();
-
+    private static final int END_OF_FILE = -1;
     private final BluetoothSocket bluetoothSocket;
     private Handler handler;
-    private final DataInputStream inputStream;
-    private final DataOutputStream outputStream;
+    private DataOutputStream outputStream;
 
     public BluetoothConnectedThread(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
-        // Use temporary objects that are later assigned to input and output streams as they
-        // are final
-        DataInputStream tempIn = null;
-        DataOutputStream tempOut = null;
-
-        // Get the BluetoothSocket input and output streams
-        try {
-            tempIn = new DataInputStream(bluetoothSocket.getInputStream());
-            tempOut = new DataOutputStream(bluetoothSocket.getOutputStream());
-        } catch (IOException e) {
-            Log.e(TAG, "temp sockets not created", e);
-        }
-
-        inputStream = tempIn;
-        outputStream = tempOut;
     }
 
     @Override
     public void run() {
-        byte[] buffer = new byte[1024];
-        int bytes;
+        try {
+            // Get the BluetoothSocket input and output streams
+            DataInputStream inputStream = new DataInputStream(bluetoothSocket.getInputStream());
+            outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
-        while(true) {
+
+            handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
+            while (true) {
+                try {
+                    int toRead = inputStream.readInt();
+                    int currentRead = 0;
+
+                    // This indicates that the other device is disconnected from ecology
+                    if (toRead == END_OF_FILE) {
+                        break;
+                    }
+
+                    while (currentRead < toRead) {
+                        byte[] dataBuffer = new byte[toRead];
+
+                        currentRead += inputStream.read(dataBuffer, currentRead, toRead - currentRead);
+                        Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
+
+                        handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
+                    }
+                } catch (EOFException e) {
+                    Log.i(TAG, "EOFException");
+                    break;
+                } catch (IOException e) {
+                    Log.e(TAG, "Exception during read", e);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
             try {
-                // Read from the InputStream
-                bytes = inputStream.read(buffer);
-                handler.obtainMessage(Settings.MESSAGE_READ, bytes, -1, buffer).sendToTarget();
+                bluetoothSocket.close();
+                Log.i(TAG, "socket close");
 
+                handler.obtainMessage(Settings.SOCKET_CLOSE, null).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
-                break;
             }
         }
     }
 
     /**
      * Write to the connected OutStream.
-     * @param buffer  The bytes to write
+     *
+     * @param buffer The bytes to write
      */
     public void writeData(byte[] buffer) {
         try {
@@ -85,15 +100,10 @@ public class BluetoothConnectedThread extends Thread{
     }
 
     // This method is called when the device is disconnected from ecology
-    public void onInterrupt(){
+    public void onInterrupt() {
         // To indicate that the device is disconnected from ecology
-        if(bluetoothSocket.isConnected()) {
-            try {
-                bluetoothSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //writeInt(END_OF_FILE);
+        if (bluetoothSocket.isConnected()) {
+            writeInt(END_OF_FILE);
         }
     }
 }
