@@ -23,6 +23,7 @@ public class BluetoothAcceptThread extends Thread {
     private static final String TAG = BluetoothAcceptThread.class.getSimpleName();
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
+    private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
     BluetoothServerSocket serverSocket = null;
     private ArrayList<UUID> mUuids;
     private BluetoothAdapter bluetoothAdapter;
@@ -45,7 +46,8 @@ public class BluetoothAcceptThread extends Thread {
         BluetoothSocket socket = null;
         try {
             // Listen for all 7 UUIDs
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
+                Log.i(TAG, "Server Listen "+(i+1));
                 serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
                 socket = serverSocket.accept();
                 if (socket != null) {

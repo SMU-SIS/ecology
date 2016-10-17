@@ -89,7 +89,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         if (isServer) {
             // Start the thread to listen on a BluetoothServerSocket
             if (bluetoothAcceptThread != null) {
-                bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList, handler);
+                bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList,
+                        handler);
                 bluetoothAcceptThread.start();
             }
         } else {

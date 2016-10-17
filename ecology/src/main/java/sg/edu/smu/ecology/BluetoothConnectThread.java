@@ -52,10 +52,12 @@ public class BluetoothConnectThread extends Thread {
         bluetoothAdapter.cancelDiscovery();
         // Make a connection to the BluetoothSocket
         try {
+            Log.i(TAG, "connect ");
             // This is a blocking call and will only return on a
             // successful connection or an exception
             bluetoothSocket.connect();
         } catch (IOException e) {
+            Log.i(TAG, "IO Excpetion ");
             if (tempUuid.toString().contentEquals(mUuidsList.get(6).toString())) {
                 //connectionFailed();
             }
