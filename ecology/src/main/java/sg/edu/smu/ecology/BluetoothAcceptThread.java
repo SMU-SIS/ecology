@@ -31,7 +31,7 @@ public class BluetoothAcceptThread extends Thread {
     private ArrayList<BluetoothSocket> socketsList = new ArrayList<BluetoothSocket>();
     private ArrayList<String> devicesAddressesList = new ArrayList<String>();
     private ArrayList<BluetoothDevice> devicesList = new ArrayList<>();
-    private ArrayList<BluetoothConnectedThread> bluetoothConnectedThreads;
+    private ArrayList<BluetoothConnectedThread> bluetoothConnectedThreads = new ArrayList<>();
     private Handler handler;
 
     public BluetoothAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> mUuids,
@@ -41,13 +41,14 @@ public class BluetoothAcceptThread extends Thread {
         this.handler = handler;
     }
 
+    @Override
     public void run() {
         Log.i(TAG, "run method ");
         BluetoothSocket socket = null;
         try {
             // Listen for all 7 UUIDs
             for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
-                Log.i(TAG, "Server Listen "+(i+1));
+                Log.i(TAG, "Server Listen " + (i + 1));
                 serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
                 socket = serverSocket.accept();
                 if (socket != null) {

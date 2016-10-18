@@ -30,6 +30,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
     private static final int REQUEST_ENABLE_BT = 1;
     private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
+    // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
+    private static final int BUFFER_SIZE = 1024;
     private BluetoothAdapter mBluetoothAdapter;
     private Connector.Receiver receiver;
     private List<BluetoothDevice> pairedDevicesList = new Vector<>();
@@ -39,13 +41,10 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private BluetoothAcceptThread bluetoothAcceptThread;
     private BluetoothConnectThread bluetoothConnectThread;
     private BluetoothConnectedThread bluetoothConnectedThread;
-    private ArrayList<BluetoothConnectedThread> bluetoothConnectedThreads;
+    private ArrayList<BluetoothConnectedThread> bluetoothConnectedThreads = new ArrayList<>();
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private IoBuffer ioBuffer;
-    // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
-    private static final int BUFFER_SIZE = 1024;
-
     /**
      * Used to save the application context
      */
@@ -86,9 +85,12 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
         addPairedDevices();
 
+        Log.i(TAG, "isServer " + isServer);
+
         if (isServer) {
             // Start the thread to listen on a BluetoothServerSocket
-            if (bluetoothAcceptThread != null) {
+            if (bluetoothAcceptThread == null) {
+                Log.i(TAG, "create accept thread ");
                 bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList,
                         handler);
                 bluetoothAcceptThread.start();
@@ -134,13 +136,14 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 pairedDevicesList.add(device);
             }
         }
-
+        Log.i(TAG, "paired devices " + pairedDevicesList.toString());
     }
+
     @Override
     public void sendMessage(List<Object> message) {
         ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
-        if(isServer){
-            for(int i = 0; i < bluetoothAcceptThread.getNumberOfDevicesConnected(); i++){
+        if (isServer) {
+            for (int i = 0; i < bluetoothAcceptThread.getNumberOfDevicesConnected(); i++) {
                 encodeMessage(message);
                 writeData(bluetoothConnectedThreads.get(i));
             }
@@ -152,9 +155,10 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * Encode the message to be sent
+     *
      * @param message the message to be encoded
      */
-    private void encodeMessage(List<Object> message){
+    private void encodeMessage(List<Object> message) {
         DataEncoder dataEncoder = new DataEncoder();
         MessageData messageData = new MessageData();
 
@@ -169,7 +173,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
-    private void writeData(BluetoothConnectedThread bluetoothConnectedThread){
+    private void writeData(BluetoothConnectedThread bluetoothConnectedThread) {
         // To store the length of the message
         int length = ioBuffer.position();
 
@@ -189,7 +193,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
     @Override
     public boolean handleMessage(Message msg) {
-        switch (msg.what){
+        switch (msg.what) {
             case Settings.MESSAGE_READ:
                 Log.d(TAG, " MESSAGE_READ");
                 byte[] readBuf = (byte[]) msg.obj;
@@ -217,9 +221,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             case Settings.MY_HANDLE:
                 Log.d(TAG, " MY HANDLE");
                 Object obj = msg.obj;
-                if(isServer){
+                if (isServer) {
                     addConnectedThreadObjects((BluetoothConnectedThread) obj);
-                }else {
+                } else {
                     setConnectedThreadObject((BluetoothConnectedThread) obj);
                 }
 
@@ -238,11 +242,11 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         return true;
     }
 
-    private void addConnectedThreadObjects(BluetoothConnectedThread bluetoothConnectedThread){
+    private void addConnectedThreadObjects(BluetoothConnectedThread bluetoothConnectedThread) {
         bluetoothConnectedThreads.add(bluetoothConnectedThread);
     }
 
-    private void setConnectedThreadObject(BluetoothConnectedThread bluetoothConnectedThread){
+    private void setConnectedThreadObject(BluetoothConnectedThread bluetoothConnectedThread) {
         this.bluetoothConnectedThread = bluetoothConnectedThread;
     }
 }

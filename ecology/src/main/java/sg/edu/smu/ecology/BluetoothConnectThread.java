@@ -47,6 +47,7 @@ public class BluetoothConnectThread extends Thread {
         bluetoothSocket = tempSocket;
     }
 
+    @Override
     public void run() {
         // Always cancel discovery because it will slow down a connection
         bluetoothAdapter.cancelDiscovery();
