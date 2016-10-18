@@ -227,6 +227,13 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
                 receiver.onConnectorConnected();
                 break;
+
+            case Settings.SOCKET_CLOSE:
+                Log.d(TAG, "Socket Close");
+                onConnectorConnected = false;
+
+                receiver.onConnectorDisconnected();
+                break;
         }
         return true;
     }
