@@ -20,59 +20,70 @@ import java.util.UUID;
  */
 public class BluetoothConnectThread extends Thread {
     private static final String TAG = BluetoothConnectThread.class.getSimpleName();
-    private final BluetoothSocket bluetoothSocket;
     private final BluetoothDevice bluetoothDevice;
+    private BluetoothSocket bluetoothSocket;
     private BluetoothAdapter bluetoothAdapter;
-    private UUID tempUuid;
+    private UUID uuidToTry;
     private ArrayList<UUID> mUuidsList;
     private BluetoothConnectedThread bluetoothConnectedThread;
     private Handler handler;
+    private int numberOfAttempts = 0;
+    // To record the status of the connection
+    private boolean connectedToServer = false;
 
     public BluetoothConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
-                                  UUID uuidToTry, ArrayList<UUID> mUuidsList, Handler handler) {
+                                  ArrayList<UUID> mUuidsList, Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         bluetoothDevice = device;
-        BluetoothSocket tempSocket = null;
-        tempUuid = uuidToTry;
         this.mUuidsList = mUuidsList;
         this.handler = handler;
+        uuidToTry = mUuidsList.get(numberOfAttempts);
+    }
 
-        // Get a BluetoothSocket for a connection with the
-        // given BluetoothDevice
-        try {
-            tempSocket = device.createRfcommSocketToServiceRecord(uuidToTry);
-        } catch (IOException e) {
-            Log.e(TAG, "create() failed", e);
-        }
-        bluetoothSocket = tempSocket;
+    public void setConnectedToServer(boolean connectedToServer) {
+        this.connectedToServer = connectedToServer;
     }
 
     @Override
     public void run() {
         // Always cancel discovery because it will slow down a connection
         bluetoothAdapter.cancelDiscovery();
-        // Make a connection to the BluetoothSocket
-        try {
-            Log.i(TAG, "connect ");
-            // This is a blocking call and will only return on a
-            // successful connection or an exception
-            bluetoothSocket.connect();
-        } catch (IOException e) {
-            Log.i(TAG, "IO Excpetion ");
-            if (tempUuid.toString().contentEquals(mUuidsList.get(6).toString())) {
-                //connectionFailed();
+        // Try connecting till the connection is setup
+        while (!isInterrupted()) {
+            if (!connectedToServer) {
+                // Make a connection to the BluetoothSocket
+                try {
+                    // If not connected to server, try to connect
+                    Log.i(TAG, "connect attempt " + (numberOfAttempts + 1));
+                    Log.i(TAG, "UUID " + uuidToTry);
+                    // Get a BluetoothSocket for a connection with the given BluetoothDevice
+                    try {
+                        bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(uuidToTry);
+                    } catch (IOException e) {
+                        Log.e(TAG, "create failed", e);
+                    }
+                    // This is a blocking call and will only return on a
+                    // successful connection or an exception
+                    bluetoothSocket.connect();
+                    Log.i(TAG, "connected ");
+                    // When connected, set this to true
+                    connectedToServer = true;
+                    // Start the connected thread
+                    connected(bluetoothSocket);
+                    numberOfAttempts = 0;
+                    uuidToTry = mUuidsList.get(numberOfAttempts);
+                } catch (IOException e) {
+                    Log.i(TAG, "IO Exception attempt " + (numberOfAttempts + 1) + " failed");
+                    if (uuidToTry.toString().contentEquals(mUuidsList.get(6).toString())) {
+                        numberOfAttempts = 0;
+                    } else {
+                        numberOfAttempts++;
+                    }
+                    uuidToTry = mUuidsList.get(numberOfAttempts);
+                }
             }
-            // Close the socket
-            try {
-                bluetoothSocket.close();
-            } catch (IOException e2) {
-                Log.e(TAG, "unable to close() socket during connection failure", e2);
-            }
-            return;
         }
-
-        // Start the connected thread
-        connected(bluetoothSocket);
+        Log.i(TAG, "Done ");
     }
 
     private void connected(BluetoothSocket socket) {
@@ -83,8 +94,16 @@ public class BluetoothConnectThread extends Thread {
     @Override
     public void interrupt() {
         super.interrupt();
+        Log.i(TAG, "Interrupted");
         if (bluetoothConnectedThread != null) {
             bluetoothConnectedThread.onInterrupt();
+        }
+        // Close the socket
+        try {
+            bluetoothSocket.close();
+            Log.i(TAG, "All attempts done. Socket closed ");
+        } catch (IOException e2) {
+            Log.e(TAG, "unable to close() socket during connection failure", e2);
         }
     }
 }

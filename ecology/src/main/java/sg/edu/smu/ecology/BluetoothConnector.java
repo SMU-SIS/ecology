@@ -45,6 +45,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private IoBuffer ioBuffer;
+    // The thread responsible for initializing the connection.
+    private Thread connectionStarter = null;
     /**
      * Used to save the application context
      */
@@ -93,19 +95,19 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 Log.i(TAG, "create accept thread ");
                 bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList,
                         handler);
-                bluetoothAcceptThread.start();
+                connectionStarter = bluetoothAcceptThread;
+                connectionStarter.start();
             }
         } else {
             for (int i = 0; i < pairedDevicesList.size(); i++) {
                 // Create a new thread and attempt to connect to each UUID one-by-one.
-                for (int j = 0; j < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; j++) {
                     try {
                         bluetoothConnectThread = new BluetoothConnectThread(mBluetoothAdapter,
-                                pairedDevicesList.get(i), uuidsList.get(j), uuidsList, handler);
-                        bluetoothConnectThread.start();
+                                pairedDevicesList.get(i), uuidsList, handler);
+                        connectionStarter = bluetoothConnectThread;
+                        connectionStarter.start();
                     } catch (Exception e) {
                     }
-                }
             }
         }
     }
@@ -113,10 +115,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     @Override
     public void disconnect() {
         onConnectorConnected = false;
-
-        if (bluetoothAcceptThread != null && bluetoothAcceptThread.isAlive() &&
-                !bluetoothAcceptThread.isInterrupted()) {
-            bluetoothAcceptThread.interrupt();
+        Log.i(TAG, "disconnected ");
+        if (connectionStarter != null && !connectionStarter.isInterrupted()) {
+            connectionStarter.interrupt();
         }
     }
 
@@ -237,6 +238,10 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 onConnectorConnected = false;
 
                 receiver.onConnectorDisconnected();
+
+                if(bluetoothConnectThread != null){
+                    bluetoothConnectThread.setConnectedToServer(false);
+                }
                 break;
         }
         return true;
