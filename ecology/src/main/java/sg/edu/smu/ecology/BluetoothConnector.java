@@ -36,7 +36,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private Connector.Receiver receiver;
     private List<BluetoothDevice> pairedDevicesList = new Vector<>();
     private Handler handler = new Handler(this);
-    private boolean isServer = false;
+    private boolean isServer = true;
     private BluetoothAcceptThread bluetoothAcceptThread;
     private BluetoothConnectThread bluetoothConnectThread;
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
@@ -102,13 +102,14 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 }
             }
         } else {
-            for (int i = 0; i < pairedDevicesList.size(); i++) {
+            //TODO: When paired list has more than one devices
+            //for (int i = 0; i < pairedDevicesList.size(); i++) {
                 // Create a new thread and attempt to connect to each UUID one-by-one.
                 bluetoothConnectThread = new BluetoothConnectThread(mBluetoothAdapter,
-                        pairedDevicesList.get(i), uuidsList, handler);
+                        pairedDevicesList.get(0), uuidsList, handler);
                 connectionStarter = bluetoothConnectThread;
                 connectionStarter.start();
-            }
+            //}
         }
     }
 
