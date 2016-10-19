@@ -21,9 +21,11 @@ import java.util.Arrays;
 public class BluetoothConnectedThread extends Thread {
     private static final String TAG = BluetoothConnectedThread.class.getSimpleName();
     private static final int END_OF_FILE = -1;
-    private final BluetoothSocket bluetoothSocket;
+    private BluetoothSocket bluetoothSocket;
     private Handler handler;
+    private DataInputStream inputStream;
     private DataOutputStream outputStream;
+    private Boolean interrupted = false;
 
     public BluetoothConnectedThread(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
@@ -34,12 +36,11 @@ public class BluetoothConnectedThread extends Thread {
     public void run() {
         try {
             // Get the BluetoothSocket input and output streams
-            DataInputStream inputStream = new DataInputStream(bluetoothSocket.getInputStream());
+            inputStream = new DataInputStream(bluetoothSocket.getInputStream());
             outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
-
             handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
-            while (true) {
+            while (!interrupted) {
                 try {
                     int toRead = inputStream.readInt();
                     int currentRead = 0;
@@ -67,11 +68,14 @@ public class BluetoothConnectedThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            closeSocketStreams();
+            handler.obtainMessage(Settings.SOCKET_CLOSE, null).sendToTarget();
             try {
-                bluetoothSocket.close();
-                Log.i(TAG, "socket close");
-
-                handler.obtainMessage(Settings.SOCKET_CLOSE, null).sendToTarget();
+                if(bluetoothSocket.isConnected()) {
+                    bluetoothSocket.close();
+                    bluetoothSocket = null;
+                    Log.i(TAG, "socket close");
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -103,7 +107,41 @@ public class BluetoothConnectedThread extends Thread {
     public void onInterrupt() {
         // To indicate that the device is disconnected from ecology
         if (bluetoothSocket.isConnected()) {
-            writeInt(END_OF_FILE);
+            interrupted = true;
+            Log.i(TAG, "interrupted");
+            try {
+                outputStream.writeInt(END_OF_FILE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            closeSocketStreams();
+            try {
+                if(bluetoothSocket.isConnected()) {
+                    bluetoothSocket.close();
+                    bluetoothSocket = null;
+                    Log.i(TAG, "socket close");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void closeSocketStreams(){
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+
+            }
+            inputStream = null;
+        }
+
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (Exception e) {}
+            outputStream = null;
         }
     }
 }

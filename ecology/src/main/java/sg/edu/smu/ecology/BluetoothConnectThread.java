@@ -24,7 +24,7 @@ public class BluetoothConnectThread extends Thread {
     private BluetoothSocket bluetoothSocket;
     private BluetoothAdapter bluetoothAdapter;
     private UUID uuidToTry;
-    private ArrayList<UUID> mUuidsList;
+    private ArrayList<UUID> uuidsList;
     private BluetoothConnectedThread bluetoothConnectedThread;
     private Handler handler;
     private int numberOfAttempts = 0;
@@ -32,12 +32,12 @@ public class BluetoothConnectThread extends Thread {
     private boolean connectedToServer = false;
 
     public BluetoothConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
-                                  ArrayList<UUID> mUuidsList, Handler handler) {
+                                  ArrayList<UUID> uuidsList, Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         bluetoothDevice = device;
-        this.mUuidsList = mUuidsList;
+        this.uuidsList = uuidsList;
         this.handler = handler;
-        uuidToTry = mUuidsList.get(numberOfAttempts);
+        uuidToTry = uuidsList.get(numberOfAttempts);
     }
 
     public void setConnectedToServer(boolean connectedToServer) {
@@ -66,20 +66,32 @@ public class BluetoothConnectThread extends Thread {
                     // successful connection or an exception
                     bluetoothSocket.connect();
                     Log.i(TAG, "connected ");
-                    // When connected, set this to true
+
                     connectedToServer = true;
                     // Start the connected thread
                     connected(bluetoothSocket);
+                    // Reset the values
                     numberOfAttempts = 0;
-                    uuidToTry = mUuidsList.get(numberOfAttempts);
+                    uuidToTry = uuidsList.get(numberOfAttempts);
                 } catch (IOException e) {
-                    Log.i(TAG, "IO Exception attempt " + (numberOfAttempts + 1) + " failed");
-                    if (uuidToTry.toString().contentEquals(mUuidsList.get(6).toString())) {
-                        numberOfAttempts = 0;
+                    if (connectedToServer) {
+                        // Close the socket
+                        try {
+                            if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
+                                bluetoothSocket.close();
+                            }
+                        } catch (IOException e2) {
+                            Log.e(TAG, "unable to close() socket during connection failure", e2);
+                        }
                     } else {
-                        numberOfAttempts++;
+                        Log.i(TAG, "IO Exception attempt " + (numberOfAttempts + 1) + " failed");
+                        if (uuidToTry.toString().contentEquals(uuidsList.get(6).toString())) {
+                            numberOfAttempts = 0;
+                        } else {
+                            numberOfAttempts++;
+                        }
+                        uuidToTry = uuidsList.get(numberOfAttempts);
                     }
-                    uuidToTry = mUuidsList.get(numberOfAttempts);
                 }
             }
         }
@@ -97,13 +109,6 @@ public class BluetoothConnectThread extends Thread {
         Log.i(TAG, "Interrupted");
         if (bluetoothConnectedThread != null) {
             bluetoothConnectedThread.onInterrupt();
-        }
-        // Close the socket
-        try {
-            bluetoothSocket.close();
-            Log.i(TAG, "All attempts done. Socket closed ");
-        } catch (IOException e2) {
-            Log.e(TAG, "unable to close() socket during connection failure", e2);
         }
     }
 }

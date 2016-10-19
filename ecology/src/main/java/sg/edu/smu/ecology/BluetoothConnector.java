@@ -35,7 +35,6 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private BluetoothAdapter mBluetoothAdapter;
     private Connector.Receiver receiver;
     private List<BluetoothDevice> pairedDevicesList = new Vector<>();
-    private ArrayList<UUID> uuidsList;
     private Handler handler = new Handler(this);
     private boolean isServer = false;
     private BluetoothAcceptThread bluetoothAcceptThread;
@@ -59,7 +58,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
     @Override
     public void connect(Context context) {
-        uuidsList = new ArrayList<>();
+        ArrayList<UUID> uuidsList = new ArrayList<>();
         // 7 randomly-generated UUIDs. These must match on both server and client.
         uuidsList.add(java.util.UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"));
         uuidsList.add(java.util.UUID.fromString("2d64189d-5a2c-4511-a074-77f199fd0834"));
@@ -93,21 +92,22 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             // Start the thread to listen on a BluetoothServerSocket
             if (bluetoothAcceptThread == null) {
                 Log.i(TAG, "create accept thread ");
-                bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList,
-                        handler);
-                connectionStarter = bluetoothAcceptThread;
-                connectionStarter.start();
+                try {
+                    bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList,
+                            handler);
+                    connectionStarter = bluetoothAcceptThread;
+                    connectionStarter.start();
+                } catch (Exception e) {
+                    Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
+                }
             }
         } else {
             for (int i = 0; i < pairedDevicesList.size(); i++) {
                 // Create a new thread and attempt to connect to each UUID one-by-one.
-                    try {
-                        bluetoothConnectThread = new BluetoothConnectThread(mBluetoothAdapter,
-                                pairedDevicesList.get(i), uuidsList, handler);
-                        connectionStarter = bluetoothConnectThread;
-                        connectionStarter.start();
-                    } catch (Exception e) {
-                    }
+                bluetoothConnectThread = new BluetoothConnectThread(mBluetoothAdapter,
+                        pairedDevicesList.get(i), uuidsList, handler);
+                connectionStarter = bluetoothConnectThread;
+                connectionStarter.start();
             }
         }
     }
@@ -239,7 +239,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
                 receiver.onConnectorDisconnected();
 
-                if(bluetoothConnectThread != null){
+                if (bluetoothConnectThread != null) {
                     bluetoothConnectThread.setConnectedToServer(false);
                 }
                 break;
@@ -247,10 +247,12 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         return true;
     }
 
+    // When the device is a server
     private void addConnectedThreadObjects(BluetoothConnectedThread bluetoothConnectedThread) {
         bluetoothConnectedThreads.add(bluetoothConnectedThread);
     }
 
+    // When the device is a client
     private void setConnectedThreadObject(BluetoothConnectedThread bluetoothConnectedThread) {
         this.bluetoothConnectedThread = bluetoothConnectedThread;
     }

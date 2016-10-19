@@ -16,15 +16,15 @@ import java.util.UUID;
  */
 
 /**
- * This thread runs while listening for incoming connections. It runs until a connection is
- * accepted(or until cancelled).
+ * This thread runs while listening for incoming connections. It runs until all the 7 connections
+ * are accepted(or until cancelled).
  */
 public class BluetoothAcceptThread extends Thread {
     private static final String TAG = BluetoothAcceptThread.class.getSimpleName();
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
     private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
-    BluetoothServerSocket serverSocket = null;
+    private BluetoothServerSocket serverSocket = null;
     private ArrayList<UUID> mUuids;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothConnectedThread bluetoothConnectedThread;
@@ -43,23 +43,25 @@ public class BluetoothAcceptThread extends Thread {
 
     @Override
     public void run() {
-        Log.i(TAG, "run method ");
-        BluetoothSocket socket = null;
-        try {
-            // Listen for all 7 UUIDs
-            for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
-                Log.i(TAG, "Server Listen " + (i + 1));
-                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
-                socket = serverSocket.accept();
-                if (socket != null) {
-                    socketsList.add(socket);
-                    devicesList.add(socket.getRemoteDevice());
-                    devicesAddressesList.add(socket.getRemoteDevice().getAddress());
-                    createConnectedThreads(socket);
+        while (!isInterrupted()) {
+            Log.i(TAG, "run method ");
+            BluetoothSocket socket = null;
+            try {
+                // Listen for all 7 UUIDs
+                for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
+                    Log.i(TAG, "Server Listen " + (i + 1));
+                    serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
+                    socket = serverSocket.accept();
+                    if (socket != null) {
+                        socketsList.add(socket);
+                        devicesList.add(socket.getRemoteDevice());
+                        devicesAddressesList.add(socket.getRemoteDevice().getAddress());
+                        createConnectedThreads(socket);
+                    }
                 }
+            } catch (IOException e) {
+                Log.e(TAG, "accept failed", e);
             }
-        } catch (IOException e) {
-            Log.e(TAG, "accept() failed", e);
         }
     }
 
@@ -79,7 +81,7 @@ public class BluetoothAcceptThread extends Thread {
         return devicesList;
     }
 
-    public int getNumberOfDevicesConnected() {
+    int getNumberOfDevicesConnected() {
         return devicesList.size();
     }
 
@@ -94,7 +96,9 @@ public class BluetoothAcceptThread extends Thread {
         }
 
         try {
-            serverSocket.close();
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
         } catch (IOException e) {
             Log.e(TAG, "server socket close failed", e);
         }
