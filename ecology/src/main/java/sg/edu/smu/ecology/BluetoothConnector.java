@@ -39,8 +39,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private boolean isServer = false;
     private BluetoothAcceptThread bluetoothAcceptThread;
     private BluetoothConnectThread bluetoothConnectThread;
-    private BluetoothConnectedThread bluetoothConnectedThread;
-    private ArrayList<BluetoothConnectedThread> bluetoothConnectedThreads = new ArrayList<>();
+    private BluetoothSocketReadWriter bluetoothSocketReadWriter;
+    private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWriters = new ArrayList<>();
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private IoBuffer ioBuffer;
@@ -146,11 +146,11 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         if (isServer) {
             for (int i = 0; i < bluetoothAcceptThread.getNumberOfDevicesConnected(); i++) {
                 encodeMessage(message);
-                writeData(bluetoothConnectedThreads.get(i));
+                writeData(bluetoothSocketReadWriters.get(i));
             }
-        } else if (bluetoothConnectedThread != null) {
+        } else if (bluetoothSocketReadWriter != null) {
             encodeMessage(message);
-            writeData(bluetoothConnectedThread);
+            writeData(bluetoothSocketReadWriter);
         }
     }
 
@@ -174,7 +174,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
-    private void writeData(BluetoothConnectedThread bluetoothConnectedThread) {
+    private void writeData(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
         // To store the length of the message
         int length = ioBuffer.position();
 
@@ -185,10 +185,10 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         byte[] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
 
         // Write length of the data first
-        bluetoothConnectedThread.writeInt(length);
+        bluetoothSocketReadWriter.writeInt(length);
 
         // Write the byte data
-        bluetoothConnectedThread.writeData(eventDataToSend);
+        bluetoothSocketReadWriter.writeData(eventDataToSend);
         ioBuffer.clear();
     }
 
@@ -223,9 +223,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 Log.d(TAG, " MY HANDLE");
                 Object obj = msg.obj;
                 if (isServer) {
-                    addConnectedThreadObjects((BluetoothConnectedThread) obj);
+                    addSocketReadWriterObjects((BluetoothSocketReadWriter) obj);
                 } else {
-                    setConnectedThreadObject((BluetoothConnectedThread) obj);
+                    setSocketReadWriterObject((BluetoothSocketReadWriter) obj);
                 }
 
                 onConnectorConnected = true;
@@ -248,12 +248,12 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     // When the device is a server
-    private void addConnectedThreadObjects(BluetoothConnectedThread bluetoothConnectedThread) {
-        bluetoothConnectedThreads.add(bluetoothConnectedThread);
+    private void addSocketReadWriterObjects(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
+        bluetoothSocketReadWriters.add(bluetoothSocketReadWriter);
     }
 
     // When the device is a client
-    private void setConnectedThreadObject(BluetoothConnectedThread bluetoothConnectedThread) {
-        this.bluetoothConnectedThread = bluetoothConnectedThread;
+    private void setSocketReadWriterObject(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
+        this.bluetoothSocketReadWriter = bluetoothSocketReadWriter;
     }
 }

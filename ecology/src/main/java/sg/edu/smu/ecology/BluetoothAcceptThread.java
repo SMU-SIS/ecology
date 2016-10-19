@@ -27,11 +27,11 @@ public class BluetoothAcceptThread extends Thread {
     private BluetoothServerSocket serverSocket = null;
     private ArrayList<UUID> mUuids;
     private BluetoothAdapter bluetoothAdapter;
-    private BluetoothConnectedThread bluetoothConnectedThread;
+    private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private ArrayList<BluetoothSocket> socketsList = new ArrayList<BluetoothSocket>();
     private ArrayList<String> devicesAddressesList = new ArrayList<String>();
     private ArrayList<BluetoothDevice> devicesList = new ArrayList<>();
-    private ArrayList<BluetoothConnectedThread> bluetoothConnectedThreads = new ArrayList<>();
+    private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWriters = new ArrayList<>();
     private Handler handler;
 
     public BluetoothAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> mUuids,
@@ -71,10 +71,10 @@ public class BluetoothAcceptThread extends Thread {
      * @param socket The BluetoothSocket on which the connection was made
      **/
     private void createConnectedThreads(BluetoothSocket socket) {
-        bluetoothConnectedThread = new BluetoothConnectedThread(socket, handler);
-        bluetoothConnectedThread.start();
+        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
+        bluetoothSocketReadWriter.start();
         // Add each connected thread to an array
-        bluetoothConnectedThreads.add(bluetoothConnectedThread);
+        bluetoothSocketReadWriters.add(bluetoothSocketReadWriter);
     }
 
     public ArrayList<BluetoothDevice> getDevicesList() {
@@ -89,9 +89,9 @@ public class BluetoothAcceptThread extends Thread {
     public void interrupt() {
         super.interrupt();
 
-        for (int i = 0; i < bluetoothConnectedThreads.size(); i++) {
-            if (bluetoothConnectedThreads.get(i) != null) {
-                bluetoothConnectedThreads.get(i).onInterrupt();
+        for (int i = 0; i < bluetoothSocketReadWriters.size(); i++) {
+            if (bluetoothSocketReadWriters.get(i) != null) {
+                bluetoothSocketReadWriters.get(i).onInterrupt();
             }
         }
 

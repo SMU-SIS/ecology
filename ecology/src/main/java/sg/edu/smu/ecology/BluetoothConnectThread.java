@@ -25,7 +25,7 @@ public class BluetoothConnectThread extends Thread {
     private BluetoothAdapter bluetoothAdapter;
     private UUID uuidToTry;
     private ArrayList<UUID> uuidsList;
-    private BluetoothConnectedThread bluetoothConnectedThread;
+    private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private Handler handler;
     private int numberOfAttempts = 0;
     // To record the status of the connection
@@ -99,16 +99,16 @@ public class BluetoothConnectThread extends Thread {
     }
 
     private void connected(BluetoothSocket socket) {
-        bluetoothConnectedThread = new BluetoothConnectedThread(socket, handler);
-        bluetoothConnectedThread.start();
+        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
+        bluetoothSocketReadWriter.start();
     }
 
     @Override
     public void interrupt() {
         super.interrupt();
         Log.i(TAG, "Interrupted");
-        if (bluetoothConnectedThread != null) {
-            bluetoothConnectedThread.onInterrupt();
+        if (bluetoothSocketReadWriter != null) {
+            bluetoothSocketReadWriter.onInterrupt();
         }
     }
 }

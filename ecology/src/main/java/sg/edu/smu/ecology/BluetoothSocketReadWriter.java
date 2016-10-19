@@ -18,8 +18,8 @@ import java.util.Arrays;
  * This thread runs during a connection with a remote bluetooth device.
  * It handles all the incoming and outgoing messages.
  */
-public class BluetoothConnectedThread extends Thread {
-    private static final String TAG = BluetoothConnectedThread.class.getSimpleName();
+public class BluetoothSocketReadWriter extends Thread {
+    private static final String TAG = BluetoothSocketReadWriter.class.getSimpleName();
     private static final int END_OF_FILE = -1;
     private BluetoothSocket bluetoothSocket;
     private Handler handler;
@@ -27,7 +27,7 @@ public class BluetoothConnectedThread extends Thread {
     private DataOutputStream outputStream;
     private Boolean interrupted = false;
 
-    public BluetoothConnectedThread(BluetoothSocket bluetoothSocket, Handler handler) {
+    public BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
     }
