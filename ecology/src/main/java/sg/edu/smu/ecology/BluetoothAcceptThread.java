@@ -43,25 +43,24 @@ public class BluetoothAcceptThread extends Thread {
 
     @Override
     public void run() {
-        while (!isInterrupted()) {
-            Log.i(TAG, "run method ");
-            BluetoothSocket socket = null;
-            try {
-                // Listen for all 7 UUIDs
-                for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
-                    Log.i(TAG, "Server Listen " + (i + 1));
-                    serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
-                    socket = serverSocket.accept();
-                    if (socket != null) {
-                        socketsList.add(socket);
-                        devicesList.add(socket.getRemoteDevice());
-                        devicesAddressesList.add(socket.getRemoteDevice().getAddress());
-                        createConnectedThreads(socket);
-                    }
+        Log.i(TAG, "run method ");
+        BluetoothSocket socket = null;
+        try {
+            // Listen for all 7 UUIDs
+            for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
+                Log.i(TAG, "Server Listen " + (i + 1));
+                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
+                socket = serverSocket.accept();
+                if (socket != null) {
+                    serverSocket.close();
+                    socketsList.add(socket);
+                    devicesList.add(socket.getRemoteDevice());
+                    devicesAddressesList.add(socket.getRemoteDevice().getAddress());
+                    createConnectedThreads(socket);
                 }
-            } catch (IOException e) {
-                Log.e(TAG, "accept failed", e);
             }
+        } catch (IOException e) {
+
         }
     }
 
