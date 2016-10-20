@@ -19,8 +19,8 @@ import java.util.UUID;
  * This thread runs while listening for incoming connections. It runs until all the 7 connections
  * are accepted(or until cancelled).
  */
-public class BluetoothAcceptThread extends Thread {
-    private static final String TAG = BluetoothAcceptThread.class.getSimpleName();
+public class BluetoothServerAcceptThread extends Thread {
+    private static final String TAG = BluetoothServerAcceptThread.class.getSimpleName();
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
     private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
@@ -34,8 +34,8 @@ public class BluetoothAcceptThread extends Thread {
     private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWriters = new ArrayList<>();
     private Handler handler;
 
-    public BluetoothAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> mUuids,
-                                 Handler handler) {
+    public BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> mUuids,
+                                       Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         this.mUuids = mUuids;
         this.handler = handler;
@@ -56,7 +56,7 @@ public class BluetoothAcceptThread extends Thread {
                     socketsList.add(socket);
                     devicesList.add(socket.getRemoteDevice());
                     devicesAddressesList.add(socket.getRemoteDevice().getAddress());
-                    createConnectedThreads(socket);
+                    createSocketReadWriterThreads(socket);
                 }
             }
         } catch (IOException e) {
@@ -65,11 +65,11 @@ public class BluetoothAcceptThread extends Thread {
     }
 
     /**
-     * Start the ConnectedThread to begin managing a Bluetooth connection
+     * Start the SocketReadWriter thread to begin managing a Bluetooth connection
      *
      * @param socket The BluetoothSocket on which the connection was made
      **/
-    private void createConnectedThreads(BluetoothSocket socket) {
+    private void createSocketReadWriterThreads(BluetoothSocket socket) {
         bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
         bluetoothSocketReadWriter.start();
         // Add each connected thread to an array

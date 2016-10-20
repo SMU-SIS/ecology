@@ -18,8 +18,8 @@ import java.util.UUID;
  * This thread runs while attempting to make an outgoing connection
  * with a device. The connection either succeeds or fails.
  */
-public class BluetoothConnectThread extends Thread {
-    private static final String TAG = BluetoothConnectThread.class.getSimpleName();
+public class BluetoothClientConnectThread extends Thread {
+    private static final String TAG = BluetoothClientConnectThread.class.getSimpleName();
     private final BluetoothDevice bluetoothDevice;
     private BluetoothSocket bluetoothSocket;
     private BluetoothAdapter bluetoothAdapter;
@@ -31,8 +31,8 @@ public class BluetoothConnectThread extends Thread {
     // To record the status of the connection
     private boolean connectedToServer = false;
 
-    public BluetoothConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
-                                  ArrayList<UUID> uuidsList, Handler handler) {
+    public BluetoothClientConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
+                                        ArrayList<UUID> uuidsList, Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         bluetoothDevice = device;
         this.uuidsList = uuidsList;

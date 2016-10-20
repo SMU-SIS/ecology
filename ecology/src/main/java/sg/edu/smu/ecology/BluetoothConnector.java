@@ -40,10 +40,10 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private List<BluetoothDevice> pairedDevicesList = new Vector<>();
     private Handler handler = new Handler(this);
     private boolean isServer;
-    private BluetoothAcceptThread bluetoothAcceptThread;
-    private BluetoothConnectThread bluetoothConnectThread;
+    private BluetoothServerAcceptThread bluetoothServerAcceptThread;
+    private BluetoothClientConnectThread bluetoothClientConnectThread;
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
-    private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWriters = new ArrayList<>();
+    private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new ArrayList<>();
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private IoBuffer ioBuffer;
@@ -170,12 +170,12 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         // Check if the device is a server or a client
         if (isServer) {
             // Start the thread to listen on a BluetoothServerSocket
-            if (bluetoothAcceptThread == null) {
+            if (bluetoothServerAcceptThread == null) {
                 Log.i(TAG, "create accept thread ");
                 try {
-                    bluetoothAcceptThread = new BluetoothAcceptThread(bluetoothAdapter,
+                    bluetoothServerAcceptThread = new BluetoothServerAcceptThread(bluetoothAdapter,
                             getUuidsList(), handler);
-                    connectionStarter = bluetoothAcceptThread;
+                    connectionStarter = bluetoothServerAcceptThread;
                     connectionStarter.start();
                 } catch (Exception e) {
                     Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
@@ -185,9 +185,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             //TODO: When paired list has more than one devices
             //for (int i = 0; i < pairedDevicesList.size(); i++) {
             // Create a new thread and attempt to connect to each UUID one-by-one.
-            bluetoothConnectThread = new BluetoothConnectThread(bluetoothAdapter,
+            bluetoothClientConnectThread = new BluetoothClientConnectThread(bluetoothAdapter,
                     pairedDevicesList.get(0), getUuidsList(), handler);
-            connectionStarter = bluetoothConnectThread;
+            connectionStarter = bluetoothClientConnectThread;
             connectionStarter.start();
             //}
         }
@@ -197,9 +197,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     public void sendMessage(List<Object> message) {
         ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
         if (isServer) {
-            for (int i = 0; i < bluetoothAcceptThread.getNumberOfDevicesConnected(); i++) {
+            for (int i = 0; i < bluetoothServerAcceptThread.getNumberOfDevicesConnected(); i++) {
                 encodeMessage(message);
-                writeData(bluetoothSocketReadWriters.get(i));
+                writeData(bluetoothSocketReadWritersList.get(i));
             }
         } else if (bluetoothSocketReadWriter != null) {
             encodeMessage(message);
@@ -292,8 +292,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
                 receiver.onConnectorDisconnected();
 
-                if (bluetoothConnectThread != null) {
-                    bluetoothConnectThread.setConnectedToServer(false);
+                if (bluetoothClientConnectThread != null) {
+                    bluetoothClientConnectThread.setConnectedToServer(false);
                 }
                 break;
         }
@@ -302,7 +302,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
     // When the device is a server
     private void addSocketReadWriterObjects(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
-        bluetoothSocketReadWriters.add(bluetoothSocketReadWriter);
+        bluetoothSocketReadWritersList.add(bluetoothSocketReadWriter);
     }
 
     // When the device is a client
