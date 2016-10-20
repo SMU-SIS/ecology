@@ -87,7 +87,7 @@ public class BluetoothAcceptThread extends Thread {
     @Override
     public void interrupt() {
         super.interrupt();
-
+        Log.i(TAG, "bluetoothSocketReadWriters-size "+bluetoothSocketReadWriters.size());
         for (int i = 0; i < bluetoothSocketReadWriters.size(); i++) {
             if (bluetoothSocketReadWriters.get(i) != null) {
                 bluetoothSocketReadWriters.get(i).onInterrupt();

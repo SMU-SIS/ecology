@@ -9,7 +9,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
 /**
- * Broadcast receiver that receives intent broadcast
+ * Broadcast receiver that receives intent broadcast related to WiFi Direct connection
  */
 public class BroadcastManager extends BroadcastReceiver {
 
