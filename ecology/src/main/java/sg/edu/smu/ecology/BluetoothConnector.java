@@ -56,6 +56,10 @@ public class BluetoothConnector implements Connector, Handler.Callback {
      */
     private Context context;
 
+    public BluetoothConnector(Boolean isServer) {
+        this.isServer = isServer;
+    }
+
     @Override
     public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
