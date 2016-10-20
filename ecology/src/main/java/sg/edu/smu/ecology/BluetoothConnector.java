@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -32,11 +33,13 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
-    private BluetoothAdapter mBluetoothAdapter;
+    // To listen to certain events of bluetooth
+    private final IntentFilter intentFilter = new IntentFilter();
+    private BluetoothAdapter bluetoothAdapter;
     private Connector.Receiver receiver;
     private List<BluetoothDevice> pairedDevicesList = new Vector<>();
     private Handler handler = new Handler(this);
-    private boolean isServer = true;
+    private boolean isServer;
     private BluetoothAcceptThread bluetoothAcceptThread;
     private BluetoothConnectThread bluetoothConnectThread;
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
@@ -46,10 +49,12 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private IoBuffer ioBuffer;
     // The thread responsible for initializing the connection.
     private Thread connectionStarter = null;
+    private ArrayList<UUID> uuidsList = new ArrayList<>();
+    private BluetoothBroadcastManager bluetoothBroadcastManager;
     /**
-     * Used to save the application context
+     * Used to save the activity context
      */
-    private Context applicationContext;
+    private Context context;
 
     @Override
     public void setReceiver(Receiver receiver) {
@@ -58,58 +63,34 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
     @Override
     public void connect(Context context) {
-        ArrayList<UUID> uuidsList = new ArrayList<>();
-        // 7 randomly-generated UUIDs. These must match on both server and client.
-        uuidsList.add(java.util.UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"));
-        uuidsList.add(java.util.UUID.fromString("2d64189d-5a2c-4511-a074-77f199fd0834"));
-        uuidsList.add(java.util.UUID.fromString("e442e09a-51f3-4a7b-91cb-f638491d1412"));
-        uuidsList.add(java.util.UUID.fromString("a81d6504-4536-49ee-a475-7d96d09439e4"));
-        uuidsList.add(java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"));
-        uuidsList.add(java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"));
-        uuidsList.add(java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0"));
+        this.context = context;
+        Log.i(TAG, "isServer " + isServer);
 
-        applicationContext = context;
+        addUuids();
 
         // To check if the device supports bluetooth.
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+
+        if (bluetoothAdapter == null) {
             Log.i(TAG, "Device does not support Bluetooth ");
             return;
         }
 
+        addIntentActionsToFliter();
+        // To notify about various events occurring with respect to the bluetooth connection
+        bluetoothBroadcastManager = new BluetoothBroadcastManager(this);
+        // Register the broadcast receiver with the intent values to be matched
+        context.registerReceiver(bluetoothBroadcastManager, intentFilter);
+
         // To enable bluetooth if not already enabled.
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult((Activity) applicationContext, enableBtIntent,
+            startActivityForResult((Activity) context, enableBtIntent,
                     REQUEST_ENABLE_BT, null);
-        }
-
-        addPairedDevices();
-
-        Log.i(TAG, "isServer " + isServer);
-
-        if (isServer) {
-            // Start the thread to listen on a BluetoothServerSocket
-            if (bluetoothAcceptThread == null) {
-                Log.i(TAG, "create accept thread ");
-                try {
-                    bluetoothAcceptThread = new BluetoothAcceptThread(mBluetoothAdapter, uuidsList,
-                            handler);
-                    connectionStarter = bluetoothAcceptThread;
-                    connectionStarter.start();
-                } catch (Exception e) {
-                    Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
-                }
-            }
         } else {
-            //TODO: When paired list has more than one devices
-            //for (int i = 0; i < pairedDevicesList.size(); i++) {
-                // Create a new thread and attempt to connect to each UUID one-by-one.
-                bluetoothConnectThread = new BluetoothConnectThread(mBluetoothAdapter,
-                        pairedDevicesList.get(0), uuidsList, handler);
-                connectionStarter = bluetoothConnectThread;
-                connectionStarter.start();
-            //}
+            // Bluetooth is already enabled on the device
+            addPairedDevices();
+            setupBluetoothConnection();
         }
     }
 
@@ -117,6 +98,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     public void disconnect() {
         onConnectorConnected = false;
         Log.i(TAG, "disconnected ");
+
+        context.unregisterReceiver(bluetoothBroadcastManager);
+
         if (connectionStarter != null && !connectionStarter.isInterrupted()) {
             connectionStarter.interrupt();
         }
@@ -127,9 +111,43 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         return onConnectorConnected;
     }
 
-    private void addPairedDevices() {
+    /**
+     * Add the required UUIDs needed for setting up the bluetooth connection
+     */
+    private void addUuids() {
+        // 7 randomly-generated UUIDs. These must match on both server and client.
+        uuidsList.add(java.util.UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"));
+        uuidsList.add(java.util.UUID.fromString("2d64189d-5a2c-4511-a074-77f199fd0834"));
+        uuidsList.add(java.util.UUID.fromString("e442e09a-51f3-4a7b-91cb-f638491d1412"));
+        uuidsList.add(java.util.UUID.fromString("a81d6504-4536-49ee-a475-7d96d09439e4"));
+        uuidsList.add(java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"));
+        uuidsList.add(java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"));
+        uuidsList.add(java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0"));
+    }
+
+    /**
+     * Add Intent actions to match against.
+     */
+    private void addIntentActionsToFliter() {
+        // add the intents that the broadcast receiver should check for
+        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+    }
+
+    /**
+     * Get the UUIDs list
+     *
+     * @return the UUID list
+     */
+    private ArrayList<UUID> getUuidsList() {
+        return uuidsList;
+    }
+
+    /**
+     * Add all the paired devices
+     */
+    void addPairedDevices() {
         // Get the paired devices' list
-        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
 
         // If there are paired devices
         if (pairedDevices.size() > 0) {
@@ -139,6 +157,36 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             }
         }
         Log.i(TAG, "paired devices " + pairedDevicesList.toString());
+    }
+
+    /**
+     * Setup the connection based on the device type - server or client
+     */
+    void setupBluetoothConnection() {
+        // Check if the device is a server or a client
+        if (isServer) {
+            // Start the thread to listen on a BluetoothServerSocket
+            if (bluetoothAcceptThread == null) {
+                Log.i(TAG, "create accept thread ");
+                try {
+                    bluetoothAcceptThread = new BluetoothAcceptThread(bluetoothAdapter,
+                            getUuidsList(), handler);
+                    connectionStarter = bluetoothAcceptThread;
+                    connectionStarter.start();
+                } catch (Exception e) {
+                    Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
+                }
+            }
+        } else {
+            //TODO: When paired list has more than one devices
+            //for (int i = 0; i < pairedDevicesList.size(); i++) {
+            // Create a new thread and attempt to connect to each UUID one-by-one.
+            bluetoothConnectThread = new BluetoothConnectThread(bluetoothAdapter,
+                    pairedDevicesList.get(0), getUuidsList(), handler);
+            connectionStarter = bluetoothConnectThread;
+            connectionStarter.start();
+            //}
+        }
     }
 
     @Override
