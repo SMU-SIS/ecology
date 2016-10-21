@@ -70,7 +70,7 @@ public class BluetoothServerAcceptThread extends Thread {
      * @param socket The BluetoothSocket on which the connection was made
      **/
     private void createSocketReadWriterThreads(BluetoothSocket socket) {
-        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
+        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler, true);
         bluetoothSocketReadWriter.start();
         // Add each connected thread to an array
         bluetoothSocketReadWriters.add(bluetoothSocketReadWriter);

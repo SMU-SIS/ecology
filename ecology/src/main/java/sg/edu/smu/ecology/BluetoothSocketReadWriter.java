@@ -24,10 +24,13 @@ public class BluetoothSocketReadWriter extends Thread {
     private Handler handler;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
+    private Boolean isServer;
 
-    public BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
+    public BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler,
+                                     Boolean isServer) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
+        this.isServer = isServer;
     }
 
     @Override
