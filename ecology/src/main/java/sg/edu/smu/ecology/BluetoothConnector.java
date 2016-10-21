@@ -30,7 +30,16 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
-    private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
+    // Seven randomly-generated UUIDs. These must match on both server and client.
+    private static final ArrayList<String> uuidsList = new ArrayList<>(Arrays.asList(
+            "b7746a40-c758-4868-aa19-7ac6b3475dfc",
+            "2d64189d-5a2c-4511-a074-77f199fd0834",
+            "e442e09a-51f3-4a7b-91cb-f638491d1412",
+            "a81d6504-4536-49ee-a475-7d96d09439e4",
+            "aa91eab1-d8ad-448e-abdb-95ebba4a9b55",
+            "4d34da73-d0a4-4f40-ac38-917e0a9dee97",
+            "5e14d4df-9c8a-4db7-81e4-c937564c86e0"));
+
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
     // To listen to certain events of bluetooth
@@ -42,14 +51,13 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private boolean isServer;
     private BluetoothServerAcceptThread bluetoothServerAcceptThread;
     private BluetoothClientConnectThread bluetoothClientConnectThread;
+    private ArrayList<BluetoothClientConnectThread> clientConnectThreadList = new ArrayList<>();
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new ArrayList<>();
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private IoBuffer ioBuffer;
-    // The thread responsible for initializing the connection.
-    private Thread connectionStarter = null;
-    private ArrayList<UUID> uuidsList = new ArrayList<>();
+    private ArrayList<UUID> uuidsRequiredList = new ArrayList<>();
     private BluetoothBroadcastManager bluetoothBroadcastManager;
     /**
      * Used to save the activity context
@@ -69,8 +77,6 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     public void connect(Context context) {
         this.context = context;
         Log.i(TAG, "isServer " + isServer);
-
-        addUuids();
 
         // To check if the device supports bluetooth.
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -105,8 +111,14 @@ public class BluetoothConnector implements Connector, Handler.Callback {
 
         context.unregisterReceiver(bluetoothBroadcastManager);
 
-        if (connectionStarter != null && !connectionStarter.isInterrupted()) {
-            connectionStarter.interrupt();
+        if (bluetoothServerAcceptThread != null && !bluetoothServerAcceptThread.isInterrupted()) {
+            bluetoothServerAcceptThread.interrupt();
+        }
+
+        for (int i = 0; i < clientConnectThreadList.size(); i++) {
+            if (clientConnectThreadList.get(i) != null && !clientConnectThreadList.get(i).isInterrupted()) {
+                clientConnectThreadList.get(i).interrupt();
+            }
         }
     }
 
@@ -116,17 +128,15 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     /**
-     * Add the required UUIDs needed for setting up the bluetooth connection
+     * Add the required number of UUIDs needed for setting up the bluetooth connection
+     *
+     * @param numberOfUuidsRequired number of UUIDs required
      */
-    private void addUuids() {
-        // 7 randomly-generated UUIDs. These must match on both server and client.
-        uuidsList.add(java.util.UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"));
-        uuidsList.add(java.util.UUID.fromString("2d64189d-5a2c-4511-a074-77f199fd0834"));
-        uuidsList.add(java.util.UUID.fromString("e442e09a-51f3-4a7b-91cb-f638491d1412"));
-        uuidsList.add(java.util.UUID.fromString("a81d6504-4536-49ee-a475-7d96d09439e4"));
-        uuidsList.add(java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"));
-        uuidsList.add(java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"));
-        uuidsList.add(java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0"));
+    private void addUuids(int numberOfUuidsRequired) {
+        for (int i = 0; i < numberOfUuidsRequired; i++) {
+            uuidsRequiredList.add(java.util.UUID.fromString(uuidsList.get(i)));
+        }
+        Log.i(TAG, "Number of UUIDs added " + uuidsRequiredList.size());
     }
 
     /**
@@ -142,8 +152,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
      *
      * @return the UUID list
      */
-    private ArrayList<UUID> getUuidsList() {
-        return uuidsList;
+    private ArrayList<UUID> getUuidsRequiredList() {
+        return uuidsRequiredList;
     }
 
     /**
@@ -161,6 +171,8 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             }
         }
         Log.i(TAG, "paired devices " + pairedDevicesList.toString());
+
+        addUuids(pairedDevicesList.size());
     }
 
     /**
@@ -174,23 +186,31 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 Log.i(TAG, "create accept thread ");
                 try {
                     bluetoothServerAcceptThread = new BluetoothServerAcceptThread(bluetoothAdapter,
-                            getUuidsList(), handler);
-                    connectionStarter = bluetoothServerAcceptThread;
-                    connectionStarter.start();
+                            getUuidsRequiredList(), handler);
+                    bluetoothServerAcceptThread.start();
                 } catch (Exception e) {
                     Log.d(TAG, "Failed to create a server thread - " + e.getMessage());
                 }
             }
+            // Start threads to connect as clients
+            for (int i = 0; i < pairedDevicesList.size(); i++) {
+                createClientConnectionThreads(pairedDevicesList.get(i));
+            }
+
         } else {
-            //TODO: When paired list has more than one devices
-            //for (int i = 0; i < pairedDevicesList.size(); i++) {
-            // Create a new thread and attempt to connect to each UUID one-by-one.
-            bluetoothClientConnectThread = new BluetoothClientConnectThread(bluetoothAdapter,
-                    pairedDevicesList.get(0), getUuidsList(), handler);
-            connectionStarter = bluetoothClientConnectThread;
-            connectionStarter.start();
-            //}
+            // Create threads to connect as clients and attempt to connect to each UUID one-by-one.
+            for (int i = 0; i < pairedDevicesList.size(); i++) {
+                createClientConnectionThreads(pairedDevicesList.get(i));
+            }
         }
+    }
+
+    private void createClientConnectionThreads(BluetoothDevice device) {
+        bluetoothClientConnectThread = new BluetoothClientConnectThread(bluetoothAdapter,
+                device, getUuidsRequiredList(), handler);
+        bluetoothClientConnectThread.start();
+        clientConnectThreadList.add(bluetoothClientConnectThread);
+        Log.i(TAG, "clientConnectThreadList " + clientConnectThreadList.size());
     }
 
     @Override
@@ -272,18 +292,19 @@ public class BluetoothConnector implements Connector, Handler.Callback {
                 receiver.onMessage(data);
                 break;
 
-            case Settings.MY_HANDLE:
-                Log.d(TAG, " MY HANDLE");
+            case Settings.SOCKET_SERVER:
+                Log.d(TAG, "Connected as a server to a device");
                 Object obj = msg.obj;
-                if (isServer) {
-                    addSocketReadWriterObjects((BluetoothSocketReadWriter) obj);
-                } else {
-                    setSocketReadWriterObject((BluetoothSocketReadWriter) obj);
-                }
-
+                addSocketReadWriterObjects((BluetoothSocketReadWriter) obj);
                 onConnectorConnected = true;
 
                 receiver.onConnectorConnected();
+                break;
+
+            case Settings.SOCKET_CLIENT:
+                Log.i(TAG, "Connected as a client to a device");
+                Object object = msg.obj;
+                setSocketReadWriterObject((BluetoothSocketReadWriter) object);
                 break;
 
             case Settings.SOCKET_CLOSE:
@@ -303,6 +324,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     // When the device is a server
     private void addSocketReadWriterObjects(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
         bluetoothSocketReadWritersList.add(bluetoothSocketReadWriter);
+        Log.i(TAG, "bluetoothSocketReadWritersList " + bluetoothSocketReadWritersList.size());
     }
 
     // When the device is a client

@@ -84,8 +84,9 @@ public class BluetoothClientConnectThread extends Thread {
                             Log.e(TAG, "unable to close() socket during connection failure", e2);
                         }
                     } else {
-                        Log.i(TAG, "IO Exception attempt " + (numberOfAttempts + 1) + " failed");
-                        if (uuidToTry.toString().contentEquals(uuidsList.get(6).toString())) {
+                        Log.i(TAG, "Connection attempt " + (numberOfAttempts + 1) + " failed");
+                        if (uuidToTry.toString().contentEquals(uuidsList.get(uuidsList.size() - 1).
+                                toString())) {
                             numberOfAttempts = 0;
                         } else {
                             numberOfAttempts++;

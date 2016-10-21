@@ -23,9 +23,8 @@ public class BluetoothServerAcceptThread extends Thread {
     private static final String TAG = BluetoothServerAcceptThread.class.getSimpleName();
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
-    private static final int MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS = 7;
     private BluetoothServerSocket serverSocket = null;
-    private ArrayList<UUID> mUuids;
+    private ArrayList<UUID> uuidsList;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private ArrayList<BluetoothSocket> socketsList = new ArrayList<BluetoothSocket>();
@@ -34,10 +33,10 @@ public class BluetoothServerAcceptThread extends Thread {
     private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWriters = new ArrayList<>();
     private Handler handler;
 
-    public BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> mUuids,
+    public BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> uuidsList,
                                        Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
-        this.mUuids = mUuids;
+        this.uuidsList = uuidsList;
         this.handler = handler;
     }
 
@@ -46,10 +45,11 @@ public class BluetoothServerAcceptThread extends Thread {
         Log.i(TAG, "run method ");
         BluetoothSocket socket = null;
         try {
-            // Listen for all 7 UUIDs
-            for (int i = 0; i < MAX_NUMBER_OF_BLUETOOTH_CONNECTIONS; i++) {
+            // Listen for all the required number of UUIDs
+            for (int i = 0; i < uuidsList.size(); i++) {
                 Log.i(TAG, "Server Listen " + (i + 1));
-                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
+                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME,
+                        uuidsList.get(i));
                 socket = serverSocket.accept();
                 if (socket != null) {
                     serverSocket.close();
@@ -87,7 +87,7 @@ public class BluetoothServerAcceptThread extends Thread {
     @Override
     public void interrupt() {
         super.interrupt();
-        Log.i(TAG, "bluetoothSocketReadWriters-size "+bluetoothSocketReadWriters.size());
+        Log.i(TAG, "bluetoothSocketReadWriters-size " + bluetoothSocketReadWriters.size());
         for (int i = 0; i < bluetoothSocketReadWriters.size(); i++) {
             if (bluetoothSocketReadWriters.get(i) != null) {
                 bluetoothSocketReadWriters.get(i).onInterrupt();
