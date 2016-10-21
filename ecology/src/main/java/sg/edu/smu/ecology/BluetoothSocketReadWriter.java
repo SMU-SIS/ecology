@@ -40,7 +40,12 @@ public class BluetoothSocketReadWriter extends Thread {
             inputStream = new DataInputStream(bluetoothSocket.getInputStream());
             outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
-            handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
+            if (isServer) {
+                handler.obtainMessage(Settings.SOCKET_SERVER, this).sendToTarget();
+            } else {
+                handler.obtainMessage(Settings.SOCKET_CLIENT, this).sendToTarget();
+            }
+
             while (true) {
                 try {
                     int toRead = inputStream.readInt();
