@@ -100,7 +100,7 @@ public class BluetoothClientConnectThread extends Thread {
     }
 
     private void connected(BluetoothSocket socket) {
-        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler, false);
+        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
         bluetoothSocketReadWriter.start();
     }
 

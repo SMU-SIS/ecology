@@ -5,7 +5,7 @@ package sg.edu.smu.ecology;
  */
 
 public class BluetoothClientConnector extends BluetoothConnector implements
-        BluetoothConnector.ServerDisconnection{
+        BluetoothConnector.ServerDisconnectionListener {
     private static final String TAG = BluetoothClientConnector.class.getSimpleName();
 
     private BluetoothClientConnectThread bluetoothClientConnectThread;
@@ -13,9 +13,9 @@ public class BluetoothClientConnector extends BluetoothConnector implements
     @Override
     public void setupBluetoothConnection() {
         bluetoothClientConnectThread = new BluetoothClientConnectThread(getBluetoothAdapter(),
-                getPairedDevicesList().get(0), getUuidsRequiredList(), getHandler());
+                getPairedDevicesList().get(0), getUuidsList(), getHandler());
         bluetoothClientConnectThread.start();
-        setServerDisconnection(this);
+        setServerDisconnectionListener(this);
     }
 
     @Override
