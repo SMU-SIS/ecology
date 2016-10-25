@@ -32,6 +32,7 @@ public class BluetoothServerAcceptThread extends Thread {
     private ArrayList<BluetoothDevice> devicesList = new ArrayList<>();
     private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWriters = new ArrayList<>();
     private Handler handler;
+    private int clientId = 0;
 
     public BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> uuidsList,
                                        Handler handler) {
@@ -70,7 +71,9 @@ public class BluetoothServerAcceptThread extends Thread {
      * @param socket The BluetoothSocket on which the connection was made
      **/
     private void createSocketReadWriterThreads(BluetoothSocket socket) {
-        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler, true);
+        clientId++;
+        bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler, true,
+                clientId);
         bluetoothSocketReadWriter.start();
         // Add each connected thread to an array
         bluetoothSocketReadWriters.add(bluetoothSocketReadWriter);
@@ -88,6 +91,7 @@ public class BluetoothServerAcceptThread extends Thread {
     public void interrupt() {
         super.interrupt();
         Log.i(TAG, "bluetoothSocketReadWriters-size " + bluetoothSocketReadWriters.size());
+        clientId = 0;
         for (int i = 0; i < bluetoothSocketReadWriters.size(); i++) {
             if (bluetoothSocketReadWriters.get(i) != null) {
                 bluetoothSocketReadWriters.get(i).onInterrupt();
