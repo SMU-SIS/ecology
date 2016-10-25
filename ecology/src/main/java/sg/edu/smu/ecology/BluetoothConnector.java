@@ -52,7 +52,6 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     private BluetoothServerAcceptThread bluetoothServerAcceptThread;
     private BluetoothClientConnectThread bluetoothClientConnectThread;
     private ArrayList<BluetoothClientConnectThread> clientConnectThreadList = new ArrayList<>();
-    private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new ArrayList<>();
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
@@ -181,6 +180,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     void setupBluetoothConnection() {
         // Check if the device is a server or a client
         if (isServer) {
+            // Connects both as server and client
             // Start the thread to listen on a BluetoothServerSocket
             if (bluetoothServerAcceptThread == null) {
                 Log.i(TAG, "create accept thread ");
@@ -198,6 +198,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             }
 
         } else {
+            // Connects only as a client
             // Create threads to connect as clients and attempt to connect to each UUID one-by-one.
             for (int i = 0; i < pairedDevicesList.size(); i++) {
                 createClientConnectionThreads(pairedDevicesList.get(i));
@@ -216,14 +217,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
     @Override
     public void sendMessage(List<Object> message) {
         ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
-        if (isServer) {
-            for (int i = 0; i < bluetoothServerAcceptThread.getNumberOfDevicesConnected(); i++) {
-                encodeMessage(message);
-                writeData(bluetoothSocketReadWritersList.get(i));
-            }
-        } else if (bluetoothSocketReadWriter != null) {
+        for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
             encodeMessage(message);
-            writeData(bluetoothSocketReadWriter);
+            writeData(bluetoothSocketReadWritersList.get(i));
         }
     }
 
@@ -304,7 +300,7 @@ public class BluetoothConnector implements Connector, Handler.Callback {
             case Settings.SOCKET_CLIENT:
                 Log.i(TAG, "Connected as a client to a device");
                 Object object = msg.obj;
-                setSocketReadWriterObject((BluetoothSocketReadWriter) object);
+                addSocketReadWriterObjects((BluetoothSocketReadWriter) object);
                 break;
 
             case Settings.SOCKET_CLOSE:
@@ -321,14 +317,9 @@ public class BluetoothConnector implements Connector, Handler.Callback {
         return true;
     }
 
-    // When the device is a server
     private void addSocketReadWriterObjects(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
         bluetoothSocketReadWritersList.add(bluetoothSocketReadWriter);
         Log.i(TAG, "bluetoothSocketReadWritersList " + bluetoothSocketReadWritersList.size());
     }
 
-    // When the device is a client
-    private void setSocketReadWriterObject(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
-        this.bluetoothSocketReadWriter = bluetoothSocketReadWriter;
-    }
 }
