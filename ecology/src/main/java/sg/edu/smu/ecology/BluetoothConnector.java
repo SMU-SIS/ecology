@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.SparseArray;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
@@ -32,51 +33,31 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
     // Seven randomly-generated UUIDs. These must match on both server and client.
-    private static final ArrayList<String> uuidsList = new ArrayList<>(Arrays.asList(
-            "b7746a40-c758-4868-aa19-7ac6b3475dfc",
-            "2d64189d-5a2c-4511-a074-77f199fd0834",
-            "e442e09a-51f3-4a7b-91cb-f638491d1412",
-            "a81d6504-4536-49ee-a475-7d96d09439e4",
-            "aa91eab1-d8ad-448e-abdb-95ebba4a9b55",
-            "4d34da73-d0a4-4f40-ac38-917e0a9dee97",
-            "5e14d4df-9c8a-4db7-81e4-c937564c86e0"));
+    private static final ArrayList<UUID> uuidsList = new ArrayList<>(Arrays.asList(
+            java.util.UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"),
+            java.util.UUID.fromString("2d64189d-5a2c-4511-a074-77f199fd0834"),
+            java.util.UUID.fromString("e442e09a-51f3-4a7b-91cb-f638491d1412"),
+            java.util.UUID.fromString("a81d6504-4536-49ee-a475-7d96d09439e4"),
+            java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"),
+            java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"),
+            java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0")));
 
     // To listen to certain events of bluetooth
     private final IntentFilter intentFilter = new IntentFilter();
-
-    public BluetoothAdapter getBluetoothAdapter() {
-        return bluetoothAdapter;
-    }
-
     private BluetoothAdapter bluetoothAdapter;
     private Connector.Receiver receiver;
-
-    public List<BluetoothDevice> getPairedDevicesList() {
-        return pairedDevicesList;
-    }
-
     private List<BluetoothDevice> pairedDevicesList = new Vector<>();
-
-    public Handler getHandler() {
-        return handler;
-    }
-
     private Handler handler = new Handler(this);
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private IoBuffer ioBuffer;
-    private ArrayList<UUID> uuidsRequiredList = new ArrayList<>();
     private BluetoothBroadcastManager bluetoothBroadcastManager;
     private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new ArrayList<>();
-    /**
-     * Used to save the activity context
-     */
+    private SparseArray<BluetoothSocketReadWriter> clientList = new SparseArray<>();
+    private boolean isServer = false;
+    //Used to save the activity context
     private Context context;
-
-    private ServerDisconnection serverDisconnection;
-    public void setServerDisconnection(ServerDisconnection serverDisconnection) {
-        this.serverDisconnection = serverDisconnection;
-    }
+    private ServerDisconnectionListener serverDisconnectionListener;
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -160,35 +141,78 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 Log.i(TAG, " eventType " + eventTypeReceived);
 
                 receiver.onMessage(data);
+
+                if (isServer) {
+                    forwardMessage(data, msg.arg1);
+                }
                 break;
 
             case Settings.SOCKET_SERVER:
                 Log.d(TAG, "Connected as a server to a device");
                 Object obj = msg.obj;
-                addSocketReadWriterObjects((BluetoothSocketReadWriter) obj);
-                onConnectorConnected = true;
 
+                updateClientsList((BluetoothSocketReadWriter) obj, msg.arg1);
+                addSocketReadWriterObject((BluetoothSocketReadWriter) obj);
+
+                onConnectorConnected = true;
                 receiver.onConnectorConnected();
                 break;
 
             case Settings.SOCKET_CLIENT:
                 Log.i(TAG, "Connected as a client to a device");
                 Object object = msg.obj;
-                addSocketReadWriterObjects((BluetoothSocketReadWriter) object);
+
+                addSocketReadWriterObject((BluetoothSocketReadWriter) object);
+
+                onConnectorConnected = true;
+                receiver.onConnectorConnected();
                 break;
 
             case Settings.SOCKET_CLOSE:
                 Log.d(TAG, "Socket Close");
                 onConnectorConnected = false;
 
+                Object disconnectedObj = msg.obj;
+                removeSocketReadWriterObject((BluetoothSocketReadWriter) disconnectedObj);
+
                 receiver.onConnectorDisconnected();
 
-                if(serverDisconnection != null){
-                    serverDisconnection.resetClientConnectThread();
+                if (serverDisconnectionListener != null) {
+                    serverDisconnectionListener.resetClientConnectThread();
+                }
+
+                if (isServer) {
+                    updateClientsList((BluetoothSocketReadWriter) disconnectedObj,
+                            msg.arg1);
                 }
                 break;
         }
         return true;
+    }
+
+    protected BluetoothAdapter getBluetoothAdapter() {
+        return bluetoothAdapter;
+    }
+
+    protected List<BluetoothDevice> getPairedDevicesList() {
+        return pairedDevicesList;
+    }
+
+    protected Handler getHandler() {
+        return handler;
+    }
+
+    /**
+     * Will be set to true if the device is a server
+     * @param server the boolean value denoting the device type
+     */
+    protected void setServer(boolean server) {
+        isServer = server;
+    }
+
+    protected void setServerDisconnectionListener(ServerDisconnectionListener
+                                                          serverDisconnectionListener) {
+        this.serverDisconnectionListener = serverDisconnectionListener;
     }
 
     /**
@@ -206,20 +230,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             }
         }
         Log.i(TAG, "paired devices " + pairedDevicesList.toString());
-
-        addUuids(pairedDevicesList.size());
-    }
-
-    /**
-     * Add the required number of UUIDs needed for setting up the bluetooth connection
-     *
-     * @param numberOfUuidsRequired number of UUIDs required
-     */
-    private void addUuids(int numberOfUuidsRequired) {
-        for (int i = 0; i < numberOfUuidsRequired; i++) {
-            uuidsRequiredList.add(java.util.UUID.fromString(uuidsList.get(i)));
-        }
-        Log.i(TAG, "Number of UUIDs added " + uuidsRequiredList.size());
     }
 
     /**
@@ -235,8 +245,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      *
      * @return the UUID list
      */
-    ArrayList<UUID> getUuidsRequiredList() {
-        return uuidsRequiredList;
+    ArrayList<UUID> getUuidsList() {
+        return uuidsList;
     }
 
     /**
@@ -259,6 +269,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
+    /**
+     * Write data to be published
+     * @param bluetoothSocketReadWriter thread responsible for data read and write
+     */
     private void writeData(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
         // To store the length of the message
         int length = ioBuffer.position();
@@ -277,14 +291,67 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         ioBuffer.clear();
     }
 
-    private void addSocketReadWriterObjects(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
+    /**
+     * When a server receives a message from a client, it is forwarded to rest of the connected
+     * clients
+     * @param message the message received
+     * @param clientId the client id of the client from which the message was received
+     */
+    private void forwardMessage(List<Object> message, int clientId) {
+        ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
+        for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
+            if (!(clientList.get(clientId).equals(bluetoothSocketReadWritersList.get(i)))) {
+                encodeMessage(message);
+                writeData(bluetoothSocketReadWritersList.get(i));
+                Log.i(TAG, "Message forwarding...");
+            }
+        }
+    }
+
+    /**
+     * This method updates the list accordingly when a client gets connected or disconnected.
+     * @param bluetoothSocketReadWriter the thread associated with the client
+     * @param clientId the unique id of the client
+     */
+    private void updateClientsList(BluetoothSocketReadWriter bluetoothSocketReadWriter,
+                                   int clientId) {
+        if (clientList.get(clientId) != null) {
+            clientList.remove(clientId);
+            Log.i(TAG, "Removed from clients list " + clientList.size());
+        } else {
+            clientList.put(clientId, bluetoothSocketReadWriter);
+            Log.i(TAG, "Added to clients list " + clientList.size());
+        }
+    }
+
+    /**
+     * This method adds the associated thread when a new connection is established
+     * @param bluetoothSocketReadWriter the thread responsible for message read and write
+     */
+    private void addSocketReadWriterObject(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
         bluetoothSocketReadWritersList.add(bluetoothSocketReadWriter);
+        Log.i(TAG, "bluetoothSocketReadWritersList " + bluetoothSocketReadWritersList.size());
+    }
+
+    /**
+     * This method removes the associated thread when a connection is disconnected
+     * @param bluetoothSocketReadWriter the thread responsible for message read and write
+     */
+    private void removeSocketReadWriterObject(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
+        bluetoothSocketReadWritersList.remove(bluetoothSocketReadWriter);
         Log.i(TAG, "bluetoothSocketReadWritersList " + bluetoothSocketReadWritersList.size());
     }
 
     public abstract void setupBluetoothConnection();
 
-    public interface ServerDisconnection{
+    /**
+     * Interface to know when server disconnects
+     */
+    protected interface ServerDisconnectionListener {
+
+        /**
+         * Resets the client connect thread so that it starts looking for a new server
+         */
         public void resetClientConnectThread();
     }
 }
