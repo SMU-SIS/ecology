@@ -182,8 +182,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 }
 
                 if (isServer) {
-                    updateClientsList((BluetoothSocketReadWriter) disconnectedObj,
-                            msg.arg1);
+                    updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
                 }
                 break;
         }
