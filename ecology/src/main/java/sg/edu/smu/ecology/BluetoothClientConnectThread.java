@@ -30,6 +30,7 @@ public class BluetoothClientConnectThread extends Thread {
     private int numberOfAttempts = 0;
     // To record the status of the connection
     private boolean connectedToServer = false;
+    private boolean threadInterrupted = false;
 
     public BluetoothClientConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
                                         ArrayList<UUID> uuidsList, Handler handler) {
@@ -49,7 +50,7 @@ public class BluetoothClientConnectThread extends Thread {
         // Always cancel discovery because it will slow down a connection
         bluetoothAdapter.cancelDiscovery();
         // Try connecting till the connection is setup
-        while (!isInterrupted()) {
+        while (!threadInterrupted) {
             if (!connectedToServer) {
                 // Make a connection to the BluetoothSocket
                 try {
@@ -107,10 +108,11 @@ public class BluetoothClientConnectThread extends Thread {
     @Override
     public void interrupt() {
         super.interrupt();
-        Log.i(TAG, "Interrupted");
         if (bluetoothSocketReadWriter != null) {
+            Log.i(TAG, "Interrupted");
             bluetoothSocketReadWriter.onInterrupt();
         }
+        threadInterrupted = true;
     }
 }
 
