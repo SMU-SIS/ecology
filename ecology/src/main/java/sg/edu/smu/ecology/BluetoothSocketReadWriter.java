@@ -33,7 +33,7 @@ public class BluetoothSocketReadWriter extends Thread {
     }
 
     protected BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler,
-                                     Boolean isServer, int clientId) {
+                                        Boolean isServer, int clientId) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
         this.isServer = isServer;
@@ -52,7 +52,6 @@ public class BluetoothSocketReadWriter extends Thread {
             } else {
                 handler.obtainMessage(Settings.SOCKET_CLIENT, this).sendToTarget();
             }
-
             while (true) {
                 try {
                     int toRead = inputStream.readInt();
@@ -69,18 +68,17 @@ public class BluetoothSocketReadWriter extends Thread {
                         break;
                     }
 
+                    byte[] dataBuffer = new byte[toRead];
                     while (currentRead < toRead) {
-                        byte[] dataBuffer = new byte[toRead];
-
-                        currentRead += inputStream.read(dataBuffer, currentRead, toRead - currentRead);
-                        Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
-
-                        if(isServer){
-                            handler.obtainMessage(Settings.MESSAGE_READ, clientId, 0,
-                                    dataBuffer).sendToTarget();
-                        } else {
-                            handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
-                        }
+                        currentRead += inputStream.read(dataBuffer, currentRead, toRead -
+                                currentRead);
+                    }
+                    Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
+                    if (isServer) {
+                        handler.obtainMessage(Settings.MESSAGE_READ, clientId, 0,
+                                dataBuffer).sendToTarget();
+                    } else {
+                        handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
                     }
                 } catch (IOException e) {
                     break;
