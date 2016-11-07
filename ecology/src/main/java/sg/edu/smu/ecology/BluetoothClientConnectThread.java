@@ -41,10 +41,6 @@ public class BluetoothClientConnectThread extends Thread {
         uuidToTry = uuidsList.get(numberOfAttempts);
     }
 
-    public void setConnectedToServer(boolean connectedToServer) {
-        this.connectedToServer = connectedToServer;
-    }
-
     @Override
     public void run() {
         // Always cancel discovery because it will slow down a connection
@@ -100,6 +96,13 @@ public class BluetoothClientConnectThread extends Thread {
         Log.i(TAG, "Done ");
     }
 
+    void handleServerDisconnection() {
+        connectedToServer = false;
+        if (bluetoothSocketReadWriter != null) {
+            bluetoothSocketReadWriter.closeDisconnectedSocket();
+        }
+    }
+
     private void connected(BluetoothSocket socket) {
         bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
         bluetoothSocketReadWriter.start();
@@ -108,11 +111,21 @@ public class BluetoothClientConnectThread extends Thread {
     @Override
     public void interrupt() {
         super.interrupt();
-        if (bluetoothSocketReadWriter != null) {
-            Log.i(TAG, "Interrupted");
-            bluetoothSocketReadWriter.onInterrupt();
-        }
         threadInterrupted = true;
+        if(connectedToServer) {
+            if (bluetoothSocketReadWriter != null) {
+                Log.i(TAG, "Interrupted");
+                bluetoothSocketReadWriter.onInterrupt();
+            }
+        } else {
+            try {
+                bluetoothSocket.close();
+                bluetoothSocket = null;
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
 

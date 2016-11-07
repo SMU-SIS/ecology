@@ -28,7 +28,7 @@ public class BluetoothClientConnector extends BluetoothConnector implements
     }
 
     @Override
-    public void resetClientConnectThread() {
-        bluetoothClientConnectThread.setConnectedToServer(false);
+    public void handleServerDisconnection() {
+        bluetoothClientConnectThread.handleServerDisconnection();
     }
 }

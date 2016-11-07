@@ -187,7 +187,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                     }
                 } else {
                     if (serverDisconnectionListener != null) {
-                        serverDisconnectionListener.resetClientConnectThread();
+                        serverDisconnectionListener.handleServerDisconnection();
                     }
                 }
 
@@ -367,9 +367,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     protected interface ServerDisconnectionListener {
 
         /**
-         * Resets the client connect thread so that it starts looking for a new server
+         * Handle the server disconnection so that it starts looking for new server connection
          */
-        public void resetClientConnectThread();
+        public void handleServerDisconnection();
     }
 
     /**
@@ -379,6 +379,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
         /**
          * Handle the client disconnection
+         *
          * @param clientId the client that got disconnected
          */
         public void handleClientDisconnection(int clientId);
