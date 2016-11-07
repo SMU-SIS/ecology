@@ -122,8 +122,8 @@ public class BluetoothServerAcceptThread extends Thread {
         Log.i(TAG, "bluetoothSocketReadWriters-size " + bluetoothSocketReadWritersList.size());
         clientId = 0;
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
-            if (bluetoothSocketReadWritersList.get(i) != null) {
-                bluetoothSocketReadWritersList.get(i).onInterrupt();
+            if (bluetoothSocketReadWritersList.valueAt(i) != null) {
+                bluetoothSocketReadWritersList.valueAt(i).onInterrupt();
             }
         }
 

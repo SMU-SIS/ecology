@@ -134,7 +134,7 @@ public class BluetoothSocketReadWriter extends Thread {
     }
 
     /**
-     * This method is called when a client disconnects from the server
+     * This method is called when a connected device gets disconnected
      */
     void closeDisconnectedSocket() {
         if (bluetoothSocket != null) {
