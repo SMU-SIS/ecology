@@ -109,7 +109,9 @@ public class BluetoothSocketReadWriter extends Thread {
         }
     }
 
-    // This method is called when the device is disconnected from ecology
+    /**
+     * This method is called when the device disconnects from the ecology
+     */
     public void onInterrupt() {
         // To indicate that the device is disconnected from ecology
         if (bluetoothSocket.isConnected()) {
@@ -128,5 +130,22 @@ public class BluetoothSocketReadWriter extends Thread {
             } catch (IOException e) {
             }
         }
+        interrupt();
+    }
+
+    /**
+     * This method is called when a client disconnects from the server
+     */
+    void closeDisconnectedSocket() {
+        if (bluetoothSocket != null) {
+            try {
+                bluetoothSocket.close();
+                bluetoothSocket = null;
+                Log.i(TAG, "socket close");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        interrupt();
     }
 }
