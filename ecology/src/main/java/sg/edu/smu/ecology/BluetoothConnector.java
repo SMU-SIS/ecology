@@ -58,6 +58,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     //Used to save the activity context
     private Context context;
     private ServerDisconnectionListener serverDisconnectionListener;
+    private ClientDisconnectionListener clientDisconnectionListener;
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -142,6 +143,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
                 receiver.onMessage(data);
 
+                // If the device is a server, the received message will be forwarded to other
+                // connected clients
                 if (isServer) {
                     forwardMessage(data, msg.arg1);
                 }
@@ -177,13 +180,17 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
                 receiver.onConnectorDisconnected();
 
-                if (serverDisconnectionListener != null) {
-                    serverDisconnectionListener.resetClientConnectThread();
-                }
-
                 if (isServer) {
                     updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
+                    if (clientDisconnectionListener != null) {
+                        clientDisconnectionListener.handleClientDisconnection(msg.arg1);
+                    }
+                } else {
+                    if (serverDisconnectionListener != null) {
+                        serverDisconnectionListener.resetClientConnectThread();
+                    }
                 }
+
                 break;
         }
         return true;
@@ -203,6 +210,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * Will be set to true if the device is a server
+     *
      * @param server the boolean value denoting the device type
      */
     protected void setServer(boolean server) {
@@ -212,6 +220,11 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     protected void setServerDisconnectionListener(ServerDisconnectionListener
                                                           serverDisconnectionListener) {
         this.serverDisconnectionListener = serverDisconnectionListener;
+    }
+
+    protected void setClientDisconnectionListener(ClientDisconnectionListener
+                                                          clientDisconnectionListener) {
+        this.clientDisconnectionListener = clientDisconnectionListener;
     }
 
     /**
@@ -270,6 +283,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * Write data to be published
+     *
      * @param bluetoothSocketReadWriter thread responsible for data read and write
      */
     private void writeData(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
@@ -293,7 +307,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     /**
      * When a server receives a message from a client, it is forwarded to rest of the connected
      * clients
-     * @param message the message received
+     *
+     * @param message  the message received
      * @param clientId the client id of the client from which the message was received
      */
     private void forwardMessage(List<Object> message, int clientId) {
@@ -309,8 +324,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * This method updates the list accordingly when a client gets connected or disconnected.
+     *
      * @param bluetoothSocketReadWriter the thread associated with the client
-     * @param clientId the unique id of the client
+     * @param clientId                  the unique id of the client
      */
     private void updateClientsList(BluetoothSocketReadWriter bluetoothSocketReadWriter,
                                    int clientId) {
@@ -325,6 +341,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * This method adds the associated thread when a new connection is established
+     *
      * @param bluetoothSocketReadWriter the thread responsible for message read and write
      */
     private void addSocketReadWriterObject(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
@@ -334,6 +351,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * This method removes the associated thread when a connection is disconnected
+     *
      * @param bluetoothSocketReadWriter the thread responsible for message read and write
      */
     private void removeSocketReadWriterObject(BluetoothSocketReadWriter bluetoothSocketReadWriter) {
@@ -344,7 +362,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     public abstract void setupBluetoothConnection();
 
     /**
-     * Interface to know when server disconnects
+     * Interface to listen to server disconnection
      */
     protected interface ServerDisconnectionListener {
 
@@ -352,5 +370,17 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
          * Resets the client connect thread so that it starts looking for a new server
          */
         public void resetClientConnectThread();
+    }
+
+    /**
+     * Interface to listen to client disconnections
+     */
+    protected interface ClientDisconnectionListener {
+
+        /**
+         * Handle the client disconnection
+         * @param clientId the client that got disconnected
+         */
+        public void handleClientDisconnection(int clientId);
     }
 }
