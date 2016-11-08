@@ -18,7 +18,7 @@ import java.util.UUID;
  * This thread runs while attempting to make an outgoing connection
  * with a device. The connection either succeeds or fails.
  */
-public class BluetoothClientConnectThread extends Thread {
+class BluetoothClientConnectThread extends Thread {
     private static final String TAG = BluetoothClientConnectThread.class.getSimpleName();
     private final BluetoothDevice bluetoothDevice;
     private BluetoothSocket bluetoothSocket;
@@ -31,13 +31,17 @@ public class BluetoothClientConnectThread extends Thread {
     // To record the status of the connection
     private boolean connectedToServer = false;
     private boolean threadInterrupted = false;
+    private BluetoothClientConnector.ClientConnectionListener clientConnectionListener;
 
-    public BluetoothClientConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
-                                        ArrayList<UUID> uuidsList, Handler handler) {
+    BluetoothClientConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
+                                 ArrayList<UUID> uuidsList, Handler handler,
+                                 BluetoothClientConnector.ClientConnectionListener
+                                         clientConnectionListener) {
         this.bluetoothAdapter = bluetoothAdapter;
         bluetoothDevice = device;
         this.uuidsList = uuidsList;
         this.handler = handler;
+        this.clientConnectionListener = clientConnectionListener;
         uuidToTry = uuidsList.get(numberOfAttempts);
     }
 
@@ -66,7 +70,9 @@ public class BluetoothClientConnectThread extends Thread {
 
                     connectedToServer = true;
                     // Start the connected thread
-                    connected(bluetoothSocket);
+                    createSocketReadWriter(bluetoothSocket);
+                    // Notify bluetooth client connector
+                    clientConnectionListener.clientConnectedToServer(this);
                     // Reset the values
                     numberOfAttempts = 0;
                     uuidToTry = uuidsList.get(numberOfAttempts);
@@ -103,7 +109,7 @@ public class BluetoothClientConnectThread extends Thread {
         }
     }
 
-    private void connected(BluetoothSocket socket) {
+    private void createSocketReadWriter(BluetoothSocket socket) {
         bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
         bluetoothSocketReadWriter.start();
     }
@@ -112,7 +118,7 @@ public class BluetoothClientConnectThread extends Thread {
     public void interrupt() {
         super.interrupt();
         threadInterrupted = true;
-        if(connectedToServer) {
+        if (connectedToServer) {
             if (bluetoothSocketReadWriter != null) {
                 Log.i(TAG, "Interrupted");
                 bluetoothSocketReadWriter.onInterrupt();
@@ -121,7 +127,6 @@ public class BluetoothClientConnectThread extends Thread {
             try {
                 bluetoothSocket.close();
                 bluetoothSocket = null;
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
