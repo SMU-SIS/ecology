@@ -17,10 +17,10 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 /**
- * This thread runs while listening for incoming connections. It runs until all the 7 connections
- * are accepted(or until cancelled).
+ * This thread runs while listening for incoming client connection requests. It runs until all the
+ * 7 connections are accepted(or until cancelled).
  */
-public class BluetoothServerAcceptThread extends Thread {
+class BluetoothServerAcceptThread extends Thread {
     private static final String TAG = BluetoothServerAcceptThread.class.getSimpleName();
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
@@ -36,8 +36,8 @@ public class BluetoothServerAcceptThread extends Thread {
     private SparseArray<UUID> clientUuidList = new SparseArray<>();
     private boolean restartUuidsListening = false;
 
-    public BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> uuidsList,
-                                       Handler handler) {
+    BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> uuidsList,
+                                Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         this.uuidsList = uuidsList;
         this.handler = handler;

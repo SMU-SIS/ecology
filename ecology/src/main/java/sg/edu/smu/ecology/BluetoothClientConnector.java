@@ -8,6 +8,10 @@ import java.util.ArrayList;
  * Created by anurooppv on 25/10/2016.
  */
 
+/**
+ * This class helps to establish a client connection to any server device part of the ecology
+ * using bluetooth
+ */
 public class BluetoothClientConnector extends BluetoothConnector implements
         BluetoothConnector.ServerDisconnectionListener {
     private static final String TAG = BluetoothClientConnector.class.getSimpleName();

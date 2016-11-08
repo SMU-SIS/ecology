@@ -17,7 +17,7 @@ import java.util.Arrays;
  * This thread runs during a connection with a remote bluetooth device.
  * It handles all the incoming and outgoing messages.
  */
-public class BluetoothSocketReadWriter extends Thread {
+class BluetoothSocketReadWriter extends Thread {
     private static final String TAG = BluetoothSocketReadWriter.class.getSimpleName();
     private static final int END_OF_FILE = -1;
     private BluetoothSocket bluetoothSocket;
@@ -27,13 +27,13 @@ public class BluetoothSocketReadWriter extends Thread {
     private Boolean isServer = false;
     private int clientId;
 
-    protected BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
+    BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
     }
 
-    protected BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler,
-                                        Boolean isServer, int clientId) {
+    BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler,
+                              Boolean isServer, int clientId) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
         this.isServer = isServer;
@@ -93,7 +93,7 @@ public class BluetoothSocketReadWriter extends Thread {
      *
      * @param buffer The bytes to write
      */
-    public void writeData(byte[] buffer) {
+    void writeData(byte[] buffer) {
         try {
             outputStream.write(buffer);
         } catch (IOException e) {
@@ -101,7 +101,7 @@ public class BluetoothSocketReadWriter extends Thread {
         }
     }
 
-    public void writeInt(int length) {
+    void writeInt(int length) {
         try {
             outputStream.writeInt(length);
         } catch (IOException e) {
@@ -112,7 +112,7 @@ public class BluetoothSocketReadWriter extends Thread {
     /**
      * This method is called when the device disconnects from the ecology
      */
-    public void onInterrupt() {
+    void onInterrupt() {
         // To indicate that the device is disconnected from ecology
         if (bluetoothSocket.isConnected()) {
             Log.i(TAG, "interrupted");

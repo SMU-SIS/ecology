@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 /**
- * This thread runs while attempting to make an outgoing connection
- * with a device. The connection either succeeds or fails.
+ * This thread runs while attempting to make an outgoing connection with a server device. The
+ * connection either succeeds or fails.
  */
 class BluetoothClientConnectThread extends Thread {
     private static final String TAG = BluetoothClientConnectThread.class.getSimpleName();

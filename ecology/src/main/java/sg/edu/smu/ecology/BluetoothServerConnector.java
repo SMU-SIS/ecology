@@ -6,6 +6,10 @@ import android.util.Log;
  * Created by anurooppv on 25/10/2016.
  */
 
+/**
+ * This class helps the device to act as a server to establish bluetooth connections with other
+ * client devices in the ecology
+ */
 public class BluetoothServerConnector extends BluetoothConnector implements
         BluetoothConnector.ClientDisconnectionListener {
     private static final String TAG = BluetoothServerConnector.class.getSimpleName();
