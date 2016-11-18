@@ -141,13 +141,13 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
                 Log.i(TAG, " eventType " + eventTypeReceived);
 
-                receiver.onMessage(data);
-
                 // If the device is a server, the received message will be forwarded to other
                 // connected clients
                 if (isServer) {
                     forwardMessage(data, msg.arg1);
                 }
+
+                receiver.onMessage(data);
                 break;
 
             case Settings.SOCKET_SERVER:

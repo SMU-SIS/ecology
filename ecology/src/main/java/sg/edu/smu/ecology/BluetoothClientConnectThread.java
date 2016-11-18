@@ -48,7 +48,9 @@ class BluetoothClientConnectThread extends Thread {
     @Override
     public void run() {
         // Always cancel discovery because it will slow down a connection
-        bluetoothAdapter.cancelDiscovery();
+        if(bluetoothAdapter.isDiscovering()) {
+            bluetoothAdapter.cancelDiscovery();
+        }
         // Try connecting till the connection is setup
         while (!threadInterrupted) {
             if (!connectedToServer) {
@@ -65,8 +67,10 @@ class BluetoothClientConnectThread extends Thread {
                     }
                     // This is a blocking call and will only return on a
                     // successful connection or an exception
-                    bluetoothSocket.connect();
-                    Log.i(TAG, "connected ");
+                    if(bluetoothSocket != null) {
+                        bluetoothSocket.connect();
+                        Log.i(TAG, "connected ");
+                    }
 
                     connectedToServer = true;
                     // Start the connected thread
