@@ -158,7 +158,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 addSocketReadWriterObject((BluetoothSocketReadWriter) obj);
 
                 onConnectorConnected = true;
-                receiver.onConnectorConnected();
+                // A client device has been connected
+                receiver.onDeviceConnected(msg.arg1);
                 break;
 
             case Settings.SOCKET_CLIENT:
@@ -168,7 +169,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 addSocketReadWriterObject((BluetoothSocketReadWriter) object);
 
                 onConnectorConnected = true;
-                receiver.onConnectorConnected();
+                // A server device has been connected
+                receiver.onDeviceConnected(0);
                 break;
 
             case Settings.SOCKET_CLOSE:
@@ -178,14 +180,16 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 Object disconnectedObj = msg.obj;
                 removeSocketReadWriterObject((BluetoothSocketReadWriter) disconnectedObj);
 
-                receiver.onConnectorDisconnected();
-
                 if (isServer) {
+                    // A client device has been disconnected
+                    receiver.onDeviceDisconnected(msg.arg1);
                     updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
                     if (clientDisconnectionListener != null) {
                         clientDisconnectionListener.handleClientDisconnection(msg.arg1);
                     }
                 } else {
+                    // A server device has been disconnected
+                    receiver.onDeviceDisconnected(0);
                     if (serverDisconnectionListener != null) {
                         serverDisconnectionListener.handleServerDisconnection();
                     }
