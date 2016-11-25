@@ -63,16 +63,6 @@ public class Ecology {
             }
 
             @Override
-            public void onConnectorConnected() {
-                Ecology.this.onConnectorConnected();
-            }
-
-            @Override
-            public void onConnectorDisconnected() {
-                Ecology.this.onConnectorDisconnected();
-            }
-
-            @Override
             public void onDeviceConnected(Integer deviceId) {
                 Ecology.this.onDeviceConnected(deviceId);
             }
@@ -137,24 +127,6 @@ public class Ecology {
             room.onMessage(message.subList(0, message.size() - 1));
         }
 
-    }
-
-    /**
-     * Called when the ecology connector is connected.
-     */
-    private void onConnectorConnected() {
-        for (Room room : rooms.values()) {
-            room.onEcologyConnected();
-        }
-    }
-
-    /**
-     * Called when the ecology connector is disconnected.
-     */
-    private void onConnectorDisconnected() {
-        for (Room room : rooms.values()) {
-            room.onEcologyDisconnected();
-        }
     }
 
     /**
