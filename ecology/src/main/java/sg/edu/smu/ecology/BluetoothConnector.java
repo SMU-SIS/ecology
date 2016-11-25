@@ -29,6 +29,7 @@ import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 abstract class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
+
     private static final int REQUEST_ENABLE_BT = 1;
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
@@ -147,7 +148,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                     forwardMessage(data, msg.arg1);
                 }
 
-                receiver.onMessage(data);
+                if (eventTypeReceived != null) {
+                    passMessageToReceiver(eventTypeReceived, data);
+                }
                 break;
 
             case Settings.SOCKET_SERVER:
@@ -160,6 +163,11 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 onConnectorConnected = true;
                 // A client device has been connected
                 receiver.onDeviceConnected(msg.arg1);
+
+                // To notify other connected client devices in the ecology
+                forwardMessage(new ArrayList<Object>(Arrays.asList(msg.arg1, Settings.DEVICE_CONNECTED,
+                        "room")), msg.arg1);
+                passConnectedClientsIds(msg.arg1);
                 break;
 
             case Settings.SOCKET_CLIENT:
@@ -183,6 +191,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 if (isServer) {
                     // A client device has been disconnected
                     receiver.onDeviceDisconnected(msg.arg1);
+                    // To notify other connected client devices in the ecology
+                    forwardMessage(new ArrayList<Object>(Arrays.asList(msg.arg1,
+                            Settings.DEVICE_DISCONNECTED,"room")), msg.arg1);
                     updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
                     if (clientDisconnectionListener != null) {
                         clientDisconnectionListener.handleClientDisconnection(msg.arg1);
@@ -198,6 +209,41 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 break;
         }
         return true;
+    }
+
+    /**
+     * Pass the received message to receiver
+     * @param eventTypeReceived the event type received
+     * @param data the data received
+     */
+    private void passMessageToReceiver(String eventTypeReceived, List<Object> data) {
+        switch (eventTypeReceived) {
+            case Settings.DEVICE_CONNECTED:
+                receiver.onDeviceConnected((Integer) data.get(data.size() - 3));
+                break;
+            case Settings.DEVICE_DISCONNECTED:
+                receiver.onDeviceDisconnected((Integer) data.get(data.size() - 3));
+                break;
+            default:
+                receiver.onMessage(data);
+                break;
+        }
+    }
+
+    /**
+     * Pass the device Ids of already connected client devices to the newly connected client device
+     * @param clientId the client Id of the new client device
+     */
+    private void passConnectedClientsIds(int clientId){
+        for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
+            if (!(clientList.get(clientId).equals(bluetoothSocketReadWritersList.get(i)))) {
+                encodeMessage(new ArrayList<Object>(Arrays.asList(clientList.keyAt(
+                        clientList.indexOfValue(bluetoothSocketReadWritersList.get(i))),
+                        Settings.DEVICE_CONNECTED, "room")));
+                writeData(clientList.get(clientId));
+                Log.i(TAG, "passConnectedClientsIds");
+            }
+        }
     }
 
     protected BluetoothAdapter getBluetoothAdapter() {
