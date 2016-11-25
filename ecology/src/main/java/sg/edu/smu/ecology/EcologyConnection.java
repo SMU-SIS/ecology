@@ -144,62 +144,17 @@ public class EcologyConnection extends BaseConnector {
     }
 
     /**
-     * Called when a connector has been disconnected.
-     *
-     * @param connector
-     */
-    private void onConnectorConnected(Connector connector) {
-        for (Connector thisConnector : dependentConnectorList) {
-            if (!thisConnector.isConnected()) {
-                return;
-            }
-        }
-        for (Connector thisConnector : coreConnectorList) {
-            if (!thisConnector.isConnected()) {
-                return;
-            }
-        }
-        // If we reach this point, we know that all sub-connectors are now connected.
-        isConnected = true;
-        // Notify the receiver that the EcologyConnection is now connected.
-        getReceiver().onConnectorConnected();
-    }
-
-    /**
-     * Called when a connector is connected.
-     *
-     * @param connector
-     */
-    private void onConnectorDisconnected(Connector connector) {
-        // If we were previously connected, we notify the receiver of the disconnection.
-        if(isConnected) {
-            isConnected = false;
-            getReceiver().onConnectorDisconnected();
-        }
-    }
-
-    /**
      * Base class for the inner connector receivers.
      * <p>
-     * Forward {@link Connector.Receiver#onConnectorConnected()} and
-     * {@link Connector.Receiver#onConnectorDisconnected()} to
-     * {@link #onConnectorConnected(Connector)} and {@link #onConnectorDisconnected(Connector)}
+     * Forward {@link Connector.Receiver#onDeviceConnected(Integer deviceId)} and
+     * {@link Connector.Receiver#onDeviceDisconnected(Integer deviceId)} to
+     * {@link #onDeviceConnected(Integer)} )} and {@link #onDeviceDisconnected(Integer)}
      */
     private abstract class ConnectorReceiver implements Connector.Receiver {
         public final Connector connector;
 
         ConnectorReceiver(Connector connector) {
             this.connector = connector;
-        }
-
-        @Override
-        public void onConnectorConnected() {
-            EcologyConnection.this.onConnectorConnected(connector);
-        }
-
-        @Override
-        public void onConnectorDisconnected() {
-            EcologyConnection.this.onConnectorDisconnected(connector);
         }
 
         @Override
