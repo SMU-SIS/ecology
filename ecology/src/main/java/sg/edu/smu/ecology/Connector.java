@@ -56,16 +56,6 @@ public interface Connector {
         public void onMessage(List<Object> message);
 
         /**
-         * Receive the connection notifications.
-         */
-        public void onConnectorConnected();
-
-        /**
-         * Receive the disconnection notifications.
-         */
-        public void onConnectorDisconnected();
-
-        /**
          * Receive the device connection notifications
          * @param deviceId the id of the device that got connected
          */
