@@ -13,16 +13,6 @@ public class Room {
     private final static String TAG = Room.class.getSimpleName();
 
     /**
-     * Event automatically sent when the ecology is connected.
-     */
-    private final static String ECOLOGY_CONNECTED = "ecology:connected";
-
-    /**
-     * Event automatically sent when the ecology is disconnected.
-     */
-    private final static String ECOLOGY_DISCONNECTED = "ecology:disconnected";
-
-    /**
      * Event automatically sent when a device is connected.
      */
     private final static String DEVICE_CONNECTED = "device:connected";
@@ -98,16 +88,6 @@ public class Room {
      */
     void onEventBroadcasterMessage(List<Object> message) {
         ecology.onRoomMessage(name, message);
-    }
-
-    // Called when the ecology gets connected.
-    public void onEcologyConnected() {
-        getEventBroadcaster().publishLocalEvent(ECOLOGY_CONNECTED, new ArrayList<>());
-    }
-
-    // Called when the ecology gets disconnected.
-    public void onEcologyDisconnected() {
-        getEventBroadcaster().publishLocalEvent(ECOLOGY_DISCONNECTED, new ArrayList<>());
     }
 
     /**
