@@ -201,6 +201,33 @@ public class EcologyConnection extends BaseConnector {
         public void onConnectorDisconnected() {
             EcologyConnection.this.onConnectorDisconnected(connector);
         }
+
+        @Override
+        public void onDeviceConnected(Integer deviceId) {
+            EcologyConnection.this.onDeviceConnected(deviceId);
+
+        }
+
+        @Override
+        public void onDeviceDisconnected(Integer deviceId) {
+            EcologyConnection.this.onDeviceDisconnected(deviceId);
+        }
+    }
+
+    /**
+     * Called when a device is connected
+     * @param deviceId the id of the device that got connected
+     */
+    private void onDeviceConnected(Integer deviceId) {
+        getReceiver().onDeviceConnected(deviceId);
+    }
+
+    /**
+     * Called when a device gets disconnected
+     * @param deviceId the id of the device that got disconnected
+     */
+    private void onDeviceDisconnected(Integer deviceId) {
+        getReceiver().onDeviceDisconnected(deviceId);
     }
 
     /**
