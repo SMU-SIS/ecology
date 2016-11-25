@@ -71,7 +71,37 @@ public class Ecology {
             public void onConnectorDisconnected() {
                 Ecology.this.onConnectorDisconnected();
             }
+
+            @Override
+            public void onDeviceConnected(Integer deviceId) {
+                Ecology.this.onDeviceConnected(deviceId);
+            }
+
+            @Override
+            public void onDeviceDisconnected(Integer deviceId) {
+                Ecology.this.onDeviceDisconnected(deviceId);
+            }
         });
+    }
+
+    /**
+     * Called when a device is connected
+     * @param deviceId the id of the device that got connected
+     */
+    private void onDeviceConnected(Integer deviceId) {
+        for (Room room : rooms.values()) {
+            room.onDeviceConnected(deviceId);
+        }
+    }
+
+    /**
+     * Called when a device is disconnected.
+     * @param deviceId the id of the device that got disconnected
+     */
+    private void onDeviceDisconnected(Integer deviceId) {
+        for (Room room : rooms.values()) {
+            room.onDeviceDisconnected(deviceId);
+        }
     }
 
     /**
