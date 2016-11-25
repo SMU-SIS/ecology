@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,6 +21,16 @@ public class Room {
      * Event automatically sent when the ecology is disconnected.
      */
     private final static String ECOLOGY_DISCONNECTED = "ecology:disconnected";
+
+    /**
+     * Event automatically sent when a device is connected.
+     */
+    private final static String DEVICE_CONNECTED = "device:connected";
+
+    /**
+     * Event automatically sent when a device is disconnected.
+     */
+    private final static String DEVICE_DISCONNECTED = "device:disconnected";
 
     /**
      * The ecology of the room.
@@ -97,5 +108,23 @@ public class Room {
     // Called when the ecology gets disconnected.
     public void onEcologyDisconnected() {
         getEventBroadcaster().publishLocalEvent(ECOLOGY_DISCONNECTED, new ArrayList<>());
+    }
+
+    /**
+     * Called when a device is connected
+     * @param deviceId the id of the device that got connected
+     */
+    public void onDeviceConnected(Integer deviceId) {
+        getEventBroadcaster().publishLocalEvent(DEVICE_CONNECTED,
+                Collections.<Object>singletonList(deviceId));
+    }
+
+    /**
+     * Called when a device is disconnected
+     * @param deviceId the id of the device that got disconnected
+     */
+    public void onDeviceDisconnected(Integer deviceId) {
+        getEventBroadcaster().publishLocalEvent(DEVICE_DISCONNECTED,
+                Collections.<Object>singletonList(deviceId));
     }
 }
