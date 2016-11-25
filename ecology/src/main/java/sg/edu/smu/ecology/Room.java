@@ -13,16 +13,6 @@ public class Room {
     private final static String TAG = Room.class.getSimpleName();
 
     /**
-     * Event automatically sent when a device is connected.
-     */
-    private final static String DEVICE_CONNECTED = "device:connected";
-
-    /**
-     * Event automatically sent when a device is disconnected.
-     */
-    private final static String DEVICE_DISCONNECTED = "device:disconnected";
-
-    /**
      * The ecology of the room.
      */
     private final Ecology ecology;
@@ -95,7 +85,7 @@ public class Room {
      * @param deviceId the id of the device that got connected
      */
     public void onDeviceConnected(Integer deviceId) {
-        getEventBroadcaster().publishLocalEvent(DEVICE_CONNECTED,
+        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
     }
 
@@ -104,7 +94,7 @@ public class Room {
      * @param deviceId the id of the device that got disconnected
      */
     public void onDeviceDisconnected(Integer deviceId) {
-        getEventBroadcaster().publishLocalEvent(DEVICE_DISCONNECTED,
+        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
     }
 }
