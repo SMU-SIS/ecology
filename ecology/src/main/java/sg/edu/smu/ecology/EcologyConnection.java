@@ -1,7 +1,6 @@
 package sg.edu.smu.ecology;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -113,13 +112,13 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Connect to the ecology.
      */
-    public void connect(Context context) {
+    public void connect(Context context, String deviceId) {
         // Connect all connectors.
         for (Connector connector : dependentConnectorList) {
-            connector.connect(context);
+            connector.connect(context, deviceId);
         }
         for (Connector connector : coreConnectorList) {
-            connector.connect(context);
+            connector.connect(context, deviceId);
         }
     }
 
@@ -146,8 +145,8 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Base class for the inner connector receivers.
      * <p>
-     * Forward {@link Connector.Receiver#onDeviceConnected(Integer deviceId)} and
-     * {@link Connector.Receiver#onDeviceDisconnected(Integer deviceId)} to
+     * Forward {@link Connector.Receiver#onDeviceConnected(String deviceId)} and
+     * {@link Connector.Receiver#onDeviceDisconnected(String deviceId)} to
      * {@link #onDeviceConnected(Integer)} )} and {@link #onDeviceDisconnected(Integer)}
      */
     private abstract class ConnectorReceiver implements Connector.Receiver {
@@ -158,30 +157,32 @@ public class EcologyConnection extends BaseConnector {
         }
 
         @Override
-        public void onDeviceConnected(Integer deviceId) {
+        public void onDeviceConnected(String deviceId) {
             EcologyConnection.this.onDeviceConnected(deviceId);
 
         }
 
         @Override
-        public void onDeviceDisconnected(Integer deviceId) {
+        public void onDeviceDisconnected(String deviceId) {
             EcologyConnection.this.onDeviceDisconnected(deviceId);
         }
     }
 
     /**
      * Called when a device is connected
+     *
      * @param deviceId the id of the device that got connected
      */
-    private void onDeviceConnected(Integer deviceId) {
+    private void onDeviceConnected(String deviceId) {
         getReceiver().onDeviceConnected(deviceId);
     }
 
     /**
      * Called when a device gets disconnected
+     *
      * @param deviceId the id of the device that got disconnected
      */
-    private void onDeviceDisconnected(Integer deviceId) {
+    private void onDeviceDisconnected(String deviceId) {
         getReceiver().onDeviceDisconnected(deviceId);
     }
 
