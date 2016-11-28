@@ -13,4 +13,5 @@ class Settings {
     static int SERVER_PORT = 6868;
     static final String DEVICE_DISCONNECTED = "device:disconnected";
     static final String DEVICE_CONNECTED = "device:connected";
+    static final String DEVICE_ID_EXCHANGE = "deviceId";
 }
