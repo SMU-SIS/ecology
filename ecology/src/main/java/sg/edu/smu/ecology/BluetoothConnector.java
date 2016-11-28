@@ -149,16 +149,17 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 // If the device is a server, the received message will be forwarded to other
                 // connected clients
                 if (isServer) {
+                    if (eventTypeReceived != null && eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
+                        deviceIdList.put(msg.arg1, (String) data.get(data.size() - 3));
+                        Log.i(TAG, "deviceIdList " + deviceIdList.values());
+                        // Add the internal integer id so that it's referenced the same in all the
+                        // devices
+                        data.add(0, msg.arg1);
+                    }
                     forwardMessage(data, msg.arg1);
                 }
 
-                if (eventTypeReceived != null) {
-                    if (isServer && eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
-                        deviceIdList.put(msg.arg1, (String) data.get(data.size() - 3));
-                        Log.i(TAG, "deviceIdList " + deviceIdList.values());
-                    }
-                    passMessageToReceiver(eventTypeReceived, data);
-                }
+                passMessageToReceiver(eventTypeReceived, data);
                 break;
 
             case Settings.SOCKET_SERVER:
@@ -169,8 +170,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 addSocketReadWriterObject((BluetoothSocketReadWriter) obj);
 
                 onConnectorConnected = true;
-                // Pass the server device Id to the connected client device
-                sendMessageToClient(new ArrayList<Object>(Arrays.asList(deviceId,
+                // Pass the server device Id to the connected client device. Also add the internal
+                // integer id so that it's referenced the same in all the devices
+                sendMessageToClient(new ArrayList<Object>(Arrays.asList(0, deviceId,
                         Settings.DEVICE_ID_EXCHANGE, "room")), msg.arg1);
 
                 // To notify other connected client devices in the ecology about the new client
@@ -241,7 +243,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
             case Settings.DEVICE_ID_EXCHANGE:
                 if (!isServer) {
-                    deviceIdList.put(deviceIdList.size(), (String) data.get(data.size() - 3));
+                    deviceIdList.put((Integer) data.get(data.size() - 4), (String) data.get(data.size() - 3));
+                    Log.i(TAG, "deviceIdList " + deviceIdList);
                 }
                 receiver.onDeviceConnected((String) data.get(data.size() - 3));
 
@@ -376,7 +379,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * Send message to a particular client device
-     * @param message the message to be sent
+     *
+     * @param message  the message to be sent
      * @param clientId the client id of the destination device
      */
     private void sendMessageToClient(List<Object> message, int clientId) {
