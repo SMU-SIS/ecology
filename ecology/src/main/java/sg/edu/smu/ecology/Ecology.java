@@ -63,12 +63,12 @@ public class Ecology {
             }
 
             @Override
-            public void onDeviceConnected(Integer deviceId) {
+            public void onDeviceConnected(String deviceId) {
                 Ecology.this.onDeviceConnected(deviceId);
             }
 
             @Override
-            public void onDeviceDisconnected(Integer deviceId) {
+            public void onDeviceDisconnected(String deviceId) {
                 Ecology.this.onDeviceDisconnected(deviceId);
             }
         });
@@ -76,9 +76,10 @@ public class Ecology {
 
     /**
      * Called when a device is connected
+     *
      * @param deviceId the id of the device that got connected
      */
-    private void onDeviceConnected(Integer deviceId) {
+    private void onDeviceConnected(String deviceId) {
         for (Room room : rooms.values()) {
             room.onDeviceConnected(deviceId);
         }
@@ -86,9 +87,10 @@ public class Ecology {
 
     /**
      * Called when a device is disconnected.
+     *
      * @param deviceId the id of the device that got disconnected
      */
-    private void onDeviceDisconnected(Integer deviceId) {
+    private void onDeviceDisconnected(String deviceId) {
         for (Room room : rooms.values()) {
             room.onDeviceDisconnected(deviceId);
         }
@@ -97,8 +99,8 @@ public class Ecology {
     /**
      * Connect to the ecology.
      */
-    void connect(Context context) {
-        connector.connect(context);
+    void connect(Context context, String deviceId) {
+        connector.connect(context, deviceId);
     }
 
     /**
