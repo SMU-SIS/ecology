@@ -82,18 +82,20 @@ public class Room {
 
     /**
      * Called when a device is connected
+     *
      * @param deviceId the id of the device that got connected
      */
-    public void onDeviceConnected(Integer deviceId) {
+    public void onDeviceConnected(String deviceId) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
     }
 
     /**
      * Called when a device is disconnected
+     *
      * @param deviceId the id of the device that got disconnected
      */
-    public void onDeviceDisconnected(Integer deviceId) {
+    public void onDeviceDisconnected(String deviceId) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
     }
