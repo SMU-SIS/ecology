@@ -374,6 +374,11 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         ioBuffer.clear();
     }
 
+    /**
+     * Send message to a particular client device
+     * @param message the message to be sent
+     * @param clientId the client id of the destination device
+     */
     private void sendMessageToClient(List<Object> message, int clientId) {
         ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
