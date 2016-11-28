@@ -262,7 +262,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private void passConnectedClientsIds(int clientId) {
         for (Integer key : deviceIdList.keySet()) {
             if (!key.equals(clientId)) {
-                encodeMessage(new ArrayList<Object>(Arrays.asList(deviceIdList.get(key),
+                encodeMessage(new ArrayList<Object>(Arrays.asList(key, deviceIdList.get(key),
                         Settings.DEVICE_ID_EXCHANGE, "room")));
                 writeData(clientList.get(clientId));
             }
