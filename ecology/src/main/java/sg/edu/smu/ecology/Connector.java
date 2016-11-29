@@ -65,7 +65,7 @@ public interface Connector {
         public void onDeviceConnected(String deviceId);
 
         /**
-         * Receive the device disconnected notifications
+         * Receive the device disconnection notifications
          *
          * @param deviceId the id of the device that got disconnected
          */
