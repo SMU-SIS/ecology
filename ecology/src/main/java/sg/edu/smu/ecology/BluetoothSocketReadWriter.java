@@ -48,9 +48,9 @@ class BluetoothSocketReadWriter extends Thread {
             outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
             if (isServer) {
-                handler.obtainMessage(Settings.SOCKET_SERVER, clientId, 0, this).sendToTarget();
+                handler.obtainMessage(Settings.CLIENT_CONNECTED, clientId, 0, this).sendToTarget();
             } else {
-                handler.obtainMessage(Settings.SOCKET_CLIENT, this).sendToTarget();
+                handler.obtainMessage(Settings.CONNECTED_TO_A_SERVER, this).sendToTarget();
             }
             while (true) {
                 try {
@@ -75,10 +75,10 @@ class BluetoothSocketReadWriter extends Thread {
                     }
                     Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
                     if (isServer) {
-                        handler.obtainMessage(Settings.MESSAGE_READ, clientId, 0,
+                        handler.obtainMessage(Settings.MESSAGE_RECEIVED, clientId, 0,
                                 dataBuffer).sendToTarget();
                     } else {
-                        handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
+                        handler.obtainMessage(Settings.MESSAGE_RECEIVED, dataBuffer).sendToTarget();
                     }
                 } catch (IOException e) {
                     break;

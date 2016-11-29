@@ -197,8 +197,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
-            case Settings.MESSAGE_READ:
-                Log.d(TAG, " MESSAGE_READ");
+            case Settings.MESSAGE_RECEIVED:
+                Log.d(TAG, " MESSAGE RECEIVED");
                 byte[] readBuf = (byte[]) msg.obj;
 
                 DataDecoder dataDecoder = new DataDecoder();
@@ -221,8 +221,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 receiver.onMessage(data);
                 break;
 
-            case Settings.MY_HANDLE:
-                Log.d(TAG, " MY HANDLE");
+            case Settings.SOCKET_CONNECTED:
+                Log.d(TAG, "SOCKET_CONNECTED");
                 Object obj = msg.obj;
                 setSocketReadWriter((SocketReadWriter) obj);
 
