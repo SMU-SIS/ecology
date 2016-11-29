@@ -389,7 +389,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             if ((clientList.get(clientId).equals(bluetoothSocketReadWritersList.get(i)))) {
                 encodeMessage(message);
                 writeData(bluetoothSocketReadWritersList.get(i));
-                Log.i(TAG, "Message forwarding...");
             }
         }
     }
