@@ -28,6 +28,9 @@ public class Room {
      */
     private EventBroadcaster eventBroadcaster;
 
+    /**
+     * To store the sync data
+     */
     private SyncData syncData = new SyncData();
 
     /**
@@ -71,7 +74,7 @@ public class Room {
      */
     void onMessage(List<Object> message) {
         // Currently, only event broadcaster messages are supported.
-        if(message.get(message.size() - 1).equals("syncData")){
+        if (message.get(message.size() - 1).equals("syncData")) {
             handleReceivedSyncData(message);
         }
         getEventBroadcaster().onRoomMessage(message);
@@ -107,16 +110,32 @@ public class Room {
                 Collections.<Object>singletonList(deviceId));
     }
 
-    public void setInteger(Object key, Integer data){
+    /**
+     * To set any integer value that needs to be synced across the devices in the ecology
+     *
+     * @param key  the key linking to the data
+     * @param data the data to be synced
+     */
+    public void setInteger(Object key, Integer data) {
         syncData.setDataSyncValue(key, data);
         getEventBroadcaster().publish("syncData", new ArrayList<Object>(Arrays.asList(key, data)));
     }
 
-    public Integer getInteger(Object key){
+    /**
+     * To get the sync data
+     *
+     * @param key the key paired to the sync data
+     * @return the sync data
+     */
+    public Integer getInteger(Object key) {
         return (Integer) syncData.getDataSyncValue(key);
     }
 
-
+    /**
+     * Handle the received sync data from any device in the ecology
+     *
+     * @param message the message received
+     */
     private void handleReceivedSyncData(List<Object> message) {
         syncData.setDataSyncValue(message.get(0), message.get(1));
     }
