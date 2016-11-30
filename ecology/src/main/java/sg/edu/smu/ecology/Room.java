@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,6 +27,8 @@ public class Room {
      * The event broadcaster associated with the room.
      */
     private EventBroadcaster eventBroadcaster;
+
+    private SyncData syncData = new SyncData();
 
     /**
      * @param name    the name of the room
@@ -68,7 +71,11 @@ public class Room {
      */
     void onMessage(List<Object> message) {
         // Currently, only event broadcaster messages are supported.
-        eventBroadcaster.onRoomMessage(message);
+        if(message.get(message.size() - 1).equals("syncData")){
+            handleReceivedSyncData(message);
+        }
+        getEventBroadcaster().onRoomMessage(message);
+
     }
 
     /**
@@ -98,5 +105,19 @@ public class Room {
     public void onDeviceDisconnected(String deviceId) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
+    }
+
+    public void setInteger(Object key, Integer data){
+        syncData.setDataSyncValue(key, data);
+        getEventBroadcaster().publish("syncData", new ArrayList<Object>(Arrays.asList(key, data)));
+    }
+
+    public Integer getInteger(Object key){
+        return (Integer) syncData.getDataSyncValue(key);
+    }
+
+
+    private void handleReceivedSyncData(List<Object> message) {
+        syncData.setDataSyncValue(message.get(0), message.get(1));
     }
 }
