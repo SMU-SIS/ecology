@@ -13,6 +13,8 @@ import java.util.List;
 public class Room {
     private final static String TAG = Room.class.getSimpleName();
 
+    private final static String SYNC_DATA_EVENT = "syncData";
+
     /**
      * The ecology of the room.
      */
@@ -74,11 +76,13 @@ public class Room {
      */
     void onMessage(List<Object> message) {
         // Currently, only event broadcaster messages are supported.
-        if (message.get(message.size() - 1).equals("syncData")) {
+        if (message.get(message.size() - 1).equals(SYNC_DATA_EVENT)) {
             handleReceivedSyncData(message);
+            getEventBroadcaster().publishLocalEvent(SYNC_DATA_EVENT,
+                    Collections.singletonList(message.get(0)));
+        } else {
+            getEventBroadcaster().onRoomMessage(message);
         }
-        getEventBroadcaster().onRoomMessage(message);
-
     }
 
     /**
@@ -118,7 +122,8 @@ public class Room {
      */
     public void setInteger(Object key, Integer data) {
         syncData.setDataSyncValue(key, data);
-        getEventBroadcaster().publish("syncData", new ArrayList<Object>(Arrays.asList(key, data)));
+        getEventBroadcaster().publish(SYNC_DATA_EVENT, new ArrayList<Object>(Arrays.asList
+                (key, data)));
     }
 
     /**
