@@ -42,8 +42,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"),
             java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"),
             java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0")));
-    // The room used for sending device id exchange and device id disconnection events.
-    private static final String DEFAULT_ROOM = "room";
+    // An Id used to route connector messages from events
+    private static final int CONNECTOR_MESSAGE_ID = 0;
     // To listen to certain events of bluetooth
     private final IntentFilter intentFilter = new IntentFilter();
     private BluetoothAdapter bluetoothAdapter;
@@ -163,20 +163,12 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         List<Object> data;
         data = messageData.getArguments();
         Log.i(TAG, "data " + data);
-        String eventTypeReceived = null;
-
-        try {
-            eventTypeReceived = (String) data.get(data.size() - 2);
-        } catch (ArrayIndexOutOfBoundsException e) {
-            e.printStackTrace();
-        }
-
-        Log.i(TAG, " eventType " + eventTypeReceived);
 
         // If the device is a server, the received message will be forwarded to other
         // connected clients
         if (isServer) {
-            if (eventTypeReceived != null && eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
+            if (data.get(data.size() - 1).getClass().equals(Integer.class) &&
+                    data.get(data.size() - 1).equals(CONNECTOR_MESSAGE_ID)) {
                 deviceIdsList.put(msg.arg1, (String) data.get(data.size() - 3));
                 Log.i(TAG, "deviceIdList " + deviceIdsList.clone());
                 // Add the internal integer id so that it's referenced the same in all the
@@ -186,7 +178,13 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             forwardMessage(data, msg.arg1);
         }
 
-        passMessageToReceiver(eventTypeReceived, data);
+        // Check if the received data is a connector message or an event
+        if (data.get(data.size() - 1).getClass().equals(Integer.class) &&
+                data.get(data.size() - 1).equals(CONNECTOR_MESSAGE_ID)){
+            handleDeviceConnectionUpdate(data);
+        } else {
+            receiver.onMessage(data);
+        }
     }
 
     /**
@@ -204,7 +202,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         // Pass the server device Id to the connected client device. Also add the internal
         // integer id so that it's referenced the same in all the devices
         sendMessageToClient(new ArrayList<Object>(Arrays.asList(0, deviceId,
-                Settings.DEVICE_ID_EXCHANGE, DEFAULT_ROOM)), msg.arg1);
+                Settings.DEVICE_ID_EXCHANGE, CONNECTOR_MESSAGE_ID)), msg.arg1);
 
         // To notify the new client about the already connected client devices in the ecology
         sendConnectedClientsIds(msg.arg1);
@@ -223,7 +221,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         onConnectorConnected = true;
         // Send the client device Id to the server device
         sendMessage(new ArrayList<Object>(Arrays.asList(deviceId, Settings.DEVICE_ID_EXCHANGE,
-                DEFAULT_ROOM)));
+                CONNECTOR_MESSAGE_ID)));
     }
 
     /**
@@ -242,7 +240,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             receiver.onDeviceDisconnected(deviceIdsList.get(msg.arg1));
             // To notify other connected client devices in the ecology
             forwardMessage(new ArrayList<Object>(Arrays.asList(deviceIdsList.get(msg.arg1),
-                    Settings.DEVICE_DISCONNECTED, DEFAULT_ROOM)), msg.arg1);
+                    Settings.DEVICE_DISCONNECTED, CONNECTOR_MESSAGE_ID)), msg.arg1);
             // Update the connected devices list
             deviceIdsList.remove(msg.arg1);
             updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
@@ -261,12 +259,12 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     /**
-     * Pass the received message to receiver
+     * Handle device connection or disconnection
      *
-     * @param eventTypeReceived the event type received
      * @param data              the data received
      */
-    private void passMessageToReceiver(String eventTypeReceived, List<Object> data) {
+    private void handleDeviceConnectionUpdate(List<Object> data) {
+        String eventTypeReceived = (String) data.get(data.size() - 2);
         switch (eventTypeReceived) {
             case Settings.DEVICE_DISCONNECTED:
                 String receivedDeviceId = (String) data.get(data.size() - 3);
@@ -286,9 +284,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                     Log.i(TAG, "deviceIdList " + deviceIdsList);
                 }
                 receiver.onDeviceConnected((String) data.get(data.size() - 3));
-
-            default:
-                receiver.onMessage(data);
                 break;
         }
     }
@@ -303,7 +298,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             if (deviceIdsList.keyAt(i) != clientId) {
                 encodeMessage(new ArrayList<Object>(Arrays.asList(deviceIdsList.keyAt(i),
                         deviceIdsList.get(deviceIdsList.keyAt(i)), Settings.DEVICE_ID_EXCHANGE,
-                        DEFAULT_ROOM)));
+                        CONNECTOR_MESSAGE_ID)));
                 writeData(clientList.get(clientId));
             }
         }
