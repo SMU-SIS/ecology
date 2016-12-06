@@ -14,18 +14,22 @@ import java.util.Map;
  */
 public class EventBroadcaster {
 
+    interface Connector {
+        void onEventBroadcasterMessage(List<Object> message);
+    }
+
     private final static String TAG = EventBroadcaster.class.getSimpleName();
     /**
      * The room the event broadcaster is part of.
      */
-    private final Room room;
+    private final Connector connector;
     private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
 
     /**
-     * @param room the room the event broadcaster is part of.
+     * @param connector the recipient for event broadcaster messages.
      */
-    public EventBroadcaster(Room room) {
-        this.room = room;
+    public EventBroadcaster(Connector connector) {
+        this.connector = connector;
     }
 
     /**
@@ -113,7 +117,7 @@ public class EventBroadcaster {
         // Create the message to be sent to the other devices of the ecology.
         List<Object> msg = new ArrayList<>(data);
         msg.add(eventType);
-        room.onEventBroadcasterMessage(msg);
+        connector.onEventBroadcasterMessage(msg);
         // Pass the event to the local receivers.
         publishLocalEvent(eventType, data);
     }

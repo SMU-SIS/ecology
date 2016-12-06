@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -12,6 +13,16 @@ import java.util.Map;
  */
 class SyncData {
     private static final String TAG = SyncData.class.getSimpleName();
+
+    interface Connector {
+        void onMessage(List<Object> message);
+    }
+
+
+    interface Listener {
+        void onDataUpdate(/*  */);
+    }
+
     /**
      * To store the sync data as a key value pair
      */

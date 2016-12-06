@@ -13,7 +13,8 @@ import java.util.List;
 public class Room {
     private final static String TAG = Room.class.getSimpleName();
 
-    private final static String SYNC_DATA_EVENT = "syncData";
+    private final static int SYNC_DATA_MESSAGE_ID = 0;
+    private final static int EVENT_MESSAGE_ID = 1;
 
     /**
      * The ecology of the room.
@@ -46,7 +47,12 @@ public class Room {
 
         this.name = name;
         this.ecology = ecology;
-        this.eventBroadcaster = new EventBroadcaster(this);
+        this.eventBroadcaster = new EventBroadcaster(new EventBroadcaster.Connector() {
+            @Override
+            public void onEventBroadcasterMessage(List<Object> message) {
+                Room.this.onEventBroadcasterMessage(message);
+            }
+        });
     }
 
     /**
@@ -76,10 +82,10 @@ public class Room {
      */
     void onMessage(List<Object> message) {
         // Currently, only event broadcaster messages are supported.
-        if (message.get(message.size() - 1).equals(SYNC_DATA_EVENT)) {
+        if (message.get(message.size() - 1).equals(SYNC_DATA_MESSAGE_ID)) {
             handleReceivedSyncData(message);
-            getEventBroadcaster().publishLocalEvent(SYNC_DATA_EVENT,
-                    Collections.singletonList(message.get(0)));
+            /*getEventBroadcaster().publishLocalEvent(SYNC_DATA_MESSAGE_ID,
+                    Collections.singletonList(message.get(0)));*/
         } else {
             getEventBroadcaster().onRoomMessage(message);
         }
@@ -90,7 +96,7 @@ public class Room {
      *
      * @param message the message
      */
-    void onEventBroadcasterMessage(List<Object> message) {
+    private void onEventBroadcasterMessage(List<Object> message) {
         ecology.onRoomMessage(name, message);
     }
 
@@ -122,8 +128,8 @@ public class Room {
      */
     public void setInteger(Object key, Integer data) {
         syncData.setDataSyncValue(key, data);
-        getEventBroadcaster().publish(SYNC_DATA_EVENT, new ArrayList<Object>(Arrays.asList
-                (key, data)));
+        /*getEventBroadcaster().publish(SYNC_DATA_MESSAGE_ID, new ArrayList<Object>(Arrays.asList
+                (key, data)));*/
     }
 
     /**
