@@ -1,7 +1,6 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,7 +33,7 @@ public class Room {
     /**
      * To store the sync data
      */
-    private SyncData syncData = new SyncData();
+    private DataSync dataSync;
 
     /**
      * @param name    the name of the room
@@ -51,6 +50,13 @@ public class Room {
             @Override
             public void onEventBroadcasterMessage(List<Object> message) {
                 Room.this.onEventBroadcasterMessage(message);
+            }
+        });
+
+        this.dataSync = new DataSync(new DataSync.Connector() {
+            @Override
+            public void onMessage(List<Object> message) {
+                Room.this.onDataSyncMessage(message);
             }
         });
     }
@@ -76,28 +82,49 @@ public class Room {
     }
 
     /**
+     * @return the data sync object associated with the room.
+     */
+    public DataSync getDataSyncObject() {
+        return dataSync;
+    }
+
+    /**
      * Handle message from the room.
      *
      * @param message the content of the message
      */
     void onMessage(List<Object> message) {
-        // Currently, only event broadcaster messages are supported.
+        // Check if the received message is a sync data message or an event broadcaster event and
+        // route them accordingly.
         if (message.get(message.size() - 1).equals(SYNC_DATA_MESSAGE_ID)) {
             handleReceivedSyncData(message);
-            /*getEventBroadcaster().publishLocalEvent(SYNC_DATA_MESSAGE_ID,
-                    Collections.singletonList(message.get(0)));*/
-        } else {
-            getEventBroadcaster().onRoomMessage(message);
+        } else if (message.get(message.size() - 1).equals(EVENT_MESSAGE_ID)) {
+            getEventBroadcaster().onRoomMessage(message.subList(0, message.size() - 1));
         }
     }
 
     /**
-     * Forward the message coming from the event broadcaster to the ecology.
+     * Forward the message coming from the event broadcaster to the ecology by adding the event
+     * message id.
      *
      * @param message the message
      */
     private void onEventBroadcasterMessage(List<Object> message) {
-        ecology.onRoomMessage(name, message);
+        List<Object> msg = new ArrayList<>(message);
+        msg.add(EVENT_MESSAGE_ID);
+        ecology.onRoomMessage(name, msg);
+    }
+
+    /**
+     * Forward the message coming from the Data Sync to the ecology by adding the data sync
+     * message id.
+     *
+     * @param message the message
+     */
+    private void onDataSyncMessage(List<Object> message) {
+        List<Object> msg = new ArrayList<>(message);
+        msg.add(SYNC_DATA_MESSAGE_ID);
+        ecology.onRoomMessage(name, msg);
     }
 
     /**
@@ -121,33 +148,13 @@ public class Room {
     }
 
     /**
-     * To set any integer value that needs to be synced across the devices in the ecology
-     *
-     * @param key  the key linking to the data
-     * @param data the data to be synced
-     */
-    public void setInteger(Object key, Integer data) {
-        syncData.setDataSyncValue(key, data);
-        /*getEventBroadcaster().publish(SYNC_DATA_MESSAGE_ID, new ArrayList<Object>(Arrays.asList
-                (key, data)));*/
-    }
-
-    /**
-     * To get the sync data
-     *
-     * @param key the key paired to the sync data
-     * @return the sync data
-     */
-    public Integer getInteger(Object key) {
-        return (Integer) syncData.getDataSyncValue(key);
-    }
-
-    /**
      * Handle the received sync data from any device in the ecology
      *
      * @param message the message received
      */
     private void handleReceivedSyncData(List<Object> message) {
-        syncData.setDataSyncValue(message.get(0), message.get(1));
+        dataSync.getSyncDataChangeListener().onDataUpdate(message.subList(0, message.size() - 1));
+        getEventBroadcaster().publishLocalEvent("syncData",
+                message.subList(0, message.size() - 1));
     }
 }
