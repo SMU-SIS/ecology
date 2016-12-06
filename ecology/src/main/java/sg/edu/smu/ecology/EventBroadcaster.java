@@ -14,13 +14,14 @@ import java.util.Map;
  */
 public class EventBroadcaster {
 
+    private final static String TAG = EventBroadcaster.class.getSimpleName();
+
     interface Connector {
         void onEventBroadcasterMessage(List<Object> message);
     }
 
-    private final static String TAG = EventBroadcaster.class.getSimpleName();
     /**
-     * The room the event broadcaster is part of.
+     * The recipient for event broadcaster messages.
      */
     private final Connector connector;
     private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
@@ -128,7 +129,7 @@ public class EventBroadcaster {
      *
      * @param eventType the event type
      */
-    public void publish(String eventType){
+    public void publish(String eventType) {
         publish(eventType, Collections.emptyList());
     }
 
