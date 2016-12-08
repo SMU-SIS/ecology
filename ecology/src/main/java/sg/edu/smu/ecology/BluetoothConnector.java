@@ -42,8 +42,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"),
             java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"),
             java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0")));
-    // An Id used to route connector messages from events
+    // An Id used to route connector messages
     private static final int CONNECTOR_MESSAGE_ID = 0;
+    // An Id used to route receiver messages
+    private static final int RECEIVER_MESSAGE_ID = 1;
     // To listen to certain events of bluetooth
     private final IntentFilter intentFilter = new IntentFilter();
     private BluetoothAdapter bluetoothAdapter;
@@ -67,11 +69,29 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     @Override
     public void sendMessage(List<Object> message) {
-        ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
+        List<Object> msg = new ArrayList<>(message);
+        msg.add(RECEIVER_MESSAGE_ID);
+        doSendMessage(msg);
+    }
+
+    /**
+     * Send a connector message
+     *
+     * @param message the message to be sent
+     */
+    private void sendConnectorMessage(List<Object> message) {
+        List<Object> msg = new ArrayList<>(message);
+        msg.add(CONNECTOR_MESSAGE_ID);
+        doSendMessage(msg);
+    }
+
+    private void doSendMessage(List<Object> message) {
+        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
-            encodeMessage(message);
-            writeData(bluetoothSocketReadWritersList.get(i));
+            encodeMessage(message, ioBuffer);
+            writeData(bluetoothSocketReadWritersList.get(i), ioBuffer);
         }
+        ioBuffer.clear();
     }
 
     @Override
