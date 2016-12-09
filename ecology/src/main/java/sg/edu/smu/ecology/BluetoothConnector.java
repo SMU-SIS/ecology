@@ -12,6 +12,7 @@ import android.util.Log;
 import android.util.SparseArray;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.buffer.SimpleBufferAllocator;
 
 import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
@@ -85,12 +86,14 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     private void doSendMessage(List<Object> message) {
-        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
+        SimpleBufferAllocator simpleBufferAllocator = new SimpleBufferAllocator();
+        IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
             encodeMessage(message, ioBuffer);
             writeData(bluetoothSocketReadWritersList.get(i), ioBuffer);
         }
-        ioBuffer.clear();
+        simpleBufferAllocator.dispose();
+        ioBuffer.free();
     }
 
     @Override
@@ -307,7 +310,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param clientId the client Id of the new client device
      */
     private void sendConnectedClientsIds(int clientId) {
-        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
+        SimpleBufferAllocator simpleBufferAllocator = new SimpleBufferAllocator();
+        IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < deviceIdsList.size(); i++) {
             if (deviceIdsList.keyAt(i) != clientId) {
                 encodeMessage(new ArrayList<Object>(Arrays.asList(
@@ -316,7 +320,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 writeData(clientList.get(clientId), ioBuffer);
             }
         }
-        ioBuffer.clear();
+        simpleBufferAllocator.dispose();
+        ioBuffer.free();
     }
 
     protected BluetoothAdapter getBluetoothAdapter() {
@@ -435,14 +440,16 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private void sendMessageToClient(List<Object> message, int clientId) {
         List<Object> msg = new ArrayList<>(message);
         msg.add(CONNECTOR_MESSAGE_ID);
-        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
+        SimpleBufferAllocator simpleBufferAllocator = new SimpleBufferAllocator();
+        IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
             if ((clientList.get(clientId).equals(bluetoothSocketReadWritersList.get(i)))) {
                 encodeMessage(msg, ioBuffer);
                 writeData(bluetoothSocketReadWritersList.get(i), ioBuffer);
             }
         }
-        ioBuffer.clear();
+        simpleBufferAllocator.dispose();
+        ioBuffer.free();
     }
 
     /**
