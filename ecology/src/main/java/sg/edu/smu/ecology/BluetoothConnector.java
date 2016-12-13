@@ -66,6 +66,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private String deviceId;
     // To store the device ids of connected devices.
     private SparseArray<String> deviceIdsList = new SparseArray<>();
+    // A buffer allocator to minimise memory allocation requests by allocating a new buffer every
+    // time
+    private SimpleBufferAllocator simpleBufferAllocator;
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -86,13 +89,11 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     private void doSendMessage(List<Object> message) {
-        SimpleBufferAllocator simpleBufferAllocator = new SimpleBufferAllocator();
         IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
             encodeMessage(message, ioBuffer);
             writeData(bluetoothSocketReadWritersList.get(i), ioBuffer);
         }
-        simpleBufferAllocator.dispose();
         ioBuffer.free();
     }
 
@@ -130,6 +131,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             addPairedDevices();
             setupBluetoothConnection();
         }
+        // Create a buffer allocator
+        simpleBufferAllocator = new SimpleBufferAllocator();
     }
 
     @Override
@@ -137,6 +140,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         onConnectorConnected = false;
         Log.i(TAG, "disconnected ");
         context.unregisterReceiver(bluetoothBroadcastManager);
+        // Dispose the allocator
+        simpleBufferAllocator.dispose();
     }
 
     @Override
@@ -310,7 +315,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param clientId the client Id of the new client device
      */
     private void sendConnectedClientsIds(int clientId) {
-        SimpleBufferAllocator simpleBufferAllocator = new SimpleBufferAllocator();
         IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < deviceIdsList.size(); i++) {
             if (deviceIdsList.keyAt(i) != clientId) {
@@ -320,7 +324,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 writeData(clientList.get(clientId), ioBuffer);
             }
         }
-        simpleBufferAllocator.dispose();
         ioBuffer.free();
     }
 
@@ -440,7 +443,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private void sendMessageToClient(List<Object> message, int clientId) {
         List<Object> msg = new ArrayList<>(message);
         msg.add(CONNECTOR_MESSAGE_ID);
-        SimpleBufferAllocator simpleBufferAllocator = new SimpleBufferAllocator();
         IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
             if ((clientList.get(clientId).equals(bluetoothSocketReadWritersList.get(i)))) {
@@ -448,7 +450,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 writeData(bluetoothSocketReadWritersList.get(i), ioBuffer);
             }
         }
-        simpleBufferAllocator.dispose();
         ioBuffer.free();
     }
 
