@@ -222,8 +222,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
         onConnectorConnected = true;
         // Pass the server device Id to the connected client device.
-        sendMessageToClient(new ArrayList<Object>(Arrays.asList(deviceId,
-                Settings.DEVICE_ID_EXCHANGE)), msg.arg1);
+        sendMessageToClient(Arrays.<Object>asList(deviceId, Settings.DEVICE_ID_EXCHANGE), msg.arg1);
 
         // To notify the new client about the already connected client devices in the ecology
         sendConnectedClientsIds(msg.arg1);
@@ -241,8 +240,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
         onConnectorConnected = true;
         // Send the client device Id to the server device
-        sendConnectorMessage(new ArrayList<Object>(Arrays.asList(deviceId,
-                Settings.DEVICE_ID_EXCHANGE)));
+        sendConnectorMessage(Arrays.<Object>asList(deviceId, Settings.DEVICE_ID_EXCHANGE));
     }
 
     /**
@@ -261,8 +259,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             receiver.onDeviceDisconnected(deviceIdsList.get(msg.arg1));
             updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
             // To notify other connected client devices in the ecology
-            sendConnectorMessage(new ArrayList<Object>(Arrays.asList(deviceIdsList.get(msg.arg1),
-                    Settings.DEVICE_DISCONNECTED)));
+            sendConnectorMessage(Arrays.<Object>asList(deviceIdsList.get(msg.arg1),
+                    Settings.DEVICE_DISCONNECTED));
             // Update the connected devices list
             deviceIdsList.remove(msg.arg1);
             if (clientDisconnectionListener != null) {
@@ -318,9 +316,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
         for (int i = 0; i < deviceIdsList.size(); i++) {
             if (deviceIdsList.keyAt(i) != clientId) {
-                encodeMessage(new ArrayList<Object>(Arrays.asList(
-                        deviceIdsList.get(deviceIdsList.keyAt(i)), Settings.DEVICE_ID_EXCHANGE,
-                        CONNECTOR_MESSAGE_ID)), ioBuffer);
+                encodeMessage(Arrays.<Object>asList(deviceIdsList.get(deviceIdsList.keyAt(i)),
+                        Settings.DEVICE_ID_EXCHANGE, CONNECTOR_MESSAGE_ID), ioBuffer);
                 writeData(clientList.get(clientId), ioBuffer);
             }
         }
