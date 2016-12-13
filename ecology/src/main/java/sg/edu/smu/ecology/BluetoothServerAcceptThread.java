@@ -14,6 +14,7 @@ import android.util.SparseArray;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -25,7 +26,7 @@ class BluetoothServerAcceptThread extends Thread {
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
     private BluetoothServerSocket serverSocket = null;
-    private ArrayList<UUID> uuidsList;
+    private List<UUID> uuidsList;
     private ArrayList<UUID> disconnectedUuidsList = new ArrayList<>();
     private BluetoothAdapter bluetoothAdapter;
     private ArrayList<String> devicesAddressesList = new ArrayList<String>();
@@ -36,7 +37,7 @@ class BluetoothServerAcceptThread extends Thread {
     private SparseArray<UUID> clientUuidList = new SparseArray<>();
     private boolean restartUuidsListening = false;
 
-    BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> uuidsList,
+    BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, List<UUID> uuidsList,
                                 Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         this.uuidsList = uuidsList;
@@ -53,7 +54,7 @@ class BluetoothServerAcceptThread extends Thread {
      * Listen for incoming connection requests and when one is accepted, provide a connected
      * BluetoothSocket
      */
-    private void listenForConnectionRequests(ArrayList<UUID> uuidsList) {
+    private void listenForConnectionRequests(List<UUID> uuidsList) {
         BluetoothSocket socket;
         try {
             // Listen for all the required number of UUIDs

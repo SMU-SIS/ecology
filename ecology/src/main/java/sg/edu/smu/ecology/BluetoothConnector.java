@@ -35,14 +35,14 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
     private static final int BUFFER_SIZE = 1024;
     // Seven randomly-generated UUIDs. These must match on both server and client.
-    private static final ArrayList<UUID> uuidsList = new ArrayList<>(Arrays.asList(
+    private static final List<UUID> uuidsList = Arrays.asList(
             java.util.UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"),
             java.util.UUID.fromString("2d64189d-5a2c-4511-a074-77f199fd0834"),
             java.util.UUID.fromString("e442e09a-51f3-4a7b-91cb-f638491d1412"),
             java.util.UUID.fromString("a81d6504-4536-49ee-a475-7d96d09439e4"),
             java.util.UUID.fromString("aa91eab1-d8ad-448e-abdb-95ebba4a9b55"),
             java.util.UUID.fromString("4d34da73-d0a4-4f40-ac38-917e0a9dee97"),
-            java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0")));
+            java.util.UUID.fromString("5e14d4df-9c8a-4db7-81e4-c937564c86e0"));
     // An Id used to route connector messages
     private static final int CONNECTOR_MESSAGE_ID = 0;
     // An Id used to route receiver messages
@@ -385,7 +385,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      *
      * @return the UUID list
      */
-    ArrayList<UUID> getUuidsList() {
+    List<UUID> getUuidsList() {
         return uuidsList;
     }
 

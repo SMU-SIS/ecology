@@ -12,6 +12,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -24,7 +25,7 @@ class BluetoothClientConnectThread extends Thread {
     private BluetoothSocket bluetoothSocket;
     private BluetoothAdapter bluetoothAdapter;
     private UUID uuidToTry;
-    private ArrayList<UUID> uuidsList;
+    private List<UUID> uuidsList;
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private Handler handler;
     private int numberOfAttempts = 0;
@@ -34,7 +35,7 @@ class BluetoothClientConnectThread extends Thread {
     private BluetoothClientConnector.ClientConnectionListener clientConnectionListener;
 
     BluetoothClientConnectThread(BluetoothAdapter bluetoothAdapter, BluetoothDevice device,
-                                 ArrayList<UUID> uuidsList, Handler handler,
+                                 List<UUID> uuidsList, Handler handler,
                                  BluetoothClientConnector.ClientConnectionListener
                                          clientConnectionListener) {
         this.bluetoothAdapter = bluetoothAdapter;
