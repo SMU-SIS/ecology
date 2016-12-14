@@ -3,6 +3,7 @@ package sg.edu.smu.ecology;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -17,7 +18,7 @@ public class BluetoothClientConnector extends BluetoothConnector implements
     private static final String TAG = BluetoothClientConnector.class.getSimpleName();
 
     private BluetoothClientConnectThread bluetoothClientConnectThread;
-    private ArrayList<BluetoothClientConnectThread> clientConnectThreadsList = new ArrayList<>();
+    private List<BluetoothClientConnectThread> clientConnectThreadsList = new ArrayList<>();
     private ClientConnectionListener clientConnectionListener = new ClientConnectionListener() {
         @Override
         public void clientConnectedToServer(BluetoothClientConnectThread

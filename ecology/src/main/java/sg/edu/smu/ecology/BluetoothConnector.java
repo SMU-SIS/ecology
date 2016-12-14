@@ -56,7 +56,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private BluetoothBroadcastManager bluetoothBroadcastManager;
-    private ArrayList<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new ArrayList<>();
+    private List<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new ArrayList<>();
     private SparseArray<BluetoothSocketReadWriter> clientList = new SparseArray<>();
     private boolean isServer = false;
     //Used to save the activity context

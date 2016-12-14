@@ -27,10 +27,10 @@ class BluetoothServerAcceptThread extends Thread {
     private static final String NAME = "EcologyBluetoothConnector";
     private BluetoothServerSocket serverSocket = null;
     private List<UUID> uuidsList;
-    private ArrayList<UUID> disconnectedUuidsList = new ArrayList<>();
+    private List<UUID> disconnectedUuidsList = new ArrayList<>();
     private BluetoothAdapter bluetoothAdapter;
-    private ArrayList<String> devicesAddressesList = new ArrayList<String>();
-    private ArrayList<BluetoothDevice> devicesList = new ArrayList<>();
+    private List<String> devicesAddressesList = new ArrayList<String>();
+    private List<BluetoothDevice> devicesList = new ArrayList<>();
     private SparseArray<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new SparseArray<>();
     private Handler handler;
     private int clientId = 0;
@@ -92,7 +92,7 @@ class BluetoothServerAcceptThread extends Thread {
         clientUuidList.put(clientId, uuid);
     }
 
-    public ArrayList<BluetoothDevice> getDevicesList() {
+    public List<BluetoothDevice> getDevicesList() {
         return devicesList;
     }
 
