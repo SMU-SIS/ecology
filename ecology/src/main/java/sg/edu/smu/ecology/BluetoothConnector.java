@@ -51,6 +51,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private static final int RECEIVER_MESSAGE_ID = 1;
     // To listen to certain events of bluetooth
     private final IntentFilter intentFilter = new IntentFilter();
+    // Represents the local device Bluetooth adapter.
     private BluetoothAdapter bluetoothAdapter;
     private Connector.Receiver receiver;
     // To store the list of paired bluetooth devices
@@ -61,13 +62,14 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private BluetoothBroadcastManager bluetoothBroadcastManager;
     // To store the server connection thread when the device is a client
     private BluetoothSocketReadWriter clientToServerSocketReadWriter;
-    // To save the list of client connection threads when the device is a server
+    // To store the list of client connection threads when the device is a server
     private Map<Integer, BluetoothSocketReadWriter> clientConnectionThreadsList = new HashMap<>();
     private boolean isServer = false;
     //Used to save the activity context
     private Context context;
     private ServerDisconnectionListener serverDisconnectionListener;
     private ClientDisconnectionListener clientDisconnectionListener;
+    // Device Id of this device
     private String deviceId;
     // To store the device ids(user generated) of all the connected devices.
     private Map<Integer, String> deviceIdsList = new HashMap<>();
@@ -154,7 +156,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         onConnectorConnected = false;
         Log.i(TAG, "disconnected ");
         context.unregisterReceiver(bluetoothBroadcastManager);
-        // Dispose the allocator
+        // Dispose the buffer allocator
         simpleBufferAllocator.dispose();
     }
 
@@ -302,6 +304,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 String receivedDeviceId = (String) data.get(data.size() - 3);
                 receiver.onDeviceDisconnected(receivedDeviceId);
 
+                // Remove the id of the disconnected device
                 Iterator<Integer> iterator = deviceIdsList.keySet().iterator();
                 while (iterator.hasNext()) {
                     Integer key = iterator.next();
@@ -481,7 +484,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         BluetoothSocketReadWriter sender = clientConnectionThreadsList.get(clientId);
 
         for (BluetoothSocketReadWriter client : clientConnectionThreadsList.values()) {
-            if (!client.equals(sender)) {
+            if (client != sender) {
                 client.writeInt(dataByteArray.length);
                 client.writeData(dataByteArray);
                 Log.i(TAG, "Message forwarding...");

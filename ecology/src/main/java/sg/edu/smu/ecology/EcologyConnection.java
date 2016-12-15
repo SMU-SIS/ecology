@@ -147,7 +147,7 @@ public class EcologyConnection extends BaseConnector {
      * <p>
      * Forward {@link Connector.Receiver#onDeviceConnected(String deviceId)} and
      * {@link Connector.Receiver#onDeviceDisconnected(String deviceId)} to
-     * {@link #onDeviceConnected(Integer)} )} and {@link #onDeviceDisconnected(Integer)}
+     * {@link #onDeviceConnected(String)} )} and {@link #onDeviceDisconnected(String)}
      */
     private abstract class ConnectorReceiver implements Connector.Receiver {
         public final Connector connector;

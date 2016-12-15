@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.util.Log;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,7 +48,7 @@ class BluetoothClientConnectThread extends Thread {
     @Override
     public void run() {
         // Always cancel discovery because it will slow down a connection
-        if(bluetoothAdapter.isDiscovering()) {
+        if (bluetoothAdapter.isDiscovering()) {
             bluetoothAdapter.cancelDiscovery();
         }
         // Try connecting till the connection is setup
@@ -68,7 +67,7 @@ class BluetoothClientConnectThread extends Thread {
                     }
                     // This is a blocking call and will only return on a
                     // successful connection or an exception
-                    if(bluetoothSocket != null) {
+                    if (bluetoothSocket != null) {
                         bluetoothSocket.connect();
                         Log.i(TAG, "connected ");
                     }
