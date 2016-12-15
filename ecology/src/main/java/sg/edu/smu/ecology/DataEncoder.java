@@ -45,6 +45,7 @@ public class DataEncoder {
 
         if (arg instanceof byte[]) {
             byte[] bytes = (byte[]) arg;
+            buffer.putInt(bytes.length);
             buffer.put(bytes);
             padBuffer(bytes.length, buffer);
             return;
