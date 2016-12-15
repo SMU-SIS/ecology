@@ -84,6 +84,18 @@ public class DataEncoder {
             buffer.putLong(((BigInteger) arg).longValue());
             return;
         }
+
+        if (arg instanceof Character) {
+            Character c = (Character) arg;
+            if(c < (char) 128){
+                // ASCII characters are encoded as an integer.
+                buffer.putInt(c);
+            } else {
+                // Unicode characters are encoded as a string.
+                write(c.toString(), buffer);
+            }
+            return;
+        }
     }
 
     /**

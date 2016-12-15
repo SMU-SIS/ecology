@@ -171,6 +171,8 @@ public class DataDecoder {
                 return readBlob(rawInput);
             case 'c' :
                 return readChar(rawInput);
+            case 'C' :
+                return readUnicodeChar(rawInput);
             case 'N' :
                 return null;
             case 'T' :
@@ -189,11 +191,19 @@ public class DataDecoder {
     }
 
     /**
+     * Reads a unicode char from the byte stream.
+     * @return a {@link Character}
+     */
+    private Character readUnicodeChar(final Input rawInput) {
+        return readString(rawInput).charAt(0);
+    }
+
+    /**
      * Reads a char from the byte stream.
      * @return a {@link Character}
      */
     private Character readChar(final Input rawInput) {
-        return (char) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()];
+        return (char) (int) readInteger(rawInput);
     }
 
     private BigInteger readBigInteger(final Input rawInput, final int numBytes) {
