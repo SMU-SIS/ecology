@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.junit.After;
@@ -10,6 +10,10 @@ import static org.junit.Assert.assertArrayEquals;
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
 import java.util.List;
+
+import sg.edu.smu.ecology.encoding.DataDecoder;
+import sg.edu.smu.ecology.encoding.DataEncoder;
+import sg.edu.smu.ecology.encoding.MessageData;
 
 
 /**

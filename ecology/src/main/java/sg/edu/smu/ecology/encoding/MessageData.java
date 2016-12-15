@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
