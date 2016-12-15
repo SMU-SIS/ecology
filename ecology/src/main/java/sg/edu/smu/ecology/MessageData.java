@@ -8,6 +8,12 @@ import java.util.ArrayList;
  */
 public class MessageData {
 
+    public static class UnsupportedDataTypeException extends RuntimeException {
+        public UnsupportedDataTypeException(String s) {
+            super(s);
+        }
+    };
+
     protected ArrayList<Object> arguments;
     protected String typeTags;
     private int datasize = 0;
@@ -38,6 +44,8 @@ public class MessageData {
             addArgument((Boolean) argument);
         } else if (argument instanceof Character) {
             addArgument((Character) argument);
+        } else {
+            throw new UnsupportedDataTypeException("Unsupported argument type: " + argument);
         }
     }
 
