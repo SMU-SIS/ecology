@@ -36,6 +36,8 @@ public class MessageData {
             addArgument((byte[]) argument);
         } else if (argument instanceof Boolean) {
             addArgument((Boolean) argument);
+        } else if (argument instanceof Character) {
+            addArgument((Character) argument);
         }
     }
 
@@ -80,7 +82,7 @@ public class MessageData {
         datasize += 8;
     }
 
-    public void addArgument(char c) {
+    public void addArgument(Character c) {
         typeTags += 'c';
         arguments.add(c);
         datasize += 4;
