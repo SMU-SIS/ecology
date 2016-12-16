@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -7,6 +7,12 @@ import java.util.ArrayList;
  * Created by anurooppv on 29/6/2016.
  */
 public class MessageData {
+
+    public static class UnsupportedDataTypeException extends RuntimeException {
+        public UnsupportedDataTypeException(String s) {
+            super(s);
+        }
+    };
 
     protected ArrayList<Object> arguments;
     protected String typeTags;
@@ -36,6 +42,10 @@ public class MessageData {
             addArgument((byte[]) argument);
         } else if (argument instanceof Boolean) {
             addArgument((Boolean) argument);
+        } else if (argument instanceof Character) {
+            addArgument((Character) argument);
+        } else {
+            throw new UnsupportedDataTypeException("Unsupported argument type: " + argument);
         }
     }
 
@@ -80,10 +90,18 @@ public class MessageData {
         datasize += 8;
     }
 
-    public void addArgument(char c) {
-        typeTags += 'c';
-        arguments.add(c);
-        datasize += 4;
+    public void addArgument(Character c) {
+        if(c < (char) 128){
+            // ASCII characters are encoded as an integer.
+            typeTags += 'c';
+            arguments.add(c);
+            datasize += 4;
+        } else {
+            // Unicode characters are encoded as a string.
+            typeTags += 'C';
+            arguments.add(c);
+            datasize += getStringSize(c.toString());
+        }
     }
 
     public void addArgument(Boolean b) {

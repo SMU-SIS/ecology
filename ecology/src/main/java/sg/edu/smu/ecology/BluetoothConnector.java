@@ -21,6 +21,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.encoding.DataDecoder;
+import sg.edu.smu.ecology.encoding.DataEncoder;
+import sg.edu.smu.ecology.encoding.MessageData;
+
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 /**

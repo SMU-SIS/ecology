@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
@@ -45,6 +45,7 @@ public class DataEncoder {
 
         if (arg instanceof byte[]) {
             byte[] bytes = (byte[]) arg;
+            buffer.putInt(bytes.length);
             buffer.put(bytes);
             padBuffer(bytes.length, buffer);
             return;
@@ -81,6 +82,18 @@ public class DataEncoder {
 
         if (arg instanceof BigInteger) {
             buffer.putLong(((BigInteger) arg).longValue());
+            return;
+        }
+
+        if (arg instanceof Character) {
+            Character c = (Character) arg;
+            if(c < (char) 128){
+                // ASCII characters are encoded as an integer.
+                buffer.putInt(c);
+            } else {
+                // Unicode characters are encoded as a string.
+                write(c.toString(), buffer);
+            }
             return;
         }
     }
