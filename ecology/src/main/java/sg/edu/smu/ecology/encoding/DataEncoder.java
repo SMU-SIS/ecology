@@ -39,10 +39,6 @@ public class DataEncoder {
      */
     private void write(Object arg, IoBuffer buffer)
             throws CharacterCodingException {
-        if (arg == null) {
-            return;
-        }
-
         if (arg instanceof byte[]) {
             byte[] bytes = (byte[]) arg;
             buffer.putInt(bytes.length);
