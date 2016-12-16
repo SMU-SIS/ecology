@@ -207,11 +207,11 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void manyThingsAtOnceEncoding() throws CharacterCodingException {
-        List<Object> message = Arrays.asList(
+        final List<Object> message = Arrays.asList(
                 8, "something",
                 Arrays.asList(4, 0.4, 'k'),
-                0, 4.6, 5, '0',
-                Arrays.asList(3, "stuff", Arrays.asList(2, 6.3, true), 2),
+                0, 4.6, 5, null, '0',
+                Arrays.asList(3, "stuff", null, Arrays.asList(2, 6.3, null, true), 2),
                 'c',
                 Arrays.asList(
                         new byte[]{0, -120, 123, 8, 4},
@@ -221,7 +221,7 @@ public class MessageEncoderDecoderTest {
                                 )
                         ), 2.5
                 ),
-                "îIø", 'z', 'å', '7'
+                "îIø", 'z', 'å', '7', null
         );
         // Encode the message.
         byte[] encodedMessage = encoder.encode(message);
@@ -232,9 +232,9 @@ public class MessageEncoderDecoderTest {
         // Check the nested list containing the byte array first. Arrays are an issue as
         // their memory addresses are compared instead of their contents when they are inside a list
         // which is subject of an isEqualTo assertion.
-        assertThat(decodedMessage.get(9)).isInstanceOf(List.class);
-        List decodedNestedList = (List) decodedMessage.get(9);
-        List messageNestedList = (List) message.get(9);
+        assertThat(decodedMessage.get(10)).isInstanceOf(List.class);
+        List decodedNestedList = (List) decodedMessage.get(10);
+        List messageNestedList = (List) message.get(10);
         assertThat(decodedNestedList).hasSize(messageNestedList.size());
         assertThat(decodedNestedList.get(0)).isInstanceOf(byte[].class);
         assertThat((byte[])decodedNestedList.get(0)).isEqualTo(messageNestedList.get(0));
@@ -244,7 +244,7 @@ public class MessageEncoderDecoderTest {
         for(int i=0;i<message.size();i++){
             // Do not use isEqualTo assertion on the list that contains the byte arrays as it would
             // fail.
-            if(i != 9) {
+            if(i != 10) {
                 assertThat(decodedMessage.get(i)).isEqualTo(message.get(i));
             }
         }
