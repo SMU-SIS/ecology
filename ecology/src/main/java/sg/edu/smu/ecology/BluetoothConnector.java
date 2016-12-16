@@ -10,9 +10,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.buffer.SimpleBufferAllocator;
-
 import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,9 +21,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
-import sg.edu.smu.ecology.encoding.DataDecoder;
-import sg.edu.smu.ecology.encoding.DataEncoder;
-import sg.edu.smu.ecology.encoding.MessageData;
+import sg.edu.smu.ecology.encoding.MessageDecoder;
+import sg.edu.smu.ecology.encoding.MessageEncoder;
 
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
@@ -38,8 +34,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
-    // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
-    private static final int BUFFER_SIZE = 1024;
     // Seven randomly-generated UUIDs. These must match on both server and client.
     private static final List<UUID> uuidsList = Arrays.asList(
             UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"),
@@ -70,9 +64,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private String deviceId;
     // To store the device ids(user generated) of all the connected devices.
     private Map<Integer, String> deviceIdsList = new HashMap<>();
-    // A buffer allocator to minimise memory allocation requests by allocating a new buffer every
-    // time
-    private SimpleBufferAllocator simpleBufferAllocator;
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -84,7 +75,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     /**
      * Send a connector message
      *
-     * @param message the message to be sent
+     * @param message                    the message to be sent
      * @param bluetoothSocketReadWriters thread list of destination devices
      */
     void sendConnectorMessage(List<Object> message,
@@ -94,16 +85,13 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         doSendMessage(msg, bluetoothSocketReadWriters);
     }
 
-    private void doSendMessage(List<Object> message,
-                               Collection<BluetoothSocketReadWriter> bluetoothSocketReadWriters) {
-        IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
-
-        encodeMessage(message, ioBuffer);
+    private void doSendMessage(List<Object> message, Collection<BluetoothSocketReadWriter>
+            bluetoothSocketReadWriters) {
+        byte[] encodedMessageData = encodeMessage(message);
 
         for (BluetoothSocketReadWriter bluetoothSocketReadWriter : bluetoothSocketReadWriters) {
-            writeData(bluetoothSocketReadWriter, ioBuffer);
+            writeData(bluetoothSocketReadWriter, encodedMessageData);
         }
-        ioBuffer.free();
     }
 
     @Override
@@ -135,8 +123,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             addPairedDevices();
             setupBluetoothConnection();
         }
-        // Create a buffer allocator
-        simpleBufferAllocator = new SimpleBufferAllocator();
     }
 
     @Override
@@ -144,8 +130,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         onConnectorConnected = false;
         Log.i(TAG, "disconnected ");
         context.unregisterReceiver(bluetoothBroadcastManager);
-        // Dispose the buffer allocator
-        simpleBufferAllocator.dispose();
     }
 
     @Override
@@ -196,12 +180,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private void onMessageReceived(Message msg) {
         byte[] readBuf = (byte[]) msg.obj;
 
-        DataDecoder dataDecoder = new DataDecoder();
-
-        MessageData messageData = dataDecoder.convertMessage(readBuf, readBuf.length);
+        MessageDecoder messageDecoder = new MessageDecoder();
 
         List<Object> data;
-        data = messageData.getArguments();
+        data = messageDecoder.decode(readBuf);
         Log.i(TAG, "data " + data);
 
         Integer receivedMessageId = (Integer) data.get(data.size() - 1);
@@ -216,7 +198,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     /**
      * When a receiver message is received
-     * @param msg the message received
+     *
+     * @param msg         the message received
      * @param messageData the decoded data
      */
     void onReceiverMessage(Message msg, List<Object> messageData) {
@@ -278,43 +261,36 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * Encode the message to be sent
      *
      * @param message the message to be encoded
+     * @return the encoded message
      */
-    private void encodeMessage(List<Object> message, IoBuffer ioBuffer) {
-        DataEncoder dataEncoder = new DataEncoder();
-        MessageData messageData = new MessageData();
+    private byte[] encodeMessage(List<Object> message) {
+        MessageEncoder messageEncoder = new MessageEncoder();
 
-        for (int i = 0; i < message.size(); i++) {
-            messageData.addArgument(message.get(i));
-        }
+        byte[] encodedMessage = new byte[0];
 
         try {
-            dataEncoder.encodeMessage(messageData, ioBuffer);
+            encodedMessage = messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
             e.printStackTrace();
         }
+
+        return encodedMessage;
     }
 
     /**
      * Write data to be published
      *
      * @param bluetoothSocketReadWriter thread responsible for data read and write
+     * @param encodedMessage            the encoded message ready to be sent
      */
-    private void writeData(BluetoothSocketReadWriter bluetoothSocketReadWriter, IoBuffer ioBuffer) {
-        // To store the length of the message
-        int length = ioBuffer.position();
-
-        // Contains the whole IoBuffer
-        byte[] eventData = ioBuffer.array();
-
-        // Actual message data is retrieved
-        byte[] eventDataToSend = Arrays.copyOfRange(eventData, 0, length);
-
+    private void writeData(BluetoothSocketReadWriter bluetoothSocketReadWriter,
+                           byte[] encodedMessage) {
         if (bluetoothSocketReadWriter != null) {
             // Write length of the data first
-            bluetoothSocketReadWriter.writeInt(length);
+            bluetoothSocketReadWriter.writeInt(encodedMessage.length);
 
             // Write the byte data
-            bluetoothSocketReadWriter.writeData(eventDataToSend);
+            bluetoothSocketReadWriter.writeData(encodedMessage);
         }
     }
 
