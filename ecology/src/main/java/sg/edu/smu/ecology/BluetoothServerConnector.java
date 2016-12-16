@@ -72,8 +72,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
     @Override
     public void onReceiverMessage(Message msg, List<Object> messageData) {
         forwardMessage((byte[]) msg.obj, msg.arg1);
-        // Remove the routing id before passing the message to receiver
-        getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
+        super.onReceiverMessage(msg, messageData);
     }
 
     /**
