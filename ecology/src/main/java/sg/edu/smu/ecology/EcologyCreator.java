@@ -13,7 +13,7 @@ public class EcologyCreator{
     private static Ecology ecology;
 
     // Initial connection to the ecology - returns the ecology instance
-    public static Ecology connect(EcologyConfig config, Context context) {
+    public static Ecology connect(EcologyConfig config, Context context, String deviceId) {
         // Ecology can be only connected once
         if (ecology != null) {
             throw new EcologyAlreadyConnectedException("The ecology has already been connected.");
@@ -33,7 +33,7 @@ public class EcologyCreator{
 
         ecology = new Ecology(ecologyConnection);
         // Connect to the ecology
-        ecology.connect(context);
+        ecology.connect(context, deviceId);
 
         return ecology;
     }

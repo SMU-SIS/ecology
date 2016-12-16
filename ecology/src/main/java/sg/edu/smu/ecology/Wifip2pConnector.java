@@ -110,7 +110,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * Connect to the ecology.
      */
     @Override
-    public void connect(Context context) {
+    public void connect(Context context, String deviceId) {
         applicationContext = context;
 
         // To register to the WiFiP2P framework
@@ -139,7 +139,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     // Called when the wifip2p connection is lost.  
     void onWifiP2pConnectionDisconnected() {
-        receiver.onConnectorDisconnected();
+        receiver.onDeviceDisconnected(" ");
     }
 
     @Override
@@ -201,8 +201,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
-            case Settings.MESSAGE_READ:
-                Log.d(TAG, " MESSAGE_READ");
+            case Settings.MESSAGE_RECEIVED:
+                Log.d(TAG, " MESSAGE RECEIVED");
                 byte[] readBuf = (byte[]) msg.obj;
 
                 DataDecoder dataDecoder = new DataDecoder();
@@ -225,21 +225,21 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 receiver.onMessage(data);
                 break;
 
-            case Settings.MY_HANDLE:
-                Log.d(TAG, " MY HANDLE");
+            case Settings.SOCKET_CONNECTED:
+                Log.d(TAG, "SOCKET_CONNECTED");
                 Object obj = msg.obj;
                 setSocketReadWriter((SocketReadWriter) obj);
 
                 onConnectorConnected = true;
 
-                receiver.onConnectorConnected();
+                receiver.onDeviceConnected(" ");
                 break;
 
             case Settings.SOCKET_CLOSE:
                 Log.d(TAG, "Socket Close");
                 onConnectorConnected = false;
 
-                receiver.onConnectorDisconnected();
+                receiver.onDeviceDisconnected(" ");
 
                 // For only client - start looking for server connections
                 if (groupOwnerAddress != null) {

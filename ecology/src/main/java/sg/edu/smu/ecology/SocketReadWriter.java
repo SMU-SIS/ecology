@@ -41,7 +41,7 @@ public class SocketReadWriter implements Runnable {
             outputStream = new DataOutputStream(socket.getOutputStream());
 
             Log.i(TAG, "Socket read/writer started");
-            handler.obtainMessage(Settings.MY_HANDLE, this).sendToTarget();
+            handler.obtainMessage(Settings.SOCKET_CONNECTED, this).sendToTarget();
 
             while (true) {
                 try {
@@ -59,7 +59,7 @@ public class SocketReadWriter implements Runnable {
                         currentRead += inputStream.read(dataBuffer, currentRead, toRead - currentRead);
                         Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
 
-                        handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
+                        handler.obtainMessage(Settings.MESSAGE_RECEIVED, dataBuffer).sendToTarget();
                     }
                 } catch (EOFException e) {
                     Log.i(TAG, "EOFException");

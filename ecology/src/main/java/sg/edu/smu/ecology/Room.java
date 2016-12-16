@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -10,16 +11,6 @@ import java.util.List;
  */
 public class Room {
     private final static String TAG = Room.class.getSimpleName();
-
-    /**
-     * Event automatically sent when the ecology is connected.
-     */
-    private final static String ECOLOGY_CONNECTED = "ecology:connected";
-
-    /**
-     * Event automatically sent when the ecology is disconnected.
-     */
-    private final static String ECOLOGY_DISCONNECTED = "ecology:disconnected";
 
     /**
      * The ecology of the room.
@@ -89,13 +80,23 @@ public class Room {
         ecology.onRoomMessage(name, message);
     }
 
-    // Called when the ecology gets connected.
-    public void onEcologyConnected() {
-        getEventBroadcaster().publishLocalEvent(ECOLOGY_CONNECTED, new ArrayList<>());
+    /**
+     * Called when a device is connected
+     *
+     * @param deviceId the id of the device that got connected
+     */
+    void onDeviceConnected(String deviceId) {
+        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
+                Collections.<Object>singletonList(deviceId));
     }
 
-    // Called when the ecology gets disconnected.
-    public void onEcologyDisconnected() {
-        getEventBroadcaster().publishLocalEvent(ECOLOGY_DISCONNECTED, new ArrayList<>());
+    /**
+     * Called when a device is disconnected
+     *
+     * @param deviceId the id of the device that got disconnected
+     */
+    void onDeviceDisconnected(String deviceId) {
+        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
+                Collections.<Object>singletonList(deviceId));
     }
 }

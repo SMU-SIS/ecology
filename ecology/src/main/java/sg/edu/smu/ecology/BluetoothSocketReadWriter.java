@@ -24,19 +24,16 @@ class BluetoothSocketReadWriter extends Thread {
     private Handler handler;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
-    private Boolean isServer = false;
-    private int clientId;
+    private int clientId = 0;
 
     BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
     }
 
-    BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler,
-                              Boolean isServer, int clientId) {
+    BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler, int clientId) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
-        this.isServer = isServer;
         this.clientId = clientId;
     }
 
@@ -47,11 +44,8 @@ class BluetoothSocketReadWriter extends Thread {
             inputStream = new DataInputStream(bluetoothSocket.getInputStream());
             outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
-            if (isServer) {
-                handler.obtainMessage(Settings.SOCKET_SERVER, clientId, 0, this).sendToTarget();
-            } else {
-                handler.obtainMessage(Settings.SOCKET_CLIENT, this).sendToTarget();
-            }
+            handler.obtainMessage(Settings.SOCKET_CONNECTED, clientId, 0, this).sendToTarget();
+
             while (true) {
                 try {
                     int toRead = inputStream.readInt();
@@ -59,12 +53,8 @@ class BluetoothSocketReadWriter extends Thread {
 
                     // This indicates that the other device is disconnected from ecology
                     if (toRead == END_OF_FILE) {
-                        if (isServer) {
-                            handler.obtainMessage(Settings.SOCKET_CLOSE, clientId, 0,
-                                    this).sendToTarget();
-                        } else {
-                            handler.obtainMessage(Settings.SOCKET_CLOSE, this).sendToTarget();
-                        }
+                        handler.obtainMessage(Settings.SOCKET_CLOSE, clientId, 0,
+                                this).sendToTarget();
                         break;
                     }
 
@@ -74,12 +64,8 @@ class BluetoothSocketReadWriter extends Thread {
                                 currentRead);
                     }
                     Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
-                    if (isServer) {
-                        handler.obtainMessage(Settings.MESSAGE_READ, clientId, 0,
-                                dataBuffer).sendToTarget();
-                    } else {
-                        handler.obtainMessage(Settings.MESSAGE_READ, dataBuffer).sendToTarget();
-                    }
+                    handler.obtainMessage(Settings.MESSAGE_RECEIVED, clientId, 0,
+                            dataBuffer).sendToTarget();
                 } catch (IOException e) {
                     break;
                 }
