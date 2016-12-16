@@ -184,9 +184,8 @@ public class DataDecoder {
                 //   case (we encountered an unknown argument type in an
                 //   incomming message):
                 //   just ignore (return null), or throw an exception?
-//				throw new UnsupportedOperationException(
-//						"Invalid or not yet supported OSC type: '" + type + "'");
-                return null;
+				throw new UnsupportedOperationException(
+						"Invalid or not yet supported type: '" + type + "'");
         }
     }
 

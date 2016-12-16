@@ -45,7 +45,9 @@ public class MessageData {
         } else if (argument instanceof Character) {
             addArgument((Character) argument);
         } else {
-            throw new UnsupportedDataTypeException("Unsupported argument type: " + argument);
+            throw new UnsupportedDataTypeException(
+                    "Invalid or not yet supported type: " + argument.getClass().getCanonicalName()
+            );
         }
     }
 
