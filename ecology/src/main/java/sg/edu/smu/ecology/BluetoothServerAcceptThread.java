@@ -5,7 +5,6 @@ package sg.edu.smu.ecology;
  */
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -29,8 +28,6 @@ class BluetoothServerAcceptThread extends Thread {
     private List<UUID> uuidsList;
     private List<UUID> disconnectedUuidsList = new ArrayList<>();
     private BluetoothAdapter bluetoothAdapter;
-    private List<String> devicesAddressesList = new ArrayList<String>();
-    private List<BluetoothDevice> devicesList = new ArrayList<>();
     private SparseArray<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new SparseArray<>();
     private Handler handler;
     private int clientId = 0;
@@ -65,8 +62,6 @@ class BluetoothServerAcceptThread extends Thread {
                 socket = serverSocket.accept();
                 if (socket != null) {
                     serverSocket.close();
-                    devicesList.add(socket.getRemoteDevice());
-                    devicesAddressesList.add(socket.getRemoteDevice().getAddress());
                     createSocketReadWriterThreads(socket, uuidsList.get(i));
                 }
             }
@@ -85,19 +80,11 @@ class BluetoothServerAcceptThread extends Thread {
     private void createSocketReadWriterThreads(BluetoothSocket socket, UUID uuid) {
         clientId++;
         BluetoothSocketReadWriter bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket,
-                handler, true, clientId);
+                handler, clientId);
         bluetoothSocketReadWriter.start();
         // Add each connected thread to an array
         bluetoothSocketReadWritersList.put(clientId, bluetoothSocketReadWriter);
         clientUuidList.put(clientId, uuid);
-    }
-
-    public List<BluetoothDevice> getDevicesList() {
-        return devicesList;
-    }
-
-    int getNumberOfDevicesConnected() {
-        return devicesList.size();
     }
 
     void handleClientDisconnection(int clientId) {
