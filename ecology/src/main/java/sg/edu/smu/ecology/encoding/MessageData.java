@@ -3,6 +3,7 @@ package sg.edu.smu.ecology.encoding;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by anurooppv on 29/6/2016.
@@ -49,6 +50,8 @@ public class MessageData {
             addArgument((Character) argument);
         } else if (argument instanceof  List) {
             addArgument((List) argument);
+        } else if (argument instanceof Map) {
+            addArgument((Map) argument);
         } else {
             throw new UnsupportedDataTypeException(
                     "Invalid or not yet supported type: " + argument.getClass().getCanonicalName()
@@ -60,13 +63,27 @@ public class MessageData {
         typeTags += 'N';
     }
 
-
     public void addArgument(List list) {
         typeTags += '[';
         for(Object arg: list){
             addArgument(arg);
         }
         typeTags += ']';
+    }
+
+    public void addArgument(Map<Object, Object> map) {
+        typeTags += '{';
+        List<Object> keys = new ArrayList<>(map.keySet());
+        // Add the keys.
+        for(Object k: keys){
+            addArgument(k);
+        }
+        typeTags += ':';
+        // Add the values.
+        for(Object k: keys){
+            addArgument(map.get(k));
+        }
+        typeTags += '}';
     }
 
     public ArrayList<Object> getArguments() {
