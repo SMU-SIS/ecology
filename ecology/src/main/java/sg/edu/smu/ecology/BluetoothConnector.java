@@ -210,6 +210,16 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
+    /**
+     * When a receiver message is received
+     * @param msg the message received
+     * @param messageData the decoded data
+     */
+    void onReceiverMessage(Message msg, List<Object> messageData) {
+        // Remove the routing id before passing the message to receiver
+        getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
+    }
+
     BluetoothAdapter getBluetoothAdapter() {
         return bluetoothAdapter;
     }
@@ -309,8 +319,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     public abstract Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList();
 
     public abstract void onDeviceConnected(Message msg);
-
-    public abstract void onReceiverMessage(Message msg, List<Object> messageData);
 
     public abstract void onSocketClose(Message msg);
 
