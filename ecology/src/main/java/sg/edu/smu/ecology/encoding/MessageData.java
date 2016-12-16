@@ -2,6 +2,7 @@ package sg.edu.smu.ecology.encoding;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by anurooppv on 29/6/2016.
@@ -44,15 +45,22 @@ public class MessageData {
             addArgument((Boolean) argument);
         } else if (argument instanceof Character) {
             addArgument((Character) argument);
+        } else if (argument instanceof  List) {
+            addArgument((List) argument);
         } else {
-            throw new UnsupportedDataTypeException("Unsupported argument type: " + argument);
+            throw new UnsupportedDataTypeException(
+                    "Invalid or not yet supported type: " + argument.getClass().getCanonicalName()
+            );
         }
     }
 
-    public void addArgument(Object[] array, String objectTypes) {
-        typeTags += '[' + objectTypes + ']';
-        arguments.add(array);
-        // TODO : Compute datasize for array contents
+
+    public void addArgument(List list) {
+        typeTags += '[';
+        for(Object arg: list){
+            addArgument(arg);
+        }
+        typeTags += ']';
     }
 
     public ArrayList<Object> getArguments() {
