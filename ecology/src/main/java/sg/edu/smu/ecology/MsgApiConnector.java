@@ -14,16 +14,13 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
-import org.apache.mina.core.buffer.IoBuffer;
-
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import sg.edu.smu.ecology.encoding.DataDecoder;
-import sg.edu.smu.ecology.encoding.DataEncoder;
-import sg.edu.smu.ecology.encoding.MessageData;
+import sg.edu.smu.ecology.encoding.MessageDecoder;
+import sg.edu.smu.ecology.encoding.MessageEncoder;
 
 /**
  * Created by anurooppv on 22/7/2016.
@@ -38,10 +35,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private static final String MESSAGE_PATH_EVENT = "/ecology_message";
     private static final String START_ACTIVITY_PATH = "/start_mobile_activity";
     private Connector.Receiver receiver;
-
-    // Buffer size to be allocated to the IoBuffer - message byte array size is different from this
-    private static final int BUFFER_SIZE = 1024;
-
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
 
@@ -50,48 +43,55 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         // Retrieve eventType
         final String eventType = (String) message.get(message.size() - 2);
 
-        DataEncoder dataEncoder = new DataEncoder();
-        IoBuffer ioBuffer = IoBuffer.allocate(BUFFER_SIZE);
+        byte[] encodedMessageData = encodeMessage(message);
+        Log.i(TAG, "data " + Arrays.toString(encodedMessageData));
 
-        MessageData messageData = new MessageData();
-
-        Log.i(TAG, "Data " + message);
-        for (int i = 0; i < message.size(); i++) {
-            messageData.addArgument(message.get(i));
+        String messagePath = " ";
+        if (eventType.equals("launch")) {
+            messagePath = START_ACTIVITY_PATH;
+        } else {
+            messagePath = MESSAGE_PATH_EVENT;
         }
 
+        writeData(encodedMessageData, messagePath);
+    }
+
+    /**
+     * Encode the message to be sent
+     *
+     * @param message the message to be encoded
+     * @return the encoded message
+     */
+    private byte[] encodeMessage(List<Object> message) {
+        MessageEncoder messageEncoder = new MessageEncoder();
+
+        byte[] encodedMessage = new byte[0];
+
         try {
-            dataEncoder.encodeMessage(messageData, ioBuffer);
+            encodedMessage = messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
             e.printStackTrace();
         }
 
-        // To store the length of the message
-        int length = ioBuffer.position();
+        return encodedMessage;
+    }
 
-        // Contains the whole IoBuffer
-        byte[] messageByteData = ioBuffer.array();
-
-        // Actual message data is retrieved
-        byte[] messageDataToSend = Arrays.copyOfRange(messageByteData, 0, length);
-        Log.i(TAG, "data " + Arrays.toString(messageDataToSend));
-
-        String MESSAGE_PATH = " ";
-        if (eventType.equals("launch")) {
-            MESSAGE_PATH = START_ACTIVITY_PATH;
-        } else {
-            MESSAGE_PATH = MESSAGE_PATH_EVENT;
-        }
-
+    /**
+     * Write the data to be sent
+     *
+     * @param encodedMessage the encoded message ready to be sent
+     * @param messagePath    the message path of the message
+     */
+    private void writeData(byte[] encodedMessage, String messagePath) {
         if (nodeId.size() > 0) {
             for (String nodeIdValue : nodeId) {
-                Log.i(TAG, "node "+nodeIdValue);
+                Log.i(TAG, "node " + nodeIdValue);
                 Wearable.MessageApi.sendMessage(googleApiClient, nodeIdValue,
-                        MESSAGE_PATH, messageDataToSend).setResultCallback(
+                        messagePath, encodedMessage).setResultCallback(
                         new ResultCallback<MessageApi.SendMessageResult>() {
                             @Override
                             public void onResult(@NonNull MessageApi.SendMessageResult sendMessageResult) {
-                                Log.i(TAG, "MessageData Sent " + eventType);
+                                Log.i(TAG, "MessageData Sent ");
 
                                 if (!sendMessageResult.getStatus().isSuccess()) {
                                     // Failed to send messageData
@@ -106,8 +106,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
             // Unable to retrieve node with transcription capability
             Log.i(TAG, "Message not sent - Node Id is null ");
         }
-
-        ioBuffer.clear();
     }
 
     @Override
@@ -156,18 +154,18 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         new Thread("CapCheck") {
             @Override
             public void run() {
-                final NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes( googleApiClient ).await();
+                final NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(googleApiClient).await();
 
                 // Handle the results through the handlers to get out of this thread.
                 handler.post(new Runnable() {
                     @Override
                     public void run() {
-                        for(Node node : nodes.getNodes()) {
+                        for (Node node : nodes.getNodes()) {
                             nodeId.add(node.getId());
-                            Log.i(TAG, "Node Id "+node.getId());
+                            Log.i(TAG, "Node Id " + node.getId());
                         }
 
-                        if(nodeId.size() > 0){
+                        if (nodeId.size() > 0) {
                             onConnectorConnected = true;
                             receiver.onDeviceConnected(nodeId.get(0));
                         }
@@ -191,11 +189,10 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     @Override
     public void onMessageReceived(MessageEvent messageEvent) {
-        DataDecoder dataDecoder = new DataDecoder();
-        MessageData messageData = dataDecoder.convertMessage(messageEvent.getData(), messageEvent.getData().length);
+        MessageDecoder messageDecoder = new MessageDecoder();
 
         List<Object> data;
-        data = messageData.getArguments();
+        data = messageDecoder.decode(messageEvent.getData());
         Log.i(TAG, "Data received" + data);
 
         receiver.onMessage(data);
