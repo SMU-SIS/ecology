@@ -164,6 +164,17 @@ public class MessageEncoderDecoderTest {
     }
 
     @Test
+    public void oneEmptyListEncoding() throws CharacterCodingException {
+        List<Object> message = Collections.<Object>singletonList(Collections.emptyList());
+        // Encode the message.
+        byte[] encodedMessage = encoder.encode(message);
+        // Decode it.
+        List<Object> decodedMessage = decoder.decode(encodedMessage);
+        // Make sure it is the same.
+        assertThat(decodedMessage).isEqualTo(message);
+    }
+
+    @Test
     public void oneListEncoding() throws CharacterCodingException {
         List<Object> message = Collections.<Object>singletonList(Arrays.asList(
                 5, 4, "hello", 2.5, true, 'c', "ˆˆø"
