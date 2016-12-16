@@ -165,7 +165,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
             case Settings.SOCKET_CLOSE:
                 onConnectorConnected = false;
                 Log.d(TAG, "Socket Close");
-                onSocketClose(msg);
+                onDeviceDisconnected(msg);
                 break;
         }
         return true;
@@ -320,7 +320,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     public abstract void onDeviceConnected(Message msg);
 
-    public abstract void onSocketClose(Message msg);
+    public abstract void onDeviceDisconnected(Message msg);
 
     public abstract void onConnectorMessage(Message msg, List<Object> messageData);
 }

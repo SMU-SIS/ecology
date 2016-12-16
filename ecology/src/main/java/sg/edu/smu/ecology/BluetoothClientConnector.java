@@ -82,12 +82,12 @@ public class BluetoothClientConnector extends BluetoothConnector {
     }
 
     /**
-     * When a socket gets closed
+     * When the server device gets disconnected
      *
      * @param msg the message received
      */
     @Override
-    public void onSocketClose(Message msg) {
+    public void onDeviceDisconnected(Message msg) {
         handleServerDisconnection();
 
         for (String deviceId : getDeviceIdsList().values()) {
@@ -100,7 +100,8 @@ public class BluetoothClientConnector extends BluetoothConnector {
 
     /**
      * When a connector message is received
-     * @param msg the message received
+     *
+     * @param msg         the message received
      * @param messageData the decoded data
      */
     @Override
@@ -138,9 +139,10 @@ public class BluetoothClientConnector extends BluetoothConnector {
         }
 
         if (clientConnectThreadsList.size() > 0) {
-            for (int i = 0; i < clientConnectThreadsList.size(); i++) {
-                if (!clientConnectThreadsList.get(i).isInterrupted()) {
-                    clientConnectThreadsList.get(i).interrupt();
+            for (BluetoothClientConnectThread bluetoothClientConnectThread :
+                    clientConnectThreadsList) {
+                if (!bluetoothClientConnectThread.isInterrupted()) {
+                    bluetoothClientConnectThread.interrupt();
                 }
             }
         }
@@ -164,10 +166,10 @@ public class BluetoothClientConnector extends BluetoothConnector {
      */
     private void interruptOtherClientConnectThreads() {
         Log.i(TAG, "interruptOtherClientConnectThreads");
-        for (int i = 0; i < clientConnectThreadsList.size(); i++) {
-            if (!clientConnectThreadsList.get(i).equals(bluetoothClientConnectThread)) {
-                if (!clientConnectThreadsList.get(i).isInterrupted()) {
-                    clientConnectThreadsList.get(i).interrupt();
+        for (BluetoothClientConnectThread clientConnectThread : clientConnectThreadsList) {
+            if (!clientConnectThread.equals(bluetoothClientConnectThread)) {
+                if (!clientConnectThread.isInterrupted()) {
+                    clientConnectThread.interrupt();
                 }
             }
         }

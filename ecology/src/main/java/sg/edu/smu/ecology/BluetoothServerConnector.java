@@ -66,7 +66,8 @@ public class BluetoothServerConnector extends BluetoothConnector {
 
     /**
      * When a receiver message is received
-     * @param msg the message received
+     *
+     * @param msg         the message received
      * @param messageData the decoded data
      */
     @Override
@@ -76,12 +77,12 @@ public class BluetoothServerConnector extends BluetoothConnector {
     }
 
     /**
-     * When a socket gets closed
+     * When a client device gets disconnected
      *
      * @param msg the message received
      */
     @Override
-    public void onSocketClose(Message msg) {
+    public void onDeviceDisconnected(Message msg) {
         Object disconnectedObj = msg.obj;
 
         // A client device has been disconnected
@@ -101,7 +102,8 @@ public class BluetoothServerConnector extends BluetoothConnector {
 
     /**
      * When a connector message is received
-     * @param msg the message received
+     *
+     * @param msg         the message received
      * @param messageData the decoded data
      */
     @Override
@@ -173,7 +175,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
     /**
      * Send the device Ids of already connected client devices to the newly connected client device
      *
-     * @param clientId the client Id of the new client device
+     * @param clientId               the client Id of the new client device
      * @param clientConnectionThread the client thread of the new client device
      */
     private void sendConnectedClientsIds(int clientId,
