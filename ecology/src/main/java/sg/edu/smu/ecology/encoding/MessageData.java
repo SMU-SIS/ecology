@@ -29,7 +29,9 @@ public class MessageData {
     }
 
     public void addArgument(Object argument) {
-        if (argument instanceof String) {
+        if(argument == null) {
+            addNullArgument();
+        } else if (argument instanceof String) {
             addArgument((String) argument);
         } else if (argument instanceof Float) {
             addArgument((Float) argument);
@@ -52,6 +54,10 @@ public class MessageData {
                     "Invalid or not yet supported type: " + argument.getClass().getCanonicalName()
             );
         }
+    }
+
+    public void addNullArgument(){
+        typeTags += 'N';
     }
 
 
