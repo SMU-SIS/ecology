@@ -455,83 +455,15 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
-    /**
-     * Send a connector message to a particular client device
-     *
-     * @param message  the message to be sent
-     * @param clientId the client id of the destination device
-     */
-    private void sendMessageToClient(List<Object> message, int clientId) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(CONNECTOR_MESSAGE_ID);
-        IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
-
-        encodeMessage(msg, ioBuffer);
-        writeData(clientConnectionThreadsList.get(clientId), ioBuffer);
-
-        ioBuffer.free();
-    }
-
-    /**
-     * When a server receives a message from a client, it is forwarded to rest of the connected
-     * clients
-     *
-     * @param dataByteArray the data byte array received
-     * @param clientId      the client id of the client from which the message was received
-     */
-    private void forwardMessage(byte[] dataByteArray, int clientId) {
-        // Store the client from which the message was received
-        BluetoothSocketReadWriter sender = clientConnectionThreadsList.get(clientId);
-
-        for (BluetoothSocketReadWriter client : clientConnectionThreadsList.values()) {
-            if (client != sender) {
-                client.writeInt(dataByteArray.length);
-                client.writeData(dataByteArray);
-                Log.i(TAG, "Message forwarding...");
-            }
-        }
-    }
-
-    /**
-     * This method updates the list accordingly when a client gets connected or disconnected.
-     *
-     * @param bluetoothSocketReadWriter the thread associated with the client
-     * @param clientId                  the unique id of the client
-     */
-    private void updateClientsList(BluetoothSocketReadWriter bluetoothSocketReadWriter,
-                                   int clientId) {
-        if (clientConnectionThreadsList.get(clientId) != null) {
-            clientConnectionThreadsList.remove(clientId);
-            Log.i(TAG, "Removed from clients list " + clientConnectionThreadsList.size());
-        } else {
-            clientConnectionThreadsList.put(clientId, bluetoothSocketReadWriter);
-            Log.i(TAG, "Added to clients list " + clientConnectionThreadsList.size());
-        }
-    }
-
     public abstract void setupBluetoothConnection();
 
-    /**
-     * Interface to listen to server disconnection
-     */
-    protected interface ServerDisconnectionListener {
+    public abstract Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList();
 
-        /**
-         * Handle the server disconnection so that it starts looking for new server connection
-         */
-        public void handleServerDisconnection();
-    }
+    public abstract void onDeviceConnected(Message msg);
 
-    /**
-     * Interface to listen to client disconnections
-     */
-    protected interface ClientDisconnectionListener {
+    public abstract void onReceiverMessage(Message msg, List<Object> messageData);
 
-        /**
-         * Handle the client disconnection
-         *
-         * @param clientId the client that got disconnected
-         */
-        public void handleClientDisconnection(int clientId);
-    }
+    public abstract void onSocketClose(Message msg);
+
+    public abstract void onConnectorMessage(Message msg, List<Object> messageData);
 }
