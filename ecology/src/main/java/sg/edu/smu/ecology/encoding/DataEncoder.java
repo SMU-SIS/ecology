@@ -51,14 +51,6 @@ public class DataEncoder {
             return;
         }
 
-        if (arg instanceof Object[]) {
-            Object[] theArray = (Object[]) arg;
-            for (Object aTheArray : theArray) {
-                write(aTheArray, buffer);
-            }
-            return;
-        }
-
         if (arg instanceof Float) {
             buffer.putFloat((Float) arg);
             return;

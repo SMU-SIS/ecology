@@ -21,7 +21,7 @@ public class MessageDecoder {
      * @return The message (a list of objects).
      */
     public List<Object> decode(byte[] data, int length) {
-        return decoder.convertMessage(data, length).getArguments();
+        return decoder.convertMessageArgs(data, length);
     }
 
     /**

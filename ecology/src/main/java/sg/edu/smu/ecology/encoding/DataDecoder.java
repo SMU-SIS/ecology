@@ -79,24 +79,23 @@ public class DataDecoder {
      * Assumes that the byte array is a message.
      * @return a message containing the data specified in the byte stream
      */
-    public MessageData convertMessage(byte[] bytes, int bytesLength) {
+    public List<Object> convertMessageArgs(byte[] bytes, int bytesLength) {
         final Input rawInput = new Input(bytes, bytesLength);
-        final MessageData messageData = new MessageData();
-
+        final List<Object> messageData = new ArrayList<>();
         final CharSequence types = readTypes(rawInput);
-        for (int ti = 0; ti < types.length(); ++ti) {
-            if ('[' == types.charAt(ti)) {
-                // we're looking at an array -- read it in
-                messageData.addArgument(readArray(rawInput, types, ++ti));
-                // then increment i to the end of the array
-                while (types.charAt(ti) != ']') {
-                    ti++;
-                }
-            } else {
-                messageData.addArgument(readArgument(rawInput, types.charAt(ti)));
-            }
+
+        for (int ti = 0; ti < types.length();) {
+            ti += readOneArgument(rawInput, types, ti, messageData);
         }
         return messageData;
+    }
+
+    public MessageData convertMessage(byte[] bytes, int bytesLength) {
+        MessageData data = new MessageData();
+        for(Object arg: convertMessageArgs(bytes, bytesLength)){
+            data.addArgument(arg);
+        }
+        return data;
     }
 
     /**
@@ -149,11 +148,40 @@ public class DataDecoder {
     }
 
     /**
+     * Read one argument from the byte stream (composite arguments like list are entirely read,
+     * including their content).
+     * @param rawInput The stream where to read the argument.
+     * @param types The types sequence.
+     * @param position The current position in the type list.
+     * @param args The list of arguments where to put the newly read arg.
+     * @return The increment in the types sequence (usually 1, but composite arguments like list
+     *         will read more).
+     */
+    private int readOneArgument(
+            final Input rawInput, CharSequence types, int position, List<Object> args){
+        char type = types.charAt(position);
+        // Read a list.
+        if(types.charAt(position) == '['){
+            int li = position + 1;
+            List<Object> list = new ArrayList<>();
+            while(li < types.length() && types.charAt(li) != ']'){
+                li += readOneArgument(rawInput, types, li, list);
+            }
+            args.add(list);
+            return li - position + 1;
+        // Read a simple argument.
+        } else {
+            args.add(readSimpleArgument(rawInput, type));
+            return 1;
+        }
+    }
+
+    /**
      * Reads an object of the type specified by the type char.
      * @param type type of the argument to read
      * @return a Java representation of the argument
      */
-    private Object readArgument(final Input rawInput, final char type) {
+    private Object readSimpleArgument(final Input rawInput, final char type) {
         switch (type) {
             case 'u' :
                 return readUnsignedInteger(rawInput);
@@ -267,23 +295,6 @@ public class DataDecoder {
                 & 0xFFFFFFFFL;
     }
 
-
-    /* Reads an array from the byte stream.
-     * @param types
-     * @param pos at which position to start reading
-     * @return the array that was read
-     */
-    private List<Object> readArray(final Input rawInput, final CharSequence types, int pos) {
-        int arrayLen = 0;
-        while (types.charAt(pos + arrayLen) != ']') {
-            arrayLen++;
-        }
-        final List<Object> array = new ArrayList<Object>(arrayLen);
-        for (int ai = 0; ai < arrayLen; ai++) {
-            array.add(readArgument(rawInput, types.charAt(pos + ai)));
-        }
-        return array;
-    }
 
     //Get the length of the string currently in the byte stream.
     private int lengthOfCurrentString(final Input rawInput) {
