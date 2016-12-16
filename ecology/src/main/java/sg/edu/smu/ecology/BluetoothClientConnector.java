@@ -82,17 +82,6 @@ public class BluetoothClientConnector extends BluetoothConnector {
     }
 
     /**
-     * When a receiver message is received
-     * @param msg the message received
-     * @param messageData the decoded data
-     */
-    @Override
-    public void onReceiverMessage(Message msg, List<Object> messageData) {
-        // Remove the routing id before passing the message to receiver
-        getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
-    }
-
-    /**
      * When a socket gets closed
      *
      * @param msg the message received
