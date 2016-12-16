@@ -16,8 +16,8 @@ import org.apache.mina.core.buffer.SimpleBufferAllocator;
 import java.nio.charset.CharacterCodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,15 +60,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
     private BluetoothBroadcastManager bluetoothBroadcastManager;
-    // To store the server connection thread when the device is a client
-    private BluetoothSocketReadWriter clientToServerSocketReadWriter;
-    // To store the list of client connection threads when the device is a server
-    private Map<Integer, BluetoothSocketReadWriter> clientConnectionThreadsList = new HashMap<>();
-    private boolean isServer = false;
     //Used to save the activity context
     private Context context;
-    private ServerDisconnectionListener serverDisconnectionListener;
-    private ClientDisconnectionListener clientDisconnectionListener;
     // Device Id of this device
     private String deviceId;
     // To store the device ids(user generated) of all the connected devices.
@@ -81,41 +74,32 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     public void sendMessage(List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
         msg.add(RECEIVER_MESSAGE_ID);
-        doSendMessage(msg);
+        doSendMessage(msg, getBluetoothSocketReadWriterList());
     }
 
     /**
      * Send a connector message
      *
      * @param message the message to be sent
+     * @param bluetoothSocketReadWriters thread list of destination devices
      */
-    private void sendConnectorMessage(List<Object> message) {
+    void sendConnectorMessage(List<Object> message,
+                              Collection<BluetoothSocketReadWriter> bluetoothSocketReadWriters) {
         List<Object> msg = new ArrayList<>(message);
         msg.add(CONNECTOR_MESSAGE_ID);
-        doSendMessage(msg);
+        doSendMessage(msg, bluetoothSocketReadWriters);
     }
 
-    private void doSendMessage(List<Object> message) {
+    private void doSendMessage(List<Object> message,
+                               Collection<BluetoothSocketReadWriter> bluetoothSocketReadWriters) {
         IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
 
         encodeMessage(message, ioBuffer);
-        // If it's a server device, send the message to all the connected client devices and if it's
-        // client device, send the message to the server
-        if (isServer) {
-            for (BluetoothSocketReadWriter clientSocketReadWriter :
-                    clientConnectionThreadsList.values()) {
-                writeData(clientSocketReadWriter, ioBuffer);
-            }
-        } else {
-            writeData(clientToServerSocketReadWriter, ioBuffer);
+
+        for (BluetoothSocketReadWriter bluetoothSocketReadWriter : bluetoothSocketReadWriters) {
+            writeData(bluetoothSocketReadWriter, ioBuffer);
         }
-
         ioBuffer.free();
-    }
-
-    @Override
-    public void setReceiver(Receiver receiver) {
-        this.receiver = receiver;
     }
 
     @Override
@@ -173,22 +157,31 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 onMessageReceived(msg);
                 break;
 
-            case Settings.CLIENT_CONNECTED:
-                Log.d(TAG, "A client device has been connected");
-                onClientConnected(msg);
-                break;
-
-            case Settings.CONNECTED_TO_A_SERVER:
-                Log.i(TAG, "Connected as a client to a device");
-                onConnectedToAServer(msg);
+            case Settings.SOCKET_CONNECTED:
+                onConnectorConnected = true;
+                onDeviceConnected(msg);
                 break;
 
             case Settings.SOCKET_CLOSE:
+                onConnectorConnected = false;
                 Log.d(TAG, "Socket Close");
                 onSocketClose(msg);
                 break;
         }
         return true;
+    }
+
+    Receiver getReceiver() {
+        return receiver;
+    }
+
+    @Override
+    public void setReceiver(Receiver receiver) {
+        this.receiver = receiver;
+    }
+
+    Map<Integer, String> getDeviceIdsList() {
+        return deviceIdsList;
     }
 
     /**
@@ -207,174 +200,30 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         data = messageData.getArguments();
         Log.i(TAG, "data " + data);
 
-        // If the device is a server, the received message will be forwarded to other
-        // connected clients
-        if (isServer) {
-            forwardMessage(readBuf, msg.arg1);
-        }
+        Integer receivedMessageId = (Integer) data.get(data.size() - 1);
 
         // Check if the received data is a connector message or a receiver message
-        if (data.get(data.size() - 1).equals(CONNECTOR_MESSAGE_ID)) {
-            if (isServer) {
-                deviceIdsList.put(msg.arg1, (String) data.get(data.size() - 3));
-            }
-            handleDeviceConnectionUpdate(data);
-        } else if (data.get(data.size() - 1).equals(RECEIVER_MESSAGE_ID)) {
-            // Remove the routing id before passing the message to receiver
-            receiver.onMessage(data.subList(0, data.size() - 1));
+        if (receivedMessageId.equals(CONNECTOR_MESSAGE_ID)) {
+            onConnectorMessage(msg, data);
+        } else if (receivedMessageId.equals(RECEIVER_MESSAGE_ID)) {
+            onReceiverMessage(msg, data);
         }
     }
 
-    /**
-     * When a client device gets connected
-     *
-     * @param msg the message received
-     */
-    private void onClientConnected(Message msg) {
-        Object obj = msg.obj;
-
-        updateClientsList((BluetoothSocketReadWriter) obj, msg.arg1);
-
-        onConnectorConnected = true;
-        // Pass the server device Id to the connected client device.
-        sendMessageToClient(Arrays.<Object>asList(deviceId, Settings.DEVICE_ID_EXCHANGE), msg.arg1);
-
-        // To notify the new client about the already connected client devices in the ecology
-        sendConnectedClientsIds(msg.arg1);
-    }
-
-    /**
-     * When a device gets connected to a server
-     *
-     * @param msg the message received
-     */
-    private void onConnectedToAServer(Message msg) {
-        Object object = msg.obj;
-
-        clientToServerSocketReadWriter = (BluetoothSocketReadWriter) object;
-
-        onConnectorConnected = true;
-        // Send the client device Id to the server device
-        sendConnectorMessage(Arrays.<Object>asList(deviceId, Settings.DEVICE_ID_EXCHANGE));
-    }
-
-    /**
-     * When a socket gets closed
-     *
-     * @param msg the message received
-     */
-    private void onSocketClose(Message msg) {
-        onConnectorConnected = false;
-
-        Object disconnectedObj = msg.obj;
-
-        if (isServer) {
-            // A client device has been disconnected
-            receiver.onDeviceDisconnected(deviceIdsList.get(msg.arg1));
-            updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
-            // To notify other connected client devices in the ecology
-            sendConnectorMessage(Arrays.<Object>asList(deviceIdsList.get(msg.arg1),
-                    Settings.DEVICE_DISCONNECTED));
-            // Update the connected devices list
-            deviceIdsList.remove(msg.arg1);
-            if (clientDisconnectionListener != null) {
-                clientDisconnectionListener.handleClientDisconnection(msg.arg1);
-            }
-        } else {
-            if (serverDisconnectionListener != null) {
-                serverDisconnectionListener.handleServerDisconnection();
-            }
-            for (String deviceId : deviceIdsList.values()) {
-                receiver.onDeviceDisconnected(deviceId);
-            }
-            deviceIdsList.clear();
-            clientToServerSocketReadWriter = null;
-        }
-    }
-
-    /**
-     * Handle device connection or disconnection
-     *
-     * @param data the data received
-     */
-    private void handleDeviceConnectionUpdate(List<Object> data) {
-        String eventTypeReceived = (String) data.get(data.size() - 2);
-        switch (eventTypeReceived) {
-            case Settings.DEVICE_DISCONNECTED:
-                String receivedDeviceId = (String) data.get(data.size() - 3);
-                receiver.onDeviceDisconnected(receivedDeviceId);
-
-                // Remove the id of the disconnected device
-                Iterator<Integer> iterator = deviceIdsList.keySet().iterator();
-                while (iterator.hasNext()) {
-                    Integer key = iterator.next();
-                    if (deviceIdsList.get(key).equals(receivedDeviceId)) {
-                        iterator.remove();
-                    }
-                }
-                Log.i(TAG, "deviceIdList " + deviceIdsList);
-                break;
-
-            case Settings.DEVICE_ID_EXCHANGE:
-                if (!isServer) {
-                    deviceIdsList.put((deviceIdsList.size()),
-                            (String) data.get(data.size() - 3));
-                    Log.i(TAG, "deviceIdList " + deviceIdsList);
-                }
-                receiver.onDeviceConnected((String) data.get(data.size() - 3));
-                break;
-        }
-    }
-
-    /**
-     * Send the device Ids of already connected client devices to the newly connected client device
-     *
-     * @param clientId the client Id of the new client device
-     */
-    private void sendConnectedClientsIds(int clientId) {
-        IoBuffer ioBuffer = simpleBufferAllocator.allocate(BUFFER_SIZE, false);
-
-        String newDeviceId = deviceIdsList.get(clientId);
-
-        for (String deviceId : deviceIdsList.values()) {
-            if (!deviceId.equals(newDeviceId)) {
-                encodeMessage(Arrays.<Object>asList(deviceId,
-                        Settings.DEVICE_ID_EXCHANGE, CONNECTOR_MESSAGE_ID), ioBuffer);
-                writeData(clientConnectionThreadsList.get(clientId), ioBuffer);
-            }
-        }
-        ioBuffer.free();
-    }
-
-    protected BluetoothAdapter getBluetoothAdapter() {
+    BluetoothAdapter getBluetoothAdapter() {
         return bluetoothAdapter;
     }
 
-    protected List<BluetoothDevice> getPairedDevicesList() {
+    List<BluetoothDevice> getPairedDevicesList() {
         return pairedDevicesList;
     }
 
-    protected Handler getHandler() {
+    Handler getHandler() {
         return handler;
     }
 
-    /**
-     * Will be set to true if the device is a server
-     *
-     * @param server the boolean value denoting the device type
-     */
-    protected void setServer(boolean server) {
-        isServer = server;
-    }
-
-    protected void setServerDisconnectionListener(ServerDisconnectionListener
-                                                          serverDisconnectionListener) {
-        this.serverDisconnectionListener = serverDisconnectionListener;
-    }
-
-    protected void setClientDisconnectionListener(ClientDisconnectionListener
-                                                          clientDisconnectionListener) {
-        this.clientDisconnectionListener = clientDisconnectionListener;
+    String getDeviceId() {
+        return deviceId;
     }
 
     /**
