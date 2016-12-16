@@ -114,7 +114,6 @@ public class MessageData {
 
     public void addArgument(Boolean b) {
         typeTags += b ? 'T' : 'F';
-        arguments.add(b);
     }
 
     public void addArgument(byte[] bytes) {
