@@ -1,8 +1,13 @@
 package sg.edu.smu.ecology;
 
+import android.os.Message;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -13,9 +18,11 @@ import java.util.List;
  * This class helps to establish a client connection to any server device part of the ecology
  * using bluetooth
  */
-public class BluetoothClientConnector extends BluetoothConnector implements
-        BluetoothConnector.ServerDisconnectionListener {
+public class BluetoothClientConnector extends BluetoothConnector {
     private static final String TAG = BluetoothClientConnector.class.getSimpleName();
+
+    // To store the server connection thread
+    private BluetoothSocketReadWriter clientToServerSocketReadWriter;
 
     private BluetoothClientConnectThread bluetoothClientConnectThread;
     private List<BluetoothClientConnectThread> clientConnectThreadsList = new ArrayList<>();
@@ -50,7 +57,87 @@ public class BluetoothClientConnector extends BluetoothConnector implements
             clientConnectThreadsList.add(bluetoothClientConnectThread);
         }
         Log.i(TAG, "clientConnectThreadsList size " + clientConnectThreadsList.size());
-        setServerDisconnectionListener(this);
+    }
+
+    @Override
+    public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
+        return Collections.singletonList(clientToServerSocketReadWriter);
+    }
+
+    /**
+     * When the client device gets connected to a server
+     *
+     * @param msg the message received
+     */
+    @Override
+    public void onDeviceConnected(Message msg) {
+        Log.i(TAG, "Connected as a client to a device");
+        Object object = msg.obj;
+
+        clientToServerSocketReadWriter = (BluetoothSocketReadWriter) object;
+
+        // Send the client device Id to the server device
+        sendConnectorMessage(Arrays.<Object>asList(getDeviceId(), Settings.DEVICE_ID_EXCHANGE),
+                getBluetoothSocketReadWriterList());
+    }
+
+    /**
+     * When a receiver message is received
+     * @param msg the message received
+     * @param messageData the decoded data
+     */
+    @Override
+    public void onReceiverMessage(Message msg, List<Object> messageData) {
+        // Remove the routing id before passing the message to receiver
+        getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
+    }
+
+    /**
+     * When a socket gets closed
+     *
+     * @param msg the message received
+     */
+    @Override
+    public void onSocketClose(Message msg) {
+        handleServerDisconnection();
+
+        for (String deviceId : getDeviceIdsList().values()) {
+            getReceiver().onDeviceDisconnected(deviceId);
+        }
+        getDeviceIdsList().clear();
+
+        clientToServerSocketReadWriter = null;
+    }
+
+    /**
+     * When a connector message is received
+     * @param msg the message received
+     * @param messageData the decoded data
+     */
+    @Override
+    public void onConnectorMessage(Message msg, List<Object> messageData) {
+        String eventTypeReceived = (String) messageData.get(messageData.size() - 2);
+        String deviceIdReceived = (String) messageData.get(messageData.size() - 3);
+
+        if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
+            // Save the id of the newly connected device
+            getDeviceIdsList().put((getDeviceIdsList().size()), deviceIdReceived);
+            Log.i(TAG, "deviceIdList " + getDeviceIdsList());
+
+            getReceiver().onDeviceConnected(deviceIdReceived);
+        } else if (eventTypeReceived.equals(Settings.DEVICE_DISCONNECTED)) {
+            // Remove the id of the disconnected device
+            Iterator<Integer> iterator = getDeviceIdsList().keySet().iterator();
+            while (iterator.hasNext()) {
+                Integer key = iterator.next();
+                if (getDeviceIdsList().get(key).equals(deviceIdReceived)) {
+                    iterator.remove();
+                }
+            }
+            Log.i(TAG, "deviceIdList " + getDeviceIdsList());
+
+            getReceiver().onDeviceDisconnected(deviceIdReceived);
+        }
     }
 
     @Override
@@ -70,11 +157,12 @@ public class BluetoothClientConnector extends BluetoothConnector implements
         }
     }
 
-    @Override
-    public void handleServerDisconnection() {
+    /**
+     * Handle the server disconnection so that it starts looking for new server connection
+     */
+    private void handleServerDisconnection() {
         bluetoothClientConnectThread.handleServerDisconnection();
     }
-
 
     private void setBluetoothClientConnectThread(BluetoothClientConnectThread
                                                          bluetoothClientConnectThread) {
