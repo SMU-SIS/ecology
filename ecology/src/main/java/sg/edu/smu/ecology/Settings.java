@@ -3,15 +3,13 @@ package sg.edu.smu.ecology;
 /**
  * Created by tnnguyen on 28/4/16.
  */
-public class Settings {
-    public static final String SERVICE_REG_TYPE = "_presence._tcp";
-    public static final String TXTRECORD_PROP_AVAILABLE = "available";
-    public static final int MESSAGE_READ = 0x400 + 1;
-    public static final int MY_HANDLE = 0x400 + 2;
-    public static final int SOCKET_CLOSE = 0x400 + 3;
-    public static final int SOCKET_CLIENT = 0x400 + 4;
-    public static final int SOCKET_SERVER = 0x400 + 5;
-    public static final int TIME_OUT = 5000;
-    public static int SERVER_PORT = 6868;
-    public static String ECOLOGY_NAME = "Magi Ecology";
+class Settings {
+    static final int MESSAGE_RECEIVED = 0x400 + 1;
+    static final int SOCKET_CONNECTED = 0x400 + 2;
+    static final int SOCKET_CLOSE = 0x400 + 3;
+    static final int TIME_OUT = 5000;
+    static int SERVER_PORT = 6868;
+    static final String DEVICE_DISCONNECTED = "device:disconnected";
+    static final String DEVICE_CONNECTED = "device:connected";
+    static final String DEVICE_ID_EXCHANGE = "deviceId";
 }

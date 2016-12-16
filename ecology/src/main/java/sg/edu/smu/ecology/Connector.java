@@ -28,9 +28,11 @@ public interface Connector {
 
     /**
      * Ask the connector to connect itself.
+     *
      * @param context
+     * @param deviceId
      */
-    public void connect(Context context);
+    public void connect(Context context, String deviceId);
 
     /**
      * Request a disconnection.
@@ -56,14 +58,19 @@ public interface Connector {
         public void onMessage(List<Object> message);
 
         /**
-         * Receive the connection notifications.
+         * Receive the device connection notifications
+         *
+         * @param deviceId the id of the device that got connected
          */
-        public void onConnectorConnected();
+        public void onDeviceConnected(String deviceId);
 
         /**
-         * Receive the disconnection notifications.
+         * Receive the device disconnection notifications
+         *
+         * @param deviceId the id of the device that got disconnected
          */
-        public void onConnectorDisconnected();
+        public void onDeviceDisconnected(String deviceId);
+
     }
 
 }

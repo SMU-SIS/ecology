@@ -63,22 +63,44 @@ public class Ecology {
             }
 
             @Override
-            public void onConnectorConnected() {
-                Ecology.this.onConnectorConnected();
+            public void onDeviceConnected(String deviceId) {
+                Ecology.this.onDeviceConnected(deviceId);
             }
 
             @Override
-            public void onConnectorDisconnected() {
-                Ecology.this.onConnectorDisconnected();
+            public void onDeviceDisconnected(String deviceId) {
+                Ecology.this.onDeviceDisconnected(deviceId);
             }
         });
     }
 
     /**
+     * Called when a device is connected
+     *
+     * @param deviceId the id of the device that got connected
+     */
+    private void onDeviceConnected(String deviceId) {
+        for (Room room : rooms.values()) {
+            room.onDeviceConnected(deviceId);
+        }
+    }
+
+    /**
+     * Called when a device is disconnected.
+     *
+     * @param deviceId the id of the device that got disconnected
+     */
+    private void onDeviceDisconnected(String deviceId) {
+        for (Room room : rooms.values()) {
+            room.onDeviceDisconnected(deviceId);
+        }
+    }
+
+    /**
      * Connect to the ecology.
      */
-    void connect(Context context) {
-        connector.connect(context);
+    void connect(Context context, String deviceId) {
+        connector.connect(context, deviceId);
     }
 
     /**
@@ -107,24 +129,6 @@ public class Ecology {
             room.onMessage(message.subList(0, message.size() - 1));
         }
 
-    }
-
-    /**
-     * Called when the ecology connector is connected.
-     */
-    private void onConnectorConnected() {
-        for (Room room : rooms.values()) {
-            room.onEcologyConnected();
-        }
-    }
-
-    /**
-     * Called when the ecology connector is disconnected.
-     */
-    private void onConnectorDisconnected() {
-        for (Room room : rooms.values()) {
-            room.onEcologyDisconnected();
-        }
     }
 
     /**

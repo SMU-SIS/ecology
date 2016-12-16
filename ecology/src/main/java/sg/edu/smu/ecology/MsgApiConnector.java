@@ -119,7 +119,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * Connect to the ecology.
      */
     @Override
-    public void connect(Context context) {
+    public void connect(Context context, String deviceId) {
 
         googleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Wearable.API)
@@ -169,7 +169,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
                         if(nodeId.size() > 0){
                             onConnectorConnected = true;
-                            receiver.onConnectorConnected();
+                            receiver.onDeviceConnected(nodeId.get(0));
                         }
                     }
                 });

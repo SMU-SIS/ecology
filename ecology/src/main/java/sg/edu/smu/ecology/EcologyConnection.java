@@ -1,7 +1,6 @@
 package sg.edu.smu.ecology;
 
 import android.content.Context;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -113,13 +112,13 @@ public class EcologyConnection extends BaseConnector {
     /**
      * Connect to the ecology.
      */
-    public void connect(Context context) {
+    public void connect(Context context, String deviceId) {
         // Connect all connectors.
         for (Connector connector : dependentConnectorList) {
-            connector.connect(context);
+            connector.connect(context, deviceId);
         }
         for (Connector connector : coreConnectorList) {
-            connector.connect(context);
+            connector.connect(context, deviceId);
         }
     }
 
@@ -144,46 +143,11 @@ public class EcologyConnection extends BaseConnector {
     }
 
     /**
-     * Called when a connector has been disconnected.
-     *
-     * @param connector
-     */
-    private void onConnectorConnected(Connector connector) {
-        for (Connector thisConnector : dependentConnectorList) {
-            if (!thisConnector.isConnected()) {
-                return;
-            }
-        }
-        for (Connector thisConnector : coreConnectorList) {
-            if (!thisConnector.isConnected()) {
-                return;
-            }
-        }
-        // If we reach this point, we know that all sub-connectors are now connected.
-        isConnected = true;
-        // Notify the receiver that the EcologyConnection is now connected.
-        getReceiver().onConnectorConnected();
-    }
-
-    /**
-     * Called when a connector is connected.
-     *
-     * @param connector
-     */
-    private void onConnectorDisconnected(Connector connector) {
-        // If we were previously connected, we notify the receiver of the disconnection.
-        if(isConnected) {
-            isConnected = false;
-            getReceiver().onConnectorDisconnected();
-        }
-    }
-
-    /**
      * Base class for the inner connector receivers.
      * <p>
-     * Forward {@link Connector.Receiver#onConnectorConnected()} and
-     * {@link Connector.Receiver#onConnectorDisconnected()} to
-     * {@link #onConnectorConnected(Connector)} and {@link #onConnectorDisconnected(Connector)}
+     * Forward {@link Connector.Receiver#onDeviceConnected(String deviceId)} and
+     * {@link Connector.Receiver#onDeviceDisconnected(String deviceId)} to
+     * {@link #onDeviceConnected(String)} )} and {@link #onDeviceDisconnected(String)}
      */
     private abstract class ConnectorReceiver implements Connector.Receiver {
         public final Connector connector;
@@ -193,14 +157,33 @@ public class EcologyConnection extends BaseConnector {
         }
 
         @Override
-        public void onConnectorConnected() {
-            EcologyConnection.this.onConnectorConnected(connector);
+        public void onDeviceConnected(String deviceId) {
+            EcologyConnection.this.onDeviceConnected(deviceId);
+
         }
 
         @Override
-        public void onConnectorDisconnected() {
-            EcologyConnection.this.onConnectorDisconnected(connector);
+        public void onDeviceDisconnected(String deviceId) {
+            EcologyConnection.this.onDeviceDisconnected(deviceId);
         }
+    }
+
+    /**
+     * Called when a device is connected
+     *
+     * @param deviceId the id of the device that got connected
+     */
+    private void onDeviceConnected(String deviceId) {
+        getReceiver().onDeviceConnected(deviceId);
+    }
+
+    /**
+     * Called when a device gets disconnected
+     *
+     * @param deviceId the id of the device that got disconnected
+     */
+    private void onDeviceDisconnected(String deviceId) {
+        getReceiver().onDeviceDisconnected(deviceId);
     }
 
     /**
