@@ -64,16 +64,12 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      */
     private byte[] encodeMessage(List<Object> message) {
         MessageEncoder messageEncoder = new MessageEncoder();
-
-        byte[] encodedMessage = new byte[0];
-
         try {
-            encodedMessage = messageEncoder.encode(message);
+            return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
             e.printStackTrace();
+            return new byte[0];
         }
-
-        return encodedMessage;
     }
 
     /**
