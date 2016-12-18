@@ -31,9 +31,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private Connector.Receiver receiver;
     private BroadcastManager broadcastManager = null;
     private SocketConnectionStarter socketConnectionStarter;
-
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
+    // Message encoder to encode the message into byte arrays before sending it.
+    private final MessageEncoder messageEncoder = new MessageEncoder();
 
     /**
      * Used to save the application context
@@ -73,7 +74,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * @return the encoded message
      */
     private byte[] encodeMessage(List<Object> message) {
-        MessageEncoder messageEncoder = new MessageEncoder();
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {

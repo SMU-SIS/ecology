@@ -37,6 +37,8 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     private Connector.Receiver receiver;
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
+    // Message encoder to encode the message into byte arrays before sending it.
+    private final MessageEncoder messageEncoder = new MessageEncoder();
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -63,7 +65,6 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * @return the encoded message
      */
     private byte[] encodeMessage(List<Object> message) {
-        MessageEncoder messageEncoder = new MessageEncoder();
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {

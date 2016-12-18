@@ -64,6 +64,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private String deviceId;
     // To store the device ids(user generated) of all the connected devices.
     private Map<Integer, String> deviceIdsList = new HashMap<>();
+    // Message encoder to encode the message into byte arrays before sending it.
+    private final MessageEncoder messageEncoder = new MessageEncoder();
 
     @Override
     public void sendMessage(List<Object> message) {
@@ -264,7 +266,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @return the encoded message
      */
     private byte[] encodeMessage(List<Object> message) {
-        MessageEncoder messageEncoder = new MessageEncoder();
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
