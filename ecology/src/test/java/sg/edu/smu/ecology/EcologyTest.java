@@ -37,20 +37,16 @@ public class EcologyTest {
     private Ecology ecology;
 
     @Mock
-    private EcologyConnection ecologyConnection;
-    @Mock
     private Room room;
     @Mock
     private Ecology.RoomFactory roomFactory;
     @Mock
-    private Wifip2pConnector wifip2pConnector;
-    @Mock
-    private MsgApiConnector msgApiConnector;
+    private Connector connector;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ecology = new Ecology(roomFactory, ecologyConnection);
+        ecology = new Ecology(roomFactory, connector);
 
         // Prepare the mock
         PowerMockito.mockStatic(Log.class);
@@ -75,7 +71,7 @@ public class EcologyTest {
         connectorData.add(roomName);
 
         // To verify if the connector received the message
-        verify(ecologyConnection).sendMessage(connectorData);
+        verify(connector).sendMessage(connectorData);
     }
 
     // Check if room is added or not
@@ -114,11 +110,11 @@ public class EcologyTest {
         List<Object> data = Arrays.<Object>asList(1, "test", roomName);
 
         // To verify if add receiver was called only once
-        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
+        verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        verify(connector).setReceiver(receiverCaptor.capture());
         // Create a local mock receiver
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
@@ -143,11 +139,11 @@ public class EcologyTest {
         List<Object> data = Arrays.<Object>asList(1, "test", roomName);
 
         // To verify if add receiver was called only once
-        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
+        verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        verify(connector).setReceiver(receiverCaptor.capture());
         // Create a local mock receiver
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
@@ -167,11 +163,11 @@ public class EcologyTest {
     @Test
     public void testIncorrectReceiverMessage() {
         // To verify if add receiver was called only once
-        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
+        verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
         // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
+        verify(connector).setReceiver(receiverCaptor.capture());
         // Create a local mock receiver
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
@@ -196,69 +192,68 @@ public class EcologyTest {
         //Log.e(TAG,"Exception -1");
     }
 
-    // Check if connector connected to ecology message is received from connector
+    // Check if device connected to ecology message is received from connector
     // Also to verify that all the rooms in the ecology receive this message
     @Test
-    public void testConnectorConnected() {
-//        // To verify if add receiver was called only once
-//        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
-//
-//        // To capture the argument in the addReceiver method
-//        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-//        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
-//        // Create a local mock receiver
-//        Connector.Receiver receiver;
-//        receiver = receiverCaptor.getValue();
-//
-//        // To get the mock room
-//        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
-//        room = ecology.getRoom("room");
-//
-//        // One more room is added to the ecology
-//        Room room1 = mock(Room.class);
-//        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
-//        room1 = ecology.getRoom("room1");
-//
-//        // Receiver receives the message that connector has been connected to the ecology
-//        receiver.onConnectorConnected();
-//
-//        // To verify that all the rooms in the ecology receive the message
-//        verify(room, times(1)).onEcologyConnected();
-//        verify(room1, times(1)).onEcologyConnected();
+    public void testDeviceConnected() {
+        // To verify if add receiver was called only once
+        verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        fail("To update to the new API");
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(connector).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
+        receiver = receiverCaptor.getValue();
+
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // One more room is added to the ecology
+        Room room1 = mock(Room.class);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        room1 = ecology.getRoom("room1");
+
+        String deviceId = "Mobile";
+        // Receiver receives the message that the device has been connected to the ecology
+        receiver.onDeviceConnected(deviceId);
+
+        // To verify that all the rooms in the ecology receive the message
+        verify(room, times(1)).onDeviceConnected(deviceId);
+        verify(room1, times(1)).onDeviceConnected(deviceId);
+
     }
 
-    // Check if connector disconnected from ecology message is received from connector
+    // Check if device disconnected from ecology message is received from connector
     // Also to verify that all the rooms in the ecology receive this message
     @Test
-    public void testConnectorDisonnected() {
-//        // To verify if add receiver was called only once
-//        verify(ecologyConnection, times(1)).setReceiver(any(Connector.Receiver.class));
-//
-//        // To capture the argument in the addReceiver method
-//        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
-//        verify(ecologyConnection).setReceiver(receiverCaptor.capture());
-//        // Create a local mock receiver
-//        Connector.Receiver receiver;
-//        receiver = receiverCaptor.getValue();
-//
-//        // To get the mock room
-//        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
-//        room = ecology.getRoom("room");
-//
-//        // One more room is added to the ecology
-//        Room room1 = mock(Room.class);
-//        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
-//        room1 = ecology.getRoom("room1");
-//
-//        // Receiver receives the message that connector has been disconnected from the ecology
-//        receiver.onConnectorDisconnected();
-//
-//        // To verify that all the rooms in the ecology receive the message
-//        verify(room, times(1)).onEcologyDisconnected();
-//        verify(room1, times(1)).onEcologyDisconnected();
+    public void testDeviceDisconnected() {
+        // To verify if add receiver was called only once
+        verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        fail("To update to the new API");
+        // To capture the argument in the addReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(connector).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
+        receiver = receiverCaptor.getValue();
+
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // One more room is added to the ecology
+        Room room1 = mock(Room.class);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        room1 = ecology.getRoom("room1");
+
+        String deviceId = "Mobile";
+        // Receiver receives the message that the device has been disconnected from the ecology
+        receiver.onDeviceDisconnected(deviceId);
+
+        // To verify that all the rooms in the ecology receive the message
+        verify(room, times(1)).onDeviceDisconnected(deviceId);
+        verify(room1, times(1)).onDeviceDisconnected(deviceId);
     }
 }
