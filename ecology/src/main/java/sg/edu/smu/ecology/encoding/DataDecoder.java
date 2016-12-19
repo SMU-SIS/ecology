@@ -129,22 +129,7 @@ public class DataDecoder {
      *   or <code>null</code>, in case of no arguments
      */
     private CharSequence readTypes(final Input rawInput) {
-        final String typesStr;
-
-        // The next byte should be a ',', but some legacy code may omit it
-        // in case of no arguments, refering to "OSC Messages" in:
-        // http://opensoundcontrol.org/spec-1_0
-        if (rawInput.getBytes().length <= rawInput.getStreamPosition()) {
-            typesStr = NO_ARGUMENT_TYPES;
-        } else if (rawInput.getBytes()[rawInput.getStreamPosition()] != ',') {
-            // XXX should we not rather fail-fast -> throw exception?
-            typesStr = NO_ARGUMENT_TYPES;
-        } else {
-            rawInput.getAndIncreaseStreamPositionByOne();
-            typesStr = readString(rawInput);
-        }
-
-        return typesStr;
+        return readString(rawInput);
     }
 
     /**

@@ -16,7 +16,7 @@ public class MessageData {
     };
 
     protected ArrayList<Object> arguments;
-    protected String typeTags = ",";
+    protected String typeTags = "";
     private int dataSize = 0;
 
     public MessageData() {
