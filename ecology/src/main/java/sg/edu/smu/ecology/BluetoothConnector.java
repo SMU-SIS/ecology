@@ -66,7 +66,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private Map<Integer, String> deviceIdsList = new HashMap<>();
     // Message encoder to encode the message into byte arrays before sending it.
     private final MessageEncoder messageEncoder = new MessageEncoder();
-    // Message decoder to byte arrays into messages.
+    // Message decoder to decode byte arrays into messages.
     private final MessageDecoder messageDecoder = new MessageDecoder();
 
     @Override
