@@ -149,10 +149,4 @@ public class MessageData {
         // logger.debug("PAD " + pad);
         return len + pad;
     }
-
-    public void clearArguments(){
-        arguments.clear();
-    }
-
-
 }
