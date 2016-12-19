@@ -139,4 +139,23 @@ public class MessageDataTest {
         assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
     }
 
+    @Test
+    public void manyThingsEncodingSizeTest() throws CharacterCodingException {
+        Map<Object, Object> map = new HashMap<>();
+        map.put(4, 3);
+        map.put(0, null);
+        map.put('c', 'u');
+        map.put("key", Arrays.asList("val1", "val2", 3, 4.0));
+        map.put(2.3f, 3.4);
+        msgData.addArgument(5);
+        msgData.addArgument("hello");
+        msgData.addArgument(Arrays.asList(3, 4f, map));
+
+        // Encode the message in the buffer.
+        encoder.encodeMessage(msgData, buffer);
+
+        // Check that the message has the size evaluated by MessageData
+        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+    }
+
 }
