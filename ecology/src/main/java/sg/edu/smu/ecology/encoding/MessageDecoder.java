@@ -1,7 +1,5 @@
 package sg.edu.smu.ecology.encoding;
 
-import java.nio.charset.CharacterCodingException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
