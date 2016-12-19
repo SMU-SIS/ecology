@@ -214,21 +214,14 @@ public class DataDecoder {
     }
 
     private Argument readMapArgument(final Input rawInput, final CharSequence types, int position){
-        List<Object> keys = new ArrayList<>();
         HashMap<Object, Object> map = new HashMap<>();
         int i = position + 1;
-        // Fetch the keys.
-        while(types.charAt(i) != ':'){
-            Argument valArg = readOneArgument(rawInput, types, i);
-            i += valArg.typeCodeSize;
-            keys.add(valArg.value);
-        }
-        i++;
-        // Fetch the values and map them directly with the corresponding key.
-        for(Object k: keys){
+        while(types.charAt(i) != '}'){
             Argument keyArg = readOneArgument(rawInput, types, i);
             i += keyArg.typeCodeSize;
-            map.put(k, keyArg.value);
+            Argument valArg = readOneArgument(rawInput, types, i);
+            i += valArg.typeCodeSize;
+            map.put(keyArg.value, valArg.value);
         }
         return new Argument(map, i - position + 1);
     }

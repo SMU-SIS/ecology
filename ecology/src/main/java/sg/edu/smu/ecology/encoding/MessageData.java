@@ -73,15 +73,10 @@ public class MessageData {
 
     public void addArgument(Map<Object, Object> map) {
         typeTags += '{';
-        List<Object> keys = new ArrayList<>(map.keySet());
-        // Add the keys.
-        for(Object k: keys){
-            addArgument(k);
-        }
-        typeTags += ':';
-        // Add the values.
-        for(Object k: keys){
-            addArgument(map.get(k));
+        // Add the couples key / values.
+        for(Map.Entry<Object, Object> entry: map.entrySet()){
+            addArgument(entry.getKey());
+            addArgument(entry.getValue());
         }
         typeTags += '}';
     }
