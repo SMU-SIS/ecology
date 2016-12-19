@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -80,6 +81,17 @@ public class MessageDataTest {
     public void nullEncodingSizeTest() throws CharacterCodingException {
         msgData.addArgument((Object) null);
         msgData.addArgument((Object) null);
+
+        // Encode the message in the buffer.
+        encoder.encodeMessage(msgData, buffer);
+
+        // Check that the message has the size evaluated by MessageData
+        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+    }
+
+    @Test
+    public void emptyListEncodingSizeTest() throws CharacterCodingException {
+        msgData.addArgument(Collections.emptyList());
 
         // Encode the message in the buffer.
         encoder.encodeMessage(msgData, buffer);
