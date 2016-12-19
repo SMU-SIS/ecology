@@ -111,4 +111,32 @@ public class MessageDataTest {
         assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
     }
 
+    @Test
+    public void mapEncodingSizeTest() throws CharacterCodingException {
+        Map<Object, Object> map = new HashMap<>();
+        map.put(4, 3);
+        map.put("hello", null);
+        map.put('c', 'u');
+        map.put("c", 'u');
+        map.put(2.3f, 3.4);
+        msgData.addArgument(map);
+
+        // Encode the message in the buffer.
+        encoder.encodeMessage(msgData, buffer);
+
+        // Check that the message has the size evaluated by MessageData
+        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+    }
+
+    @Test
+    public void emptyMapEncodingSizeTest() throws CharacterCodingException {
+        msgData.addArgument(Collections.emptyMap());
+
+        // Encode the message in the buffer.
+        encoder.encodeMessage(msgData, buffer);
+
+        // Check that the message has the size evaluated by MessageData
+        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+    }
+
 }
