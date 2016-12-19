@@ -3,6 +3,7 @@ package sg.edu.smu.ecology.encoding;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -11,6 +12,20 @@ import java.util.List;
 public class DataDecoder {
 
     private static final String NO_ARGUMENT_TYPES = "";
+
+    // This class represents an argument and the amount of character it took to code in the types
+    // sequence. It is returned by the readArgument methods.
+    private static class Argument {
+        // The increment in the types sequence caused by the argument.
+        public int typeCodeSize;
+        // The value of the argument.
+        public Object value;
+
+        public Argument(Object value, int typeCodeSize){
+            this.typeCodeSize = typeCodeSize;
+            this.value = value;
+        }
+    }
 
     private static class Input {
 
@@ -85,7 +100,9 @@ public class DataDecoder {
         final CharSequence types = readTypes(rawInput);
 
         for (int ti = 0; ti < types.length();) {
-            ti += readOneArgument(rawInput, types, ti, messageData);
+            Argument arg = readOneArgument(rawInput, types, ti);
+            messageData.add(arg.value);
+            ti += arg.typeCodeSize;
         }
         return messageData;
     }
@@ -138,68 +155,83 @@ public class DataDecoder {
      * @param rawInput The stream where to read the argument.
      * @param types The types sequence.
      * @param position The current position in the type list.
-     * @param args The list of arguments where to put the newly read arg.
-     * @return The increment in the types sequence (usually 1, but composite arguments like list
-     *         will read more).
+     * @return The argument.
      */
-    private int readOneArgument(
-            final Input rawInput, CharSequence types, int position, List<Object> args){
+    private Argument readOneArgument(final Input rawInput, final CharSequence types, int position){
         char type = types.charAt(position);
-        // Read a list.
-        if(types.charAt(position) == '['){
-            int li = position + 1;
-            List<Object> list = new ArrayList<>();
-            while(li < types.length() && types.charAt(li) != ']'){
-                li += readOneArgument(rawInput, types, li, list);
-            }
-            args.add(list);
-            return li - position + 1;
-        // Read a simple argument.
-        } else {
-            args.add(readSimpleArgument(rawInput, type));
-            return 1;
-        }
-    }
-
-    /**
-     * Reads an object of the type specified by the type char.
-     * @param type type of the argument to read
-     * @return a Java representation of the argument
-     */
-    private Object readSimpleArgument(final Input rawInput, final char type) {
         switch (type) {
             case 'u' :
-                return readUnsignedInteger(rawInput);
+                return new Argument(readUnsignedInteger(rawInput), 1);
             case 'i' :
-                return readInteger(rawInput);
+                return new Argument(readInteger(rawInput), 1);
             case 'h' :
-                return readLong(rawInput);
+                return new Argument(readLong(rawInput), 1);
             case 'f' :
-                return readFloat(rawInput);
+                return new Argument(readFloat(rawInput), 1);
             case 'd' :
-                return readDouble(rawInput);
+                return new Argument(readDouble(rawInput), 1);
             case 's' :
-                return readString(rawInput);
+                return new Argument(readString(rawInput), 1);
             case 'b' :
-                return readBlob(rawInput);
+                return new Argument(readBlob(rawInput), 1);
             case 'c' :
-                return readChar(rawInput);
+                return new Argument(readChar(rawInput), 1);
             case 'C' :
-                return readUnicodeChar(rawInput);
+                return new Argument(readUnicodeChar(rawInput), 1);
             case 'N' :
-                return null;
+                return new Argument(null, 1);
             case 'T' :
-                return Boolean.TRUE;
+                return new Argument(Boolean.TRUE, 1);
             case 'F' :
-                return Boolean.FALSE;
+                return new Argument(Boolean.FALSE, 1);
+            case '[':
+                return readListArgument(rawInput, types, position);
+            case '{':
+                return readMapArgument(rawInput, types, position);
             default:
                 // XXX Maybe we should let the user choose what to do in this
                 //   case (we encountered an unknown argument type in an
                 //   incomming message):
                 //   just ignore (return null), or throw an exception?
-				throw new UnsupportedOperationException(
-						"Invalid or not yet supported type: '" + type + "'");
+                throw new UnsupportedOperationException(
+                        "Invalid or not yet supported type: '" + type + "'");
         }
+    }
+
+    private Argument readMapArgument(final Input rawInput, final CharSequence types, int position){
+        // Initialize the map.
+        HashMap<Object, Object> map = new HashMap<>();
+        // Pass the opening bracket (position should be on the '{' that indicates the beginning
+        // of a map).
+        int i = position + 1;
+        // Iteratively parse each key value pairs.
+        while(types.charAt(i) != '}'){
+            Argument keyArg = readOneArgument(rawInput, types, i);
+            i += keyArg.typeCodeSize;
+            Argument valArg = readOneArgument(rawInput, types, i);
+            i += valArg.typeCodeSize;
+            map.put(keyArg.value, valArg.value);
+        }
+        // Calculate the position increment, including the opening and closing brackets.
+        int typeInc = i - position + 1;
+        return new Argument(map, typeInc);
+    }
+
+    private Argument readListArgument(final Input rawInput, final CharSequence types, int position){
+        // Initialize the array.
+        List<Object> list = new ArrayList<>();
+        // Pass the opening bracket (position should be on the '[' that indicates the beginning of
+        // an array).
+        int li = position + 1;
+        // Parse the content of the array.
+        while(types.charAt(li) != ']'){
+            Argument subArg = readOneArgument(rawInput, types, li);
+            li += subArg.typeCodeSize;
+            list.add(subArg.value);
+        }
+        // Calculate the position increment, including the opening and closing brackets.
+        int typeInc = li - position + 1;
+        return new Argument(list, typeInc);
     }
 
     /**
@@ -268,7 +300,6 @@ public class DataDecoder {
      * @return single precision, unsigned integer (32 bit) wrapped in a 64 bit integer (long)
      */
     private Long readUnsignedInteger(final Input rawInput) {
-
         final int firstByte = (0x000000FF & ((int) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()]));
         final int secondByte = (0x000000FF & ((int) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()]));
         final int thirdByte = (0x000000FF & ((int) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()]));
