@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -51,120 +52,128 @@ public class EcologyConnectionTest {
     // To test if the receiver is notified when a connectors get connected
     @Test
     public void testEcologyConnected() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector1).setReceiver(receiverCaptor1.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver1;
-        receiver1 = receiverCaptor1.getValue();
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector1).setReceiver(receiverCaptor1.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver1;
+//        receiver1 = receiverCaptor1.getValue();
+//
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector2).setReceiver(receiverCaptor2.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver2;
+//        receiver2 = receiverCaptor2.getValue();
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Mock isConnected method for connector1
+//        PowerMockito.when(connector1.isConnected()).thenReturn(true);
+//        // Connector 1 gets connected
+//        receiver1.onConnectorConnected();
+//
+//        // Mock isConnected method for connector2
+//        PowerMockito.when(connector2.isConnected()).thenReturn(true);
+//        // Connector 2 gets connected
+//        receiver2.onConnectorConnected();
+//
+//        // Receiver must be notified only once even if there are multiple connectors
+//        verify(receiver, times(1)).onConnectorConnected();
 
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector2).setReceiver(receiverCaptor2.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver2;
-        receiver2 = receiverCaptor2.getValue();
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Mock isConnected method for connector1
-        PowerMockito.when(connector1.isConnected()).thenReturn(true);
-        // Connector 1 gets connected
-        receiver1.onConnectorConnected();
-
-        // Mock isConnected method for connector2
-        PowerMockito.when(connector2.isConnected()).thenReturn(true);
-        // Connector 2 gets connected
-        receiver2.onConnectorConnected();
-
-        // Receiver must be notified only once even if there are multiple connectors
-        verify(receiver, times(1)).onConnectorConnected();
+        fail("To update to the new API");
     }
 
     // To test if the receiver is notified when a connector gets disconnected
     @Test
     public void testEcologyDisconnected() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector1).setReceiver(receiverCaptor1.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver1;
-        receiver1 = receiverCaptor1.getValue();
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector1).setReceiver(receiverCaptor1.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver1;
+//        receiver1 = receiverCaptor1.getValue();
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Mock isConnected method for connector1
+//        PowerMockito.when(connector1.isConnected()).thenReturn(true);
+//        // Connector 1 gets connected
+//        receiver1.onConnectorConnected();
+//
+//        // Connector 1 gets disconnected
+//        receiver1.onConnectorDisconnected();
+//
+//        // To verify that the receiver is notified about the disconnection
+//        verify(receiver, times(1)).onConnectorDisconnected();
 
-        ecologyConnection.setReceiver(receiver);
-
-        // Mock isConnected method for connector1
-        PowerMockito.when(connector1.isConnected()).thenReturn(true);
-        // Connector 1 gets connected
-        receiver1.onConnectorConnected();
-
-        // Connector 1 gets disconnected
-        receiver1.onConnectorDisconnected();
-
-        // To verify that the receiver is notified about the disconnection
-        verify(receiver, times(1)).onConnectorDisconnected();
+        fail("To update to the new API");
     }
 
     // To test isConnected method
     @Test
     public void testIsConnected() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector1).setReceiver(receiverCaptor1.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver1;
-        receiver1 = receiverCaptor1.getValue();
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector1).setReceiver(receiverCaptor1.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver1;
+//        receiver1 = receiverCaptor1.getValue();
+//
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector2).setReceiver(receiverCaptor2.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver2;
+//        receiver2 = receiverCaptor2.getValue();
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Mock isConnected method for connector1
+//        PowerMockito.when(connector1.isConnected()).thenReturn(true);
+//        // Connector 1 gets connected
+//        receiver1.onConnectorConnected();
+//
+//        // To check that when only one connector among two is connected, isConnected returns false
+//        assertEquals(false, ecologyConnection.isConnected());
+//
+//        // Mock isConnected method for connector2
+//        PowerMockito.when(connector2.isConnected()).thenReturn(true);
+//        // Connector 2 gets connected
+//        receiver2.onConnectorConnected();
+//
+//        // To check that when all the connectors are connected, isConnected returns true
+//        assertEquals(true, ecologyConnection.isConnected());
 
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector2).setReceiver(receiverCaptor2.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver2;
-        receiver2 = receiverCaptor2.getValue();
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Mock isConnected method for connector1
-        PowerMockito.when(connector1.isConnected()).thenReturn(true);
-        // Connector 1 gets connected
-        receiver1.onConnectorConnected();
-
-        // To check that when only one connector among two is connected, isConnected returns false
-        assertEquals(false, ecologyConnection.isConnected());
-
-        // Mock isConnected method for connector2
-        PowerMockito.when(connector2.isConnected()).thenReturn(true);
-        // Connector 2 gets connected
-        receiver2.onConnectorConnected();
-
-        // To check that when all the connectors are connected, isConnected returns true
-        assertEquals(true, ecologyConnection.isConnected());
+        fail("To update to the new API");
     }
 
     // To test ecology connect method
     @Test
     public void testConnectMethod() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//
+//        ecologyConnection.connect(context);
+//
+//        // To verify that all the added connectors' connect method is called once
+//        verify(connector1, times(1)).connect(context);
+//        verify(connector2, times(1)).connect(context);
 
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-
-        ecologyConnection.connect(context);
-
-        // To verify that all the added connectors' connect method is called once
-        verify(connector1, times(1)).connect(context);
-        verify(connector2, times(1)).connect(context);
+        fail("To update to the new API");
     }
 
     // To test ecology disconnect method
@@ -186,21 +195,23 @@ public class EcologyConnectionTest {
     // To test that send message method of all the connectors are invoked
     @Test
     public void testSendMessage() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//
+//        ecologyConnection.connect(context);
+//
+//        // Test data
+//        List<Object> data = Arrays.<Object>asList(1, "test");
+//
+//        ecologyConnection.sendMessage(data);
+//
+//        verify(connector1, times(1)).sendMessage(data);
+//        verify(connector2, times(1)).sendMessage(data);
 
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-
-        ecologyConnection.connect(context);
-
-        // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test");
-
-        ecologyConnection.sendMessage(data);
-
-        verify(connector1, times(1)).sendMessage(data);
-        verify(connector2, times(1)).sendMessage(data);
+        fail("To update to the new API");
     }
 
     // To verify that ecology connection receiver receives the message when a core connector receives
@@ -208,28 +219,30 @@ public class EcologyConnectionTest {
     // the received message
     @Test
     public void testOnMessageCore() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector1).setReceiver(receiverCaptor1.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver1;
-        receiver1 = receiverCaptor1.getValue();
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector1).setReceiver(receiverCaptor1.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver1;
+//        receiver1 = receiverCaptor1.getValue();
+//
+//        ecologyConnection.connect(context);
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Test data
+//        List<Object> data = Arrays.<Object>asList(1, "test");
+//
+//        // Core connector receiver receives the message
+//        receiver1.onMessage(data);
+//
+//        verify(receiver, times(1)).onMessage(data);
+//        // To verify that there is no forwarding of message
+//        verify(connector2, never()).sendMessage(data);
 
-        ecologyConnection.connect(context);
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test");
-
-        // Core connector receiver receives the message
-        receiver1.onMessage(data);
-
-        verify(receiver, times(1)).onMessage(data);
-        // To verify that there is no forwarding of message
-        verify(connector2, never()).sendMessage(data);
+        fail("To update to the new API");
     }
 
     // To verify that ecology connection receiver receives the message when a core connector receives
@@ -237,32 +250,34 @@ public class EcologyConnectionTest {
     // dependent connectors
     @Test
     public void testOnMessageCoreWithDependents() {
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector1).setReceiver(receiverCaptor1.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver1;
-        receiver1 = receiverCaptor1.getValue();
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor1 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector1).setReceiver(receiverCaptor1.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver1;
+//        receiver1 = receiverCaptor1.getValue();
+//
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//
+//        ecologyConnection.connect(context);
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Test data
+//        List<Object> data = Arrays.<Object>asList(1, "test");
+//
+//        // Core connector receiver receives the message
+//        receiver1.onMessage(data);
+//
+//        verify(receiver, times(1)).onMessage(data);
+//
+//        // To verify that there is forwarding of messages to dependent connectors
+//        verify(connector2, times(1)).sendMessage(data);
 
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-
-        ecologyConnection.connect(context);
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test");
-
-        // Core connector receiver receives the message
-        receiver1.onMessage(data);
-
-        verify(receiver, times(1)).onMessage(data);
-
-        // To verify that there is forwarding of messages to dependent connectors
-        verify(connector2, times(1)).sendMessage(data);
+        fail("To update to the new API");
     }
 
     // To verify that ecology connection receiver receives the message when a dependent connector
@@ -270,27 +285,29 @@ public class EcologyConnectionTest {
     // no added core connectors
     @Test
     public void testOnMessageDependent() {
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector2).setReceiver(receiverCaptor2.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver2;
-        receiver2 = receiverCaptor2.getValue();
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector2).setReceiver(receiverCaptor2.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver2;
+//        receiver2 = receiverCaptor2.getValue();
+//
+//        ecologyConnection.connect(context);
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Test data
+//        List<Object> data = Arrays.<Object>asList(1, "test");
+//
+//        // Dependent connector receiver receives the message
+//        receiver2.onMessage(data);
+//
+//        verify(receiver, times(1)).onMessage(data);
+//        verify(connector1, never()).sendMessage(data);
 
-        ecologyConnection.connect(context);
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test");
-
-        // Dependent connector receiver receives the message
-        receiver2.onMessage(data);
-
-        verify(receiver, times(1)).onMessage(data);
-        verify(connector1, never()).sendMessage(data);
+        fail("To update to the new API");
     }
 
     // To verify that ecology connection receiver receives the message when a dependent connector
@@ -298,31 +315,33 @@ public class EcologyConnectionTest {
     // connectors
     @Test
     public void testOnMessageDependentWithCoreConnectors() {
-        // Add a dependent connector
-        ecologyConnection.addDependentConnector(connector2);
-        // To capture the argument in the setReceiver method
-        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
-        verify(connector2).setReceiver(receiverCaptor2.capture());
-        // Create a local mock receiver
-        Connector.Receiver receiver2;
-        receiver2 = receiverCaptor2.getValue();
+//        // Add a dependent connector
+//        ecologyConnection.addDependentConnector(connector2);
+//        // To capture the argument in the setReceiver method
+//        ArgumentCaptor<Connector.Receiver> receiverCaptor2 = ArgumentCaptor.forClass(Connector.Receiver.class);
+//        verify(connector2).setReceiver(receiverCaptor2.capture());
+//        // Create a local mock receiver
+//        Connector.Receiver receiver2;
+//        receiver2 = receiverCaptor2.getValue();
+//
+//        // Add a core connector
+//        ecologyConnection.addCoreConnector(connector1);
+//
+//        ecologyConnection.connect(context);
+//
+//        ecologyConnection.setReceiver(receiver);
+//
+//        // Test data
+//        List<Object> data = Arrays.<Object>asList(1, "test");
+//
+//        // Dependent connector receiver receives the message
+//        receiver2.onMessage(data);
+//
+//        // To verify that receiver receives the message
+//        verify(receiver, times(1)).onMessage(data);
+//        // To verify that the received message is forwarded to core connector
+//        verify(connector1, times(1)).sendMessage(data);
 
-        // Add a core connector
-        ecologyConnection.addCoreConnector(connector1);
-
-        ecologyConnection.connect(context);
-
-        ecologyConnection.setReceiver(receiver);
-
-        // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test");
-
-        // Dependent connector receiver receives the message
-        receiver2.onMessage(data);
-
-        // To verify that receiver receives the message
-        verify(receiver, times(1)).onMessage(data);
-        // To verify that the received message is forwarded to core connector
-        verify(connector1, times(1)).sendMessage(data);
+        fail("To update to the new API");
     }
 }

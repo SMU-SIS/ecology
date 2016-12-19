@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -74,18 +75,22 @@ public class RoomTest {
     // Check if connector connected to ecology message received is published as a local event
     @Test
     public void testOnConnectorConnectedMessage() {
-        // Room receives the message that connector has been connected to the ecology
-        room.onEcologyConnected();
-        String ecologyConnected = "ecology:connected";
-        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyConnected, new ArrayList<>());
+//        // Room receives the message that connector has been connected to the ecology
+//        room.onEcologyConnected();
+//        String ecologyConnected = "ecology:connected";
+//        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyConnected, new ArrayList<>());
+
+        fail("To update to the new API");
     }
 
     // Check if connector disconnected from ecology message received is published as a local event
     @Test
     public void testOnConnectorDisonnectedMessage() {
-        // Room receives the message that connector has been disconnected from the ecology
-        room.onEcologyDisconnected();
-        String ecologyDisonnected = "ecology:disconnected";
-        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyDisonnected, new ArrayList<>());
+//        // Room receives the message that connector has been disconnected from the ecology
+//        room.onEcologyDisconnected();
+//        String ecologyDisonnected = "ecology:disconnected";
+//        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyDisonnected, new ArrayList<>());
+
+        fail("To update to the new API");
     }
 }
