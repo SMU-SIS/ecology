@@ -176,8 +176,6 @@ public class DataDecoder {
                 return new Argument(readBlob(rawInput), 1);
             case 'c' :
                 return new Argument(readChar(rawInput), 1);
-            case 'C' :
-                return new Argument(readUnicodeChar(rawInput), 1);
             case 'N' :
                 return new Argument(null, 1);
             case 'T' :
@@ -238,16 +236,9 @@ public class DataDecoder {
      * Reads a unicode char from the byte stream.
      * @return a {@link Character}
      */
-    private Character readUnicodeChar(final Input rawInput) {
-        return readString(rawInput).charAt(0);
-    }
-
-    /**
-     * Reads a char from the byte stream.
-     * @return a {@link Character}
-     */
     private Character readChar(final Input rawInput) {
-        return (char) (int) readInteger(rawInput);
+        // Characters are encoded as integers.
+        return (char) readInteger(rawInput).intValue();
     }
 
     private BigInteger readBigInteger(final Input rawInput, final int numBytes) {

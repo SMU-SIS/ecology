@@ -127,17 +127,9 @@ public class MessageData {
     }
 
     public void addArgument(Character c) {
-        if(c < (char) 128){
-            // ASCII characters are encoded as an integer.
-            typeTags += 'c';
-            arguments.add(c);
-            dataSize += 4;
-        } else {
-            // Unicode characters are encoded as a string.
-            typeTags += 'C';
-            arguments.add(c);
-            dataSize += getStringSize(c.toString());
-        }
+        typeTags += 'c';
+        arguments.add(c);
+        dataSize += 4;
     }
 
     public void addArgument(Boolean b) {
