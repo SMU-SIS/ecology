@@ -214,8 +214,12 @@ public class DataDecoder {
     }
 
     private Argument readMapArgument(final Input rawInput, final CharSequence types, int position){
+        // Initialize the map.
         HashMap<Object, Object> map = new HashMap<>();
+        // Pass the opening bracket (position should be on the '{' that indicates the beginning
+        // of a map).
         int i = position + 1;
+        // Iteratively parse each key value pairs.
         while(types.charAt(i) != '}'){
             Argument keyArg = readOneArgument(rawInput, types, i);
             i += keyArg.typeCodeSize;
@@ -223,18 +227,26 @@ public class DataDecoder {
             i += valArg.typeCodeSize;
             map.put(keyArg.value, valArg.value);
         }
-        return new Argument(map, i - position + 1);
+        // Calculate the position increment, including the opening and closing brackets.
+        int typeInc = i - position + 1;
+        return new Argument(map, typeInc);
     }
 
     private Argument readListArgument(final Input rawInput, final CharSequence types, int position){
+        // Initialize the array.
         List<Object> list = new ArrayList<>();
+        // Pass the opening bracket (position should be on the '[' that indicates the beginning of
+        // an array).
         int li = position + 1;
+        // Parse the content of the array.
         while(types.charAt(li) != ']'){
             Argument subArg = readOneArgument(rawInput, types, li);
             li += subArg.typeCodeSize;
             list.add(subArg.value);
         }
-        return new Argument(list, li - position + 1);
+        // Calculate the position increment, including the opening and closing brackets.
+        int typeInc = li - position + 1;
+        return new Argument(list, typeInc);
     }
 
     /**
