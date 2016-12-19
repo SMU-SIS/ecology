@@ -49,19 +49,29 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
     public void stringEncodingSizeTest() throws CharacterCodingException {
-        msgData.addArgument("hello");
-        msgData.addArgument('c');
+        msgData.addArgument("@œ$å∫");
 
         // Encode the message in the buffer.
         encoder.encodeMessage(msgData, buffer);
+        int unicodeSize = buffer.position();
+        // Assert that the size of fully unicode string is properly estimated.
+        assertThat(unicodeSize).isEqualTo(msgData.getMaximumByteSize());
 
-        // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        // Assert that the estimated size of non fully unicode string is not greater than
+        // the size of a fully unicode string (of the same length), and is not greater than
+        // the actual size.
+        msgData = new MessageData();
+        msgData.addArgument("hello");
+        buffer.clear();
+        encoder.encodeMessage(msgData, buffer);
+        int asciiSize = buffer.position();
+        assertThat(asciiSize).isAtMost(unicodeSize);
+        assertThat(asciiSize).isAtMost(msgData.getMaximumByteSize());
     }
 
     @Test
@@ -74,7 +84,7 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
@@ -86,7 +96,7 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
@@ -97,27 +107,25 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
     public void listEncodingSizeTest() throws CharacterCodingException {
-        msgData.addArgument(Arrays.asList(1, 4.5, 3f, true, "stuff"));
+        msgData.addArgument(Arrays.asList(1, 4.5, 3f, true));
 
         // Encode the message in the buffer.
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
     public void mapEncodingSizeTest() throws CharacterCodingException {
         Map<Object, Object> map = new HashMap<>();
         map.put(4, 3);
-        map.put("hello", null);
         map.put('c', 'u');
-        map.put("c", 'u');
         map.put(2.3f, 3.4);
         msgData.addArgument(map);
 
@@ -125,7 +133,7 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
@@ -136,7 +144,7 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isEqualTo(msgData.getMaximumByteSize());
     }
 
     @Test
@@ -155,7 +163,7 @@ public class MessageDataTest {
         encoder.encodeMessage(msgData, buffer);
 
         // Check that the message has the size evaluated by MessageData
-        assertThat(buffer.position()).isEqualTo(msgData.getByteSize());
+        assertThat(buffer.position()).isAtMost(msgData.getMaximumByteSize());
     }
 
 }

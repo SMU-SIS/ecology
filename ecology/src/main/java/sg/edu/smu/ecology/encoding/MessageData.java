@@ -28,8 +28,15 @@ public class MessageData {
         return typeTags;
     }
 
-    public int getByteSize() {
-        return dataSize + getStringSize(getTypeTags());
+    /**
+     * Returns an estimation of the number of bytes of this message encoding. This estimation will
+     * always be greater than the actual encoded size so it is safe to use it to allocate the
+     * encoding byte buffer.
+     *
+     * @return the estimation.
+     */
+    public int getMaximumByteSize() {
+        return dataSize + getStringSize(getTypeTags(), false);
     }
 
     public void addArgument(Object argument) {
@@ -91,7 +98,7 @@ public class MessageData {
     public void addArgument(String param) {
         typeTags += 's';
         arguments.add(param);
-        int stringSize = getStringSize(param);
+        int stringSize = getStringSize(param, true);
         dataSize += stringSize;
     }
 
@@ -151,9 +158,9 @@ public class MessageData {
         dataSize += (mod > 0) ? 4 - mod : 0;
     }
 
-    private int getStringSize(String str) {
+    private int getStringSize(String str, boolean unicode) {
         // Add 1 because a string must be zero terminated
-        int len = str.length() + 1;
+        int len = unicode ? str.length() * 2 + 1 : str.length() + 1;
         // logger.debug("GetStringSize : " + str + " : " + len);
         int mod = len % 4;
         // logger.debug("MOD " + mod);
