@@ -16,16 +16,19 @@ public class MessageData {
     };
 
     protected ArrayList<Object> arguments;
-    protected String typeTags;
-    private int datasize = 0;
+    protected String typeTags = ",";
+    private int dataSize = 0;
 
     public MessageData() {
-        arguments = new ArrayList<Object>();
-        typeTags = ",";
+        arguments = new ArrayList<>();
     }
 
     public String getTypeTags() {
         return typeTags;
+    }
+
+    public int getByteSize() {
+        return dataSize + getStringSize(getTypeTags());
     }
 
     public void addArgument(Object argument) {
@@ -77,31 +80,31 @@ public class MessageData {
         typeTags += 's';
         arguments.add(param);
         int stringSize = getStringSize(param);
-        datasize += stringSize;
+        dataSize += stringSize;
     }
 
     public void addArgument(Float f) {
         typeTags += 'f';
         arguments.add(f);
-        datasize += 4;
+        dataSize += 4;
     }
 
     public void addArgument(Double d) {
         typeTags += 'd';
         arguments.add(d);
-        datasize += 8;
+        dataSize += 8;
     }
 
     public void addArgument(Integer i) {
         typeTags += 'i';
         arguments.add(i);
-        datasize += 4;
+        dataSize += 4;
     }
 
     public void addArgument(BigInteger b) {
         typeTags += 'h';
         arguments.add(b);
-        datasize += 8;
+        dataSize += 8;
     }
 
     public void addArgument(Character c) {
@@ -109,12 +112,12 @@ public class MessageData {
             // ASCII characters are encoded as an integer.
             typeTags += 'c';
             arguments.add(c);
-            datasize += 4;
+            dataSize += 4;
         } else {
             // Unicode characters are encoded as a string.
             typeTags += 'C';
             arguments.add(c);
-            datasize += getStringSize(c.toString());
+            dataSize += getStringSize(c.toString());
         }
     }
 
@@ -127,13 +130,13 @@ public class MessageData {
         arguments.add(bytes);
         int dataLength = bytes.length;
         // An int32 size count,
-        datasize += 4;
+        dataSize += 4;
         // followed by that many 8-bit bytes of arbitrary binary data,
-        datasize += dataLength;
+        dataSize += dataLength;
         // followed by 0-3 additional zero bytes to make the total number of
         // bits a multiple of 32.
         int mod = (dataLength % 4);
-        datasize += (mod > 0) ? 4 - mod : 0;
+        dataSize += (mod > 0) ? 4 - mod : 0;
     }
 
     private int getStringSize(String str) {
