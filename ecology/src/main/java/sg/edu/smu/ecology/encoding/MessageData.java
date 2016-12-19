@@ -74,10 +74,10 @@ public class MessageData {
         typeTags += ']';
     }
 
-    public void addArgument(Map<Object, Object> map) {
+    public void addArgument(Map<?, ?> map) {
         typeTags += '{';
         // Add the couples key / values.
-        for(Map.Entry<Object, Object> entry: map.entrySet()){
+        for(Map.Entry<?, ?> entry: map.entrySet()){
             addArgument(entry.getKey());
             addArgument(entry.getValue());
         }
