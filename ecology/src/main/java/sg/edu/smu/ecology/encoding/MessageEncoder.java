@@ -13,9 +13,6 @@ import java.util.List;
  * {@link MessageDecoder}.
  */
 public class MessageEncoder {
-    // The initial capacity of the auto-expending IoBuffer allocated for the storage of the
-    // encoded message.
-    private final static int INITIAL_BUFFER_SIZE = 64;
 
     // The data encoder used internally to encode a message.
     private DataEncoder encoder = new DataEncoder();
@@ -33,8 +30,7 @@ public class MessageEncoder {
             data.addArgument(obj);
         }
         // Allocate an auto-expending buffer to receive the encoded version of the message.
-        IoBuffer buffer = IoBuffer.allocate(INITIAL_BUFFER_SIZE, false);
-        buffer.setAutoExpand(true);
+        IoBuffer buffer = IoBuffer.allocate(data.getMaximumByteSize(), false);
         try {
             // Encode the message into the buffer.
             encoder.encodeMessage(data, buffer);
