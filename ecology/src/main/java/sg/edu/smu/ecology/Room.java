@@ -62,7 +62,7 @@ public class Room {
             @Override
             public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
                 getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
-                        Arrays.asList(dataId, newValue));
+                        Arrays.asList(dataId, newValue, oldValue));
             }
         });
     }
