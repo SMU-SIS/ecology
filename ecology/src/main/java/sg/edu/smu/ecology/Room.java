@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class Room {
     private EventBroadcaster eventBroadcaster;
 
     /**
-     * To store the sync data
+     * The data sync instance
      */
     private DataSync dataSync;
 
@@ -52,11 +53,16 @@ public class Room {
                 Room.this.onEventBroadcasterMessage(message);
             }
         });
-
         this.dataSync = new DataSync(new DataSync.Connector() {
             @Override
             public void onMessage(List<Object> message) {
                 Room.this.onDataSyncMessage(message);
+            }
+        }, new DataSync.SyncDataChangeListener() {
+            @Override
+            public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
+                getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
+                        Arrays.asList(dataId, newValue));
             }
         });
     }
@@ -89,7 +95,7 @@ public class Room {
     }
 
     /**
-     * Handle message from the room.
+     * Handle a message from the corresponding room instances in the other devices.
      *
      * @param message the content of the message
      */
@@ -97,7 +103,7 @@ public class Room {
         // Check if the received message is a sync data message or an event broadcaster event and
         // route them accordingly.
         if (message.get(message.size() - 1).equals(SYNC_DATA_MESSAGE_ID)) {
-            handleReceivedSyncData(message);
+            getDataSyncObject().onMessage(message.subList(0, message.size() - 1));
         } else if (message.get(message.size() - 1).equals(EVENT_MESSAGE_ID)) {
             getEventBroadcaster().onRoomMessage(message.subList(0, message.size() - 1));
         }
@@ -145,16 +151,5 @@ public class Room {
     void onDeviceDisconnected(String deviceId) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
-    }
-
-    /**
-     * Handle the received sync data from any device in the ecology
-     *
-     * @param message the message received
-     */
-    private void handleReceivedSyncData(List<Object> message) {
-        dataSync.getSyncDataChangeListener().onDataUpdate(message.subList(0, message.size() - 1));
-        getEventBroadcaster().publishLocalEvent("syncData",
-                message.subList(0, message.size() - 1));
     }
 }
