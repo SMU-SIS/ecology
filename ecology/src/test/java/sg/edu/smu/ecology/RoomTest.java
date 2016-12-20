@@ -8,8 +8,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -71,21 +71,27 @@ public class RoomTest {
         room = new Room("", ecology);
     }
 
-    // Check if connector connected to ecology message received is published as a local event
+    // Check if a device connected to ecology message received is published as a local event
     @Test
-    public void testOnConnectorConnectedMessage() {
-        // Room receives the message that connector has been connected to the ecology
-        room.onEcologyConnected();
-        String ecologyConnected = "ecology:connected";
-        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyConnected, new ArrayList<>());
+    public void testOnDeviceConnectedMessage() {
+        String deviceId = "Mobile";
+        // Room receives the message that a device has been connected to the ecology
+        room.onDeviceConnected(deviceId);
+        String deviceConnected = "device:connected";
+        // Verify that a local event is published
+        verify(eventBroadcaster, times(1)).publishLocalEvent(deviceConnected,
+                Collections.<Object>singletonList(deviceId));
     }
 
-    // Check if connector disconnected from ecology message received is published as a local event
+    // Check if a device disconnected message received is published as a local event
     @Test
-    public void testOnConnectorDisonnectedMessage() {
-        // Room receives the message that connector has been disconnected from the ecology
-        room.onEcologyDisconnected();
-        String ecologyDisonnected = "ecology:disconnected";
-        verify(eventBroadcaster, times(1)).publishLocalEvent(ecologyDisonnected, new ArrayList<>());
+    public void testOnDeviceDisconnectedMessage() {
+        String deviceId = "Mobile";
+        // Room receives the message that a device has been disconnected from the ecology
+        room.onDeviceDisconnected(deviceId);
+        String deviceDisconnected = "device:disconnected";
+        // Verify that a local event is published
+        verify(eventBroadcaster, times(1)).publishLocalEvent(deviceDisconnected,
+                Collections.<Object>singletonList(deviceId));
     }
 }

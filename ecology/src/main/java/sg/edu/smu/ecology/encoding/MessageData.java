@@ -1,28 +1,48 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by anurooppv on 29/6/2016.
  */
 public class MessageData {
 
+    public static class UnsupportedDataTypeException extends RuntimeException {
+        public UnsupportedDataTypeException(String s) {
+            super(s);
+        }
+    };
+
     protected ArrayList<Object> arguments;
-    protected String typeTags;
-    private int datasize = 0;
+    protected String typeTags = "";
+    private int dataSize = 0;
 
     public MessageData() {
-        arguments = new ArrayList<Object>();
-        typeTags = ",";
+        arguments = new ArrayList<>();
     }
 
     public String getTypeTags() {
         return typeTags;
     }
 
+    /**
+     * Returns an estimation of the number of bytes of this message encoding. This estimation will
+     * always be greater than the actual encoded size so it is safe to use it to allocate the
+     * encoding byte buffer.
+     *
+     * @return the estimation.
+     */
+    public int getMaximumByteSize() {
+        return dataSize + getStringSize(getTypeTags(), false);
+    }
+
     public void addArgument(Object argument) {
-        if (argument instanceof String) {
+        if(argument == null) {
+            addNullArgument();
+        } else if (argument instanceof String) {
             addArgument((String) argument);
         } else if (argument instanceof Float) {
             addArgument((Float) argument);
@@ -36,13 +56,39 @@ public class MessageData {
             addArgument((byte[]) argument);
         } else if (argument instanceof Boolean) {
             addArgument((Boolean) argument);
+        } else if (argument instanceof Character) {
+            addArgument((Character) argument);
+        } else if (argument instanceof  List) {
+            addArgument((List) argument);
+        } else if (argument instanceof Map) {
+            addArgument((Map) argument);
+        } else {
+            throw new UnsupportedDataTypeException(
+                    "Invalid or not yet supported type: " + argument.getClass().getCanonicalName()
+            );
         }
     }
 
-    public void addArgument(Object[] array, String objectTypes) {
-        typeTags += '[' + objectTypes + ']';
-        arguments.add(array);
-        // TODO : Compute datasize for array contents
+    public void addNullArgument(){
+        typeTags += 'N';
+    }
+
+    public void addArgument(List list) {
+        typeTags += '[';
+        for(Object arg: list){
+            addArgument(arg);
+        }
+        typeTags += ']';
+    }
+
+    public void addArgument(Map<?, ?> map) {
+        typeTags += '{';
+        // Add the couples key / values.
+        for(Map.Entry<?, ?> entry: map.entrySet()){
+            addArgument(entry.getKey());
+            addArgument(entry.getValue());
+        }
+        typeTags += '}';
     }
 
     public ArrayList<Object> getArguments() {
@@ -52,43 +98,42 @@ public class MessageData {
     public void addArgument(String param) {
         typeTags += 's';
         arguments.add(param);
-        int stringSize = getStringSize(param);
-        datasize += stringSize;
+        int stringSize = getStringSize(param, true);
+        dataSize += stringSize;
     }
 
     public void addArgument(Float f) {
         typeTags += 'f';
         arguments.add(f);
-        datasize += 4;
+        dataSize += 4;
     }
 
     public void addArgument(Double d) {
         typeTags += 'd';
         arguments.add(d);
-        datasize += 8;
+        dataSize += 8;
     }
 
     public void addArgument(Integer i) {
         typeTags += 'i';
         arguments.add(i);
-        datasize += 4;
+        dataSize += 4;
     }
 
     public void addArgument(BigInteger b) {
         typeTags += 'h';
         arguments.add(b);
-        datasize += 8;
+        dataSize += 8;
     }
 
-    public void addArgument(char c) {
+    public void addArgument(Character c) {
         typeTags += 'c';
         arguments.add(c);
-        datasize += 4;
+        dataSize += 4;
     }
 
     public void addArgument(Boolean b) {
         typeTags += b ? 'T' : 'F';
-        arguments.add(b);
     }
 
     public void addArgument(byte[] bytes) {
@@ -96,18 +141,18 @@ public class MessageData {
         arguments.add(bytes);
         int dataLength = bytes.length;
         // An int32 size count,
-        datasize += 4;
+        dataSize += 4;
         // followed by that many 8-bit bytes of arbitrary binary data,
-        datasize += dataLength;
+        dataSize += dataLength;
         // followed by 0-3 additional zero bytes to make the total number of
         // bits a multiple of 32.
         int mod = (dataLength % 4);
-        datasize += (mod > 0) ? 4 - mod : 0;
+        dataSize += (mod > 0) ? 4 - mod : 0;
     }
 
-    private int getStringSize(String str) {
+    private int getStringSize(String str, boolean unicode) {
         // Add 1 because a string must be zero terminated
-        int len = str.length() + 1;
+        int len = unicode ? str.length() * 2 + 1 : str.length() + 1;
         // logger.debug("GetStringSize : " + str + " : " + len);
         int mod = len % 4;
         // logger.debug("MOD " + mod);
@@ -115,10 +160,4 @@ public class MessageData {
         // logger.debug("PAD " + pad);
         return len + pad;
     }
-
-    public void clearArguments(){
-        arguments.clear();
-    }
-
-
 }

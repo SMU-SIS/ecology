@@ -7,31 +7,26 @@ import android.content.Context;
  * This class is used to get Ecology instance required to connect and send messages to other devices
  * <p>
  */
-public class EcologyCreator{
+public class EcologyCreator {
 
     private static final String TAG = EcologyCreator.class.getSimpleName();
     private static Ecology ecology;
 
-    // Initial connection to the ecology - returns the ecology instance
-    public static Ecology connect(EcologyConfig config, Context context, String deviceId) {
+    /**
+     * Initial connection to the ecology - returns the ecology instance
+     *
+     * @param connector the connector that connects to the ecology
+     * @param context   the context of the application
+     * @param deviceId  the id of the device
+     * @return the ecology instance
+     */
+    public static Ecology connect(Connector connector, Context context, String deviceId) {
         // Ecology can be only connected once
         if (ecology != null) {
             throw new EcologyAlreadyConnectedException("The ecology has already been connected.");
         }
 
-        EcologyConnection ecologyConnection = new EcologyConnection();
-
-        // Adds a core connector to the ecology connection.
-        for (Connector coreConnector : config.getCoreConnectors()) {
-            ecologyConnection.addCoreConnector(coreConnector);
-        }
-
-        // Adds a dependent connector to the ecology connection.
-        for (Connector dependentConnector : config.getDependentConnectors()) {
-            ecologyConnection.addDependentConnector(dependentConnector);
-        }
-
-        ecology = new Ecology(ecologyConnection);
+        ecology = new Ecology(connector);
         // Connect to the ecology
         ecology.connect(context, deviceId);
 

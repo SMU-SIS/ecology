@@ -5,7 +5,6 @@ package sg.edu.smu.ecology;
  */
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -14,6 +13,9 @@ import android.util.SparseArray;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -25,18 +27,16 @@ class BluetoothServerAcceptThread extends Thread {
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
     private BluetoothServerSocket serverSocket = null;
-    private ArrayList<UUID> uuidsList;
-    private ArrayList<UUID> disconnectedUuidsList = new ArrayList<>();
+    private List<UUID> uuidsList;
+    private List<UUID> disconnectedUuidsList = new ArrayList<>();
     private BluetoothAdapter bluetoothAdapter;
-    private ArrayList<String> devicesAddressesList = new ArrayList<String>();
-    private ArrayList<BluetoothDevice> devicesList = new ArrayList<>();
-    private SparseArray<BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new SparseArray<>();
+    private Map<Integer, BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new HashMap<>();
     private Handler handler;
     private int clientId = 0;
     private SparseArray<UUID> clientUuidList = new SparseArray<>();
     private boolean restartUuidsListening = false;
 
-    BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, ArrayList<UUID> uuidsList,
+    BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, List<UUID> uuidsList,
                                 Handler handler) {
         this.bluetoothAdapter = bluetoothAdapter;
         this.uuidsList = uuidsList;
@@ -53,20 +53,18 @@ class BluetoothServerAcceptThread extends Thread {
      * Listen for incoming connection requests and when one is accepted, provide a connected
      * BluetoothSocket
      */
-    private void listenForConnectionRequests(ArrayList<UUID> uuidsList) {
+    private void listenForConnectionRequests(List<UUID> uuidsList) {
         BluetoothSocket socket;
+        Integer index = 0;
         try {
             // Listen for all the required number of UUIDs
-            for (int i = 0; i < uuidsList.size(); i++) {
-                Log.i(TAG, "Server Listen " + (i + 1));
-                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME,
-                        uuidsList.get(i));
+            for (UUID uuid : uuidsList) {
+                Log.i(TAG, "Server Listen " + index++);
+                serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, uuid);
                 socket = serverSocket.accept();
                 if (socket != null) {
                     serverSocket.close();
-                    devicesList.add(socket.getRemoteDevice());
-                    devicesAddressesList.add(socket.getRemoteDevice().getAddress());
-                    createSocketReadWriterThreads(socket, uuidsList.get(i));
+                    createSocketReadWriterThreads(socket, uuid);
                 }
             }
             Log.i(TAG, "All eight UUIDs used ");
@@ -84,19 +82,11 @@ class BluetoothServerAcceptThread extends Thread {
     private void createSocketReadWriterThreads(BluetoothSocket socket, UUID uuid) {
         clientId++;
         BluetoothSocketReadWriter bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket,
-                handler, true, clientId);
+                handler, clientId);
         bluetoothSocketReadWriter.start();
         // Add each connected thread to an array
         bluetoothSocketReadWritersList.put(clientId, bluetoothSocketReadWriter);
         clientUuidList.put(clientId, uuid);
-    }
-
-    public ArrayList<BluetoothDevice> getDevicesList() {
-        return devicesList;
-    }
-
-    int getNumberOfDevicesConnected() {
-        return devicesList.size();
     }
 
     void handleClientDisconnection(int clientId) {
@@ -121,9 +111,10 @@ class BluetoothServerAcceptThread extends Thread {
         super.interrupt();
         Log.i(TAG, "bluetoothSocketReadWriters-size " + bluetoothSocketReadWritersList.size());
         clientId = 0;
-        for (int i = 0; i < bluetoothSocketReadWritersList.size(); i++) {
-            if (bluetoothSocketReadWritersList.valueAt(i) != null) {
-                bluetoothSocketReadWritersList.valueAt(i).onInterrupt();
+        for (BluetoothSocketReadWriter bluetoothSocketReadWriter :
+                bluetoothSocketReadWritersList.values()) {
+            if (bluetoothSocketReadWriter != null) {
+                bluetoothSocketReadWriter.onInterrupt();
             }
         }
 

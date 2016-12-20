@@ -1,8 +1,9 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.encoding;
 
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -11,6 +12,20 @@ import java.util.List;
 public class DataDecoder {
 
     private static final String NO_ARGUMENT_TYPES = "";
+
+    // This class represents an argument and the amount of character it took to code in the types
+    // sequence. It is returned by the readArgument methods.
+    private static class Argument {
+        // The increment in the types sequence caused by the argument.
+        public int typeCodeSize;
+        // The value of the argument.
+        public Object value;
+
+        public Argument(Object value, int typeCodeSize){
+            this.typeCodeSize = typeCodeSize;
+            this.value = value;
+        }
+    }
 
     private static class Input {
 
@@ -79,24 +94,25 @@ public class DataDecoder {
      * Assumes that the byte array is a message.
      * @return a message containing the data specified in the byte stream
      */
-    public MessageData convertMessage(byte[] bytes, int bytesLength) {
+    public List<Object> convertMessageArgs(byte[] bytes, int bytesLength) {
         final Input rawInput = new Input(bytes, bytesLength);
-        final MessageData messageData = new MessageData();
-
+        final List<Object> messageData = new ArrayList<>();
         final CharSequence types = readTypes(rawInput);
-        for (int ti = 0; ti < types.length(); ++ti) {
-            if ('[' == types.charAt(ti)) {
-                // we're looking at an array -- read it in
-                messageData.addArgument(readArray(rawInput, types, ++ti));
-                // then increment i to the end of the array
-                while (types.charAt(ti) != ']') {
-                    ti++;
-                }
-            } else {
-                messageData.addArgument(readArgument(rawInput, types.charAt(ti)));
-            }
+
+        for (int ti = 0; ti < types.length();) {
+            Argument arg = readOneArgument(rawInput, types, ti);
+            messageData.add(arg.value);
+            ti += arg.typeCodeSize;
         }
         return messageData;
+    }
+
+    public MessageData convertMessage(byte[] bytes, int bytesLength) {
+        MessageData data = new MessageData();
+        for(Object arg: convertMessageArgs(bytes, bytesLength)){
+            data.addArgument(arg);
+        }
+        return data;
     }
 
     /**
@@ -130,70 +146,99 @@ public class DataDecoder {
      *   or <code>null</code>, in case of no arguments
      */
     private CharSequence readTypes(final Input rawInput) {
-        final String typesStr;
-
-        // The next byte should be a ',', but some legacy code may omit it
-        // in case of no arguments, refering to "OSC Messages" in:
-        // http://opensoundcontrol.org/spec-1_0
-        if (rawInput.getBytes().length <= rawInput.getStreamPosition()) {
-            typesStr = NO_ARGUMENT_TYPES;
-        } else if (rawInput.getBytes()[rawInput.getStreamPosition()] != ',') {
-            // XXX should we not rather fail-fast -> throw exception?
-            typesStr = NO_ARGUMENT_TYPES;
-        } else {
-            rawInput.getAndIncreaseStreamPositionByOne();
-            typesStr = readString(rawInput);
-        }
-
-        return typesStr;
+        return readString(rawInput);
     }
 
     /**
-     * Reads an object of the type specified by the type char.
-     * @param type type of the argument to read
-     * @return a Java representation of the argument
+     * Read one argument from the byte stream (composite arguments like list are entirely read,
+     * including their content).
+     * @param rawInput The stream where to read the argument.
+     * @param types The types sequence.
+     * @param position The current position in the type list.
+     * @return The argument.
      */
-    private Object readArgument(final Input rawInput, final char type) {
+    private Argument readOneArgument(final Input rawInput, final CharSequence types, int position){
+        char type = types.charAt(position);
         switch (type) {
             case 'u' :
-                return readUnsignedInteger(rawInput);
+                return new Argument(readUnsignedInteger(rawInput), 1);
             case 'i' :
-                return readInteger(rawInput);
+                return new Argument(readInteger(rawInput), 1);
             case 'h' :
-                return readLong(rawInput);
+                return new Argument(readLong(rawInput), 1);
             case 'f' :
-                return readFloat(rawInput);
+                return new Argument(readFloat(rawInput), 1);
             case 'd' :
-                return readDouble(rawInput);
+                return new Argument(readDouble(rawInput), 1);
             case 's' :
-                return readString(rawInput);
+                return new Argument(readString(rawInput), 1);
             case 'b' :
-                return readBlob(rawInput);
+                return new Argument(readBlob(rawInput), 1);
             case 'c' :
-                return readChar(rawInput);
+                return new Argument(readChar(rawInput), 1);
             case 'N' :
-                return null;
+                return new Argument(null, 1);
             case 'T' :
-                return Boolean.TRUE;
+                return new Argument(Boolean.TRUE, 1);
             case 'F' :
-                return Boolean.FALSE;
+                return new Argument(Boolean.FALSE, 1);
+            case '[':
+                return readListArgument(rawInput, types, position);
+            case '{':
+                return readMapArgument(rawInput, types, position);
             default:
                 // XXX Maybe we should let the user choose what to do in this
                 //   case (we encountered an unknown argument type in an
                 //   incomming message):
                 //   just ignore (return null), or throw an exception?
-//				throw new UnsupportedOperationException(
-//						"Invalid or not yet supported OSC type: '" + type + "'");
-                return null;
+                throw new UnsupportedOperationException(
+                        "Invalid or not yet supported type: '" + type + "'");
         }
     }
 
+    private Argument readMapArgument(final Input rawInput, final CharSequence types, int position){
+        // Initialize the map.
+        HashMap<Object, Object> map = new HashMap<>();
+        // Pass the opening bracket (position should be on the '{' that indicates the beginning
+        // of a map).
+        int i = position + 1;
+        // Iteratively parse each key value pairs.
+        while(types.charAt(i) != '}'){
+            Argument keyArg = readOneArgument(rawInput, types, i);
+            i += keyArg.typeCodeSize;
+            Argument valArg = readOneArgument(rawInput, types, i);
+            i += valArg.typeCodeSize;
+            map.put(keyArg.value, valArg.value);
+        }
+        // Calculate the position increment, including the opening and closing brackets.
+        int typeInc = i - position + 1;
+        return new Argument(map, typeInc);
+    }
+
+    private Argument readListArgument(final Input rawInput, final CharSequence types, int position){
+        // Initialize the array.
+        List<Object> list = new ArrayList<>();
+        // Pass the opening bracket (position should be on the '[' that indicates the beginning of
+        // an array).
+        int li = position + 1;
+        // Parse the content of the array.
+        while(types.charAt(li) != ']'){
+            Argument subArg = readOneArgument(rawInput, types, li);
+            li += subArg.typeCodeSize;
+            list.add(subArg.value);
+        }
+        // Calculate the position increment, including the opening and closing brackets.
+        int typeInc = li - position + 1;
+        return new Argument(list, typeInc);
+    }
+
     /**
-     * Reads a char from the byte stream.
+     * Reads a unicode char from the byte stream.
      * @return a {@link Character}
      */
     private Character readChar(final Input rawInput) {
-        return (char) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()];
+        // Characters are encoded as integers.
+        return (char) readInteger(rawInput).intValue();
     }
 
     private BigInteger readBigInteger(final Input rawInput, final int numBytes) {
@@ -246,7 +291,6 @@ public class DataDecoder {
      * @return single precision, unsigned integer (32 bit) wrapped in a 64 bit integer (long)
      */
     private Long readUnsignedInteger(final Input rawInput) {
-
         final int firstByte = (0x000000FF & ((int) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()]));
         final int secondByte = (0x000000FF & ((int) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()]));
         final int thirdByte = (0x000000FF & ((int) rawInput.getBytes()[rawInput.getAndIncreaseStreamPositionByOne()]));
@@ -258,23 +302,6 @@ public class DataDecoder {
                 & 0xFFFFFFFFL;
     }
 
-
-    /* Reads an array from the byte stream.
-     * @param types
-     * @param pos at which position to start reading
-     * @return the array that was read
-     */
-    private List<Object> readArray(final Input rawInput, final CharSequence types, int pos) {
-        int arrayLen = 0;
-        while (types.charAt(pos + arrayLen) != ']') {
-            arrayLen++;
-        }
-        final List<Object> array = new ArrayList<Object>(arrayLen);
-        for (int ai = 0; ai < arrayLen; ai++) {
-            array.add(readArgument(rawInput, types.charAt(pos + ai)));
-        }
-        return array;
-    }
 
     //Get the length of the string currently in the byte stream.
     private int lengthOfCurrentString(final Input rawInput) {
