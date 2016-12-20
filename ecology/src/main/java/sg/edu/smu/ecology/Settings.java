@@ -12,4 +12,5 @@ class Settings {
     static final String DEVICE_DISCONNECTED = "device:disconnected";
     static final String DEVICE_CONNECTED = "device:connected";
     static final String DEVICE_ID_EXCHANGE = "deviceId";
+    static final String SYNC_DATA = "syncData";
 }
