@@ -19,7 +19,17 @@ public class Room {
     /**
      * The ecology of the room.
      */
-    private final Ecology ecology;
+    private Ecology ecology;
+
+    /**
+     * Used for creating event broadcaster associated with the room.
+     */
+    private EventBroadcasterFactory eventBroadcasterFactory;
+
+    /**
+     * Used for creating data sync instance.
+     */
+    private DataSyncFactory dataSyncFactory;
 
     /**
      * The name of the room.
@@ -30,67 +40,77 @@ public class Room {
      * The event broadcaster associated with the room.
      */
     private EventBroadcaster eventBroadcaster;
+    private EventBroadcaster.Connector connector = new EventBroadcaster.Connector() {
+        @Override
+        public void onEventBroadcasterMessage(List<Object> message) {
+            Room.this.onEventBroadcasterMessage(message);
+        }
+    };
 
     /**
      * The data sync instance
      */
     private DataSync dataSync;
+    private DataSync.Connector dataSyncConnector = new DataSync.Connector() {
+        @Override
+        public void onMessage(List<Object> message) {
+            Room.this.onDataSyncMessage(message);
+        }
+    };
+    private DataSync.SyncDataChangeListener dataSyncChangeListener =
+            new DataSync.SyncDataChangeListener() {
+                @Override
+                public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
+                    getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
+                            Arrays.asList(dataId, newValue, oldValue));
+                }
+            };
 
     /**
      * @param name    the name of the room
      * @param ecology the ecology this room is part of
      */
     public Room(String name, Ecology ecology) {
+        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory());
+    }
+
+    /**
+     * Special constructor only for testing
+     *
+     * @param name                    the name of the room
+     * @param ecology                 the ecology this room is part of
+     * @param eventBroadcasterFactory to create event broadcaster that is part of this room
+     * @param dataSyncFactory         to create data sync instance
+     */
+    Room(String name, Ecology ecology, EventBroadcasterFactory eventBroadcasterFactory,
+         DataSyncFactory dataSyncFactory) {
         if (name == null || name.length() == 0 || name.equals(" ")) {
             throw new IllegalArgumentException();
         }
 
         this.name = name;
         this.ecology = ecology;
-        this.eventBroadcaster = new EventBroadcaster(new EventBroadcaster.Connector() {
-            @Override
-            public void onEventBroadcasterMessage(List<Object> message) {
-                Room.this.onEventBroadcasterMessage(message);
-            }
-        });
-        this.dataSync = new DataSync(new DataSync.Connector() {
-            @Override
-            public void onMessage(List<Object> message) {
-                Room.this.onDataSyncMessage(message);
-            }
-        }, new DataSync.SyncDataChangeListener() {
-            @Override
-            public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
-                getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
-                        Arrays.asList(dataId, newValue, oldValue));
-            }
-        });
-    }
-
-    /**
-     * Special constructor only for testing
-     *
-     * @param name             the name of the room
-     * @param ecology          the ecology this room is part of
-     * @param eventBroadcaster the event broadcaster that is part of this room
-     */
-    Room(String name, Ecology ecology, EventBroadcaster eventBroadcaster) {
-        this.name = name;
-        this.ecology = ecology;
-        this.eventBroadcaster = eventBroadcaster;
+        this.eventBroadcasterFactory = eventBroadcasterFactory;
+        this.dataSyncFactory = dataSyncFactory;
     }
 
     /**
      * @return the event broadcaster associated with the room.
      */
     public EventBroadcaster getEventBroadcaster() {
+        if (eventBroadcaster == null) {
+            eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(connector);
+        }
         return eventBroadcaster;
     }
 
     /**
-     * @return the data sync object associated with the room.
+     * @return the data sync object.
      */
     public DataSync getDataSyncObject() {
+        if (dataSync == null) {
+            dataSync = dataSyncFactory.createDataSync(dataSyncConnector, dataSyncChangeListener);
+        }
         return dataSync;
     }
 
@@ -151,5 +171,18 @@ public class Room {
     void onDeviceDisconnected(String deviceId) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
+    }
+
+    static class EventBroadcasterFactory {
+        EventBroadcaster createEventBroadcaster(EventBroadcaster.Connector connector) {
+            return new EventBroadcaster(connector);
+        }
+    }
+
+    static class DataSyncFactory {
+        DataSync createDataSync(DataSync.Connector connector,
+                                DataSync.SyncDataChangeListener dataSyncChangeListener) {
+            return new DataSync(connector, dataSyncChangeListener);
+        }
     }
 }
