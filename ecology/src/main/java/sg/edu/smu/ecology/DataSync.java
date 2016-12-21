@@ -21,9 +21,10 @@ public class DataSync {
      * To store the sync data as a key value pair
      */
     private Map<Object, Object> dataSyncValues = new HashMap<>();
+
     // Notify when a message needs to be forwarded to the corresponding DataSyncs in the other
     // devices of the ecology.
-    private Connector connector;
+    private final Connector connector;
 
     DataSync(Connector connector, SyncDataChangeListener dataChangeListener) {
         this.connector = connector;
@@ -39,7 +40,7 @@ public class DataSync {
     public void setData(Object key, Object value) {
         Object oldValue = dataSyncValues.get(key);
         dataSyncValues.put(key, value);
-        connector.onMessage(new ArrayList<>(Arrays.asList(key, value)));
+        connector.onMessage(Arrays.asList(key, value));
         dataChangeListener.onDataUpdate(key, value, oldValue);
     }
 
