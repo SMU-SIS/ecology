@@ -40,31 +40,11 @@ public class Room {
      * The event broadcaster associated with the room.
      */
     private EventBroadcaster eventBroadcaster;
-    private EventBroadcaster.Connector connector = new EventBroadcaster.Connector() {
-        @Override
-        public void onEventBroadcasterMessage(List<Object> message) {
-            Room.this.onEventBroadcasterMessage(message);
-        }
-    };
 
     /**
      * The data sync instance
      */
     private DataSync dataSync;
-    private DataSync.Connector dataSyncConnector = new DataSync.Connector() {
-        @Override
-        public void onMessage(List<Object> message) {
-            Room.this.onDataSyncMessage(message);
-        }
-    };
-    private DataSync.SyncDataChangeListener dataSyncChangeListener =
-            new DataSync.SyncDataChangeListener() {
-                @Override
-                public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
-                    getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
-                            Arrays.asList(dataId, newValue, oldValue));
-                }
-            };
 
     /**
      * @param name    the name of the room
@@ -99,7 +79,12 @@ public class Room {
      */
     public EventBroadcaster getEventBroadcaster() {
         if (eventBroadcaster == null) {
-            eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(connector);
+            eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(new EventBroadcaster.Connector() {
+                @Override
+                public void onEventBroadcasterMessage(List<Object> message) {
+                    Room.this.onEventBroadcasterMessage(message);
+                }
+            });
         }
         return eventBroadcaster;
     }
@@ -109,7 +94,18 @@ public class Room {
      */
     public DataSync getDataSyncObject() {
         if (dataSync == null) {
-            dataSync = dataSyncFactory.createDataSync(dataSyncConnector, dataSyncChangeListener);
+            dataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
+                @Override
+                public void onMessage(List<Object> message) {
+                    Room.this.onDataSyncMessage(message);
+                }
+            }, new DataSync.SyncDataChangeListener() {
+                @Override
+                public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
+                    getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
+                            Arrays.asList(dataId, newValue, oldValue));
+                }
+            });
         }
         return dataSync;
     }
