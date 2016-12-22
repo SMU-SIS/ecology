@@ -26,6 +26,11 @@ import sg.edu.smu.ecology.encoding.MessageEncoder;
 /**
  * Created by anurooppv on 22/7/2016.
  */
+
+/**
+ * This class helps to establish a connection to any paired wear/mobile device part of the ecology
+ * via message api
+ */
 public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCallbacks,
         MessageApi.MessageListener {
 
@@ -43,6 +48,11 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     // Message encoder to encode the message into byte arrays before sending it.
     private final MessageEncoder messageEncoder = new MessageEncoder();
 
+    /**
+     * Send the message to the connected device in the ecology
+     *
+     * @param message the message to be sent
+     */
     @Override
     public void sendMessage(List<Object> message) {
         // Retrieve eventType
@@ -108,6 +118,11 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         }
     }
 
+    /**
+     * Sets the {@link Receiver} instance of this connector
+     *
+     * @param receiver the {@link Receiver} instance of this connector
+     */
     @Override
     public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
@@ -115,7 +130,8 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     /**
      * Connect to the ecology.
-     * @param context the application context
+     *
+     * @param context  the application context
      * @param deviceId the id of the device
      */
     @Override
@@ -178,6 +194,12 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         }.start();
     }
 
+    /**
+     * When connection to Google Play services is successful
+     *
+     * @param bundle Bundle of data provided  by Google Play services. May be null if no content is
+     *               provided by the service.
+     */
     @Override
     public void onConnected(Bundle bundle) {
         Log.i(TAG, "Connected");
@@ -191,6 +213,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
     /**
      * When a message is received via message api
+     *
      * @param messageEvent information about the received message
      */
     @Override
