@@ -189,18 +189,19 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     /**
-     * Gets the {@link Receiver} instance of this connector
+     * Gets the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
      *
-     * @return the {@link Receiver} instance of this connector
+     * @return the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
      */
     Receiver getReceiver() {
         return receiver;
     }
 
     /**
-     * Sets the {@link Receiver} instance of this connector
+     * Sets the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
      *
-     * @param receiver the {@link Receiver} instance of this connector
+     * @param receiver the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this
+     *                 connector
      */
     @Override
     public void setReceiver(Receiver receiver) {

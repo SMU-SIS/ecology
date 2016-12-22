@@ -114,9 +114,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     }
 
     /**
-     * Sets the {@link Receiver} instance of this connector
+     * Sets the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
      *
-     * @param receiver the {@link Receiver} instance of this connector
+     * @param receiver the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this
+     *                 connector
      */
     @Override
     public void setReceiver(Receiver receiver) {
