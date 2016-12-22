@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,7 +11,7 @@ import android.util.Log;
 /**
  * Broadcast receiver that receives intent broadcast
  */
-public class BroadcastManager extends BroadcastReceiver {
+class BroadcastManager extends BroadcastReceiver {
 
     private static final String TAG = BroadcastManager.class.getSimpleName();
 
@@ -45,8 +45,8 @@ public class BroadcastManager extends BroadcastReceiver {
             // Not required currently as we don't populate the peer list
             /*if (manager != null) {
                 Log.i(TAG, "requestpeers");
-                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
-                        findFragmentByTag("peerList"));
+                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.
+                getFragmentManager().findFragmentByTag("peerList"));
             }*/
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             if (manager != null) {

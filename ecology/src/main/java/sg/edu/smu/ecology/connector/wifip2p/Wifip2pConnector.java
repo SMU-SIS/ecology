@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.content.Context;
 import android.content.IntentFilter;
@@ -14,15 +14,28 @@ import java.net.InetAddress;
 import java.nio.charset.CharacterCodingException;
 import java.util.List;
 
+import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
 
 /**
  * Created by anurooppv on 22/7/2016.
  */
-public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInfoListener, Handler.Callback {
+
+/**
+ * This class helps to establish a connection to other devices in the ecology using wifi p2p
+ */
+public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInfoListener,
+        Handler.Callback {
 
     private final static String TAG = Wifip2pConnector.class.getSimpleName();
+    // Used for client-server message handler
+    static final int MESSAGE_RECEIVED = 0x400 + 1;
+    static final int SOCKET_CONNECTED = 0x400 + 2;
+    static final int SOCKET_CLOSE = 0x400 + 3;
+    // Used for setting up wifip2p connection
+    static final int TIME_OUT = 5000;
+    static final int SERVER_PORT = 6868;
 
     // To listen to certain events of wifi direct
     private final IntentFilter intentFilter = new IntentFilter();
@@ -51,6 +64,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         filterIntent();
     }
 
+    /**
+     * To add necessary intent values to be matched.
+     */
     private void filterIntent() {
         // add the intents that the broadcast receiver should check for
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
@@ -101,14 +117,18 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     /**
      * Connect to the ecology.
+     * @param context the application context
+     * @param deviceId the id of the device
      */
     @Override
     public void connect(Context context, String deviceId) {
         applicationContext = context;
 
         // To register to the WiFiP2P framework
-        WifiP2pManager manager = (WifiP2pManager) applicationContext.getSystemService(Context.WIFI_P2P_SERVICE);
-        WifiP2pManager.Channel channel = manager.initialize(applicationContext, applicationContext.getMainLooper(), null);
+        WifiP2pManager manager = (WifiP2pManager) applicationContext.
+                getSystemService(Context.WIFI_P2P_SERVICE);
+        WifiP2pManager.Channel channel = manager.initialize(applicationContext,
+                applicationContext.getMainLooper(), null);
 
         // To notify about various events occurring with respect to the WiFiP2P connection
         broadcastManager = new BroadcastManager(manager, channel, this);
@@ -125,7 +145,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
         applicationContext.unregisterReceiver(broadcastManager);
 
-        if (connectionStarter != null && connectionStarter.isAlive() && !connectionStarter.isInterrupted()) {
+        if (connectionStarter != null && connectionStarter.isAlive() &&
+                !connectionStarter.isInterrupted()) {
             connectionStarter.interrupt();
         }
     }
@@ -140,7 +161,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         return onConnectorConnected;
     }
 
-    // The requested connection info is available
+    /**
+     * When the requested connection info is available
+     * @param p2pInfo represents the connection information about a Wi-Fi p2p group
+     */
     @Override
     public void onConnectionInfoAvailable(WifiP2pInfo p2pInfo) {
         Log.d(TAG, "onConnectionInfoAvailable");
@@ -156,13 +180,18 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
             Log.d(TAG, "Connected as peer");
             groupOwnerAddress = p2pInfo.groupOwnerAddress;
 
-            socketConnectionStarter = new SocketConnectionStarter(this.getHandler(), groupOwnerAddress);
+            socketConnectionStarter = new SocketConnectionStarter(this.getHandler(),
+                    groupOwnerAddress);
 
             connectionStarter = socketConnectionStarter;
             connectionStarter.start();
         }
     }
 
+    /**
+     * Get the handler object
+     * @return the handler object
+     */
     private Handler getHandler() {
         return handler;
     }
@@ -190,11 +219,15 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         });
     }
 
-    // Handle message received from wifi p2p
+    /**
+     * Handle message received from wifi p2p
+     * @param msg the received message
+     * @return if the message was handled
+     */
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
-            case Settings.MESSAGE_RECEIVED:
+            case MESSAGE_RECEIVED:
                 Log.d(TAG, " MESSAGE RECEIVED");
                 byte[] readBuf = (byte[]) msg.obj;
 
@@ -216,7 +249,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 receiver.onMessage(data);
                 break;
 
-            case Settings.SOCKET_CONNECTED:
+            case SOCKET_CONNECTED:
                 Log.d(TAG, "SOCKET_CONNECTED");
                 Object obj = msg.obj;
                 setSocketReadWriter((SocketReadWriter) obj);
@@ -226,7 +259,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 receiver.onDeviceConnected(" ");
                 break;
 
-            case Settings.SOCKET_CLOSE:
+            case SOCKET_CLOSE:
                 Log.d(TAG, "Socket Close");
                 onConnectorConnected = false;
 
@@ -241,6 +274,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         return true;
     }
 
+    /**
+     * Set the socket read writer object
+     * @param socketReadWriter the socket read writer object
+     */
     private void setSocketReadWriter(SocketReadWriter socketReadWriter) {
         this.socketReadWriter = socketReadWriter;
     }

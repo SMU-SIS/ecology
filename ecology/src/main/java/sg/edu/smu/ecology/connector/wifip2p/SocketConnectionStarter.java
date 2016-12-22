@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.os.Handler;
 import android.util.Log;
@@ -13,9 +13,8 @@ import java.net.SocketTimeoutException;
 /**
  * Created by tnnguyen on 28/4/16.
  */
-public class SocketConnectionStarter extends Thread {
+class SocketConnectionStarter extends Thread {
     private static final String TAG = SocketConnectionStarter.class.getSimpleName();
-
     private Handler handler;
     private InetAddress address;
     private SocketReadWriter socketReadWriter;
@@ -53,8 +52,8 @@ public class SocketConnectionStarter extends Thread {
                     socket.setReuseAddress(true);
                     socket.bind(null);
 
-                    socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
-                            Settings.TIME_OUT);
+                    socket.connect(new InetSocketAddress(address.getHostAddress(),
+                            Wifip2pConnector.SERVER_PORT), Wifip2pConnector.TIME_OUT);
                     socketReadWriter = new SocketReadWriter(socket, handler);
                     new Thread(socketReadWriter).start();
 
