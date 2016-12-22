@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.os.Message;
 import android.util.Log;
@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import sg.edu.smu.ecology.Settings;
 
 /**
  * Created by anurooppv on 25/10/2016.

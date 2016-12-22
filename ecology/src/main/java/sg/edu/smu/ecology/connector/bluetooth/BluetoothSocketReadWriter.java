@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -44,7 +44,8 @@ class BluetoothSocketReadWriter extends Thread {
             inputStream = new DataInputStream(bluetoothSocket.getInputStream());
             outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
-            handler.obtainMessage(Settings.SOCKET_CONNECTED, clientId, 0, this).sendToTarget();
+            handler.obtainMessage(BluetoothConnector.SOCKET_CONNECTED, clientId, 0, this).
+                    sendToTarget();
 
             while (true) {
                 try {
@@ -53,7 +54,7 @@ class BluetoothSocketReadWriter extends Thread {
 
                     // This indicates that the other device is disconnected from ecology
                     if (toRead == END_OF_FILE) {
-                        handler.obtainMessage(Settings.SOCKET_CLOSE, clientId, 0,
+                        handler.obtainMessage(BluetoothConnector.SOCKET_CLOSE, clientId, 0,
                                 this).sendToTarget();
                         break;
                     }
@@ -64,7 +65,7 @@ class BluetoothSocketReadWriter extends Thread {
                                 currentRead);
                     }
                     Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
-                    handler.obtainMessage(Settings.MESSAGE_RECEIVED, clientId, 0,
+                    handler.obtainMessage(BluetoothConnector.MESSAGE_RECEIVED, clientId, 0,
                             dataBuffer).sendToTarget();
                 } catch (IOException e) {
                     break;
@@ -87,6 +88,10 @@ class BluetoothSocketReadWriter extends Thread {
         }
     }
 
+    /**
+     * Write the length of bytes to be written
+     * @param length the length of the bytes
+     */
     void writeInt(int length) {
         try {
             outputStream.writeInt(length);

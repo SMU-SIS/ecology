@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 /**
  * Created by anurooppv on 25/10/2016.

@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
 
@@ -34,6 +35,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
+    // Used for client-server message handler
+    static final int MESSAGE_RECEIVED = 0x400 + 1;
+    static final int SOCKET_CONNECTED = 0x400 + 2;
+    static final int SOCKET_CLOSE = 0x400 + 3;
     // Seven randomly-generated UUIDs. These must match on both server and client.
     private static final List<UUID> uuidsList = Arrays.asList(
             UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"),
@@ -144,17 +149,17 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
-            case Settings.MESSAGE_RECEIVED:
+            case MESSAGE_RECEIVED:
                 Log.d(TAG, " MESSAGE RECEIVED");
                 onMessageReceived(msg);
                 break;
 
-            case Settings.SOCKET_CONNECTED:
+            case SOCKET_CONNECTED:
                 onConnectorConnected = true;
                 onDeviceConnected(msg);
                 break;
 
-            case Settings.SOCKET_CLOSE:
+            case SOCKET_CLOSE:
                 onConnectorConnected = false;
                 Log.d(TAG, "Socket Close");
                 onDeviceDisconnected(msg);

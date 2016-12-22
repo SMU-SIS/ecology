@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
@@ -12,7 +12,7 @@ import android.util.Log;
 /**
  * Broadcast receiver that receives intent broadcast related to Bluetooth connection
  */
-public class BluetoothBroadcastManager extends BroadcastReceiver {
+class BluetoothBroadcastManager extends BroadcastReceiver {
     private static final String TAG = BluetoothBroadcastManager.class.getSimpleName();
 
     private BluetoothConnector bluetoothConnector;
