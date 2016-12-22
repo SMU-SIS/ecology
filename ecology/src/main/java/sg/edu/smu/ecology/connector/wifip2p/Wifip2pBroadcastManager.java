@@ -9,7 +9,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
 /**
- * Broadcast receiver that receives intent broadcast
+ * Broadcast receiver that receives intent broadcast related to WiFI P2P connection
  */
 class Wifip2pBroadcastManager extends BroadcastReceiver {
 
@@ -28,6 +28,12 @@ class Wifip2pBroadcastManager extends BroadcastReceiver {
         this.wifip2pConnector = wifip2pConnector;
     }
 
+    /**
+     * This method is called when the BroadcastReceiver is receiving an Intent broadcast.
+     *
+     * @param context the Context in which the receiver is running.
+     * @param intent  the Intent being received.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();

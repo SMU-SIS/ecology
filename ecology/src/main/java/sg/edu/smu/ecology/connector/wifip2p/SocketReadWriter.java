@@ -40,13 +40,15 @@ class SocketReadWriter implements Runnable {
         }
     }
 
+    /**
+     * This runs as long as the connections is active and handles the incoming messages
+     */
     @Override
     public void run() {
         try {
             DataInputStream inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
 
-            Log.i(TAG, "Socket read/writer started");
             handler.obtainMessage(Wifip2pConnector.SOCKET_CONNECTED, this).sendToTarget();
 
             while (true) {

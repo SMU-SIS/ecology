@@ -28,7 +28,6 @@ import sg.edu.smu.ecology.encoding.MessageEncoder;
 public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInfoListener,
         Handler.Callback {
 
-    private final static String TAG = Wifip2pConnector.class.getSimpleName();
     // Used for client-server message handler
     static final int MESSAGE_RECEIVED = 0x400 + 1;
     static final int SOCKET_CONNECTED = 0x400 + 2;
@@ -36,9 +35,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     // Used for setting up wifip2p connection
     static final int TIME_OUT = 5000;
     static final int SERVER_PORT = 6868;
-
+    private final static String TAG = Wifip2pConnector.class.getSimpleName();
     // To listen to certain events of wifi direct
     private final IntentFilter intentFilter = new IntentFilter();
+    // Message encoder to encode the message into byte arrays before sending it.
+    private final MessageEncoder messageEncoder = new MessageEncoder();
     private SocketReadWriter socketReadWriter;
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
@@ -46,9 +47,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private SocketConnectionStarter socketConnectionStarter;
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
-    // Message encoder to encode the message into byte arrays before sending it.
-    private final MessageEncoder messageEncoder = new MessageEncoder();
-
     /**
      * Used to save the application context
      */
@@ -75,6 +73,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
     }
 
+    /**
+     * Send message to all the connected devices in the ecology
+     *
+     * @param message the message to be sent
+     */
     @Override
     public void sendMessage(List<Object> message) {
         if (socketReadWriter != null) {
@@ -110,6 +113,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         socketReadWriter.writeData(encodedMessage);
     }
 
+    /**
+     * Sets the {@link Receiver} instance of this connector
+     *
+     * @param receiver the {@link Receiver} instance of this connector
+     */
     @Override
     public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
@@ -117,7 +125,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     /**
      * Connect to the ecology.
-     * @param context the application context
+     *
+     * @param context  the application context
      * @param deviceId the id of the device
      */
     @Override
@@ -151,7 +160,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
         }
     }
 
-    // Called when the wifip2p connection is lost.  
+    /**
+     * Called when the wifip2p connection is disconnected.
+     */
     void onWifiP2pConnectionDisconnected() {
         receiver.onDeviceDisconnected(" ");
     }
@@ -163,6 +174,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     /**
      * When the requested connection info is available
+     *
      * @param p2pInfo represents the connection information about a Wi-Fi p2p group
      */
     @Override
@@ -190,6 +202,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     /**
      * Get the handler object
+     *
      * @return the handler object
      */
     private Handler getHandler() {
@@ -221,6 +234,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
     /**
      * Handle message received from wifi p2p
+     *
      * @param msg the received message
      * @return if the message was handled
      */
@@ -265,7 +279,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
                 receiver.onDeviceDisconnected(" ");
 
-                // For only client - start looking for server connections
+                // For peers, if the owner has been disconnected, immediately start looking for new
+                // connections
                 if (groupOwnerAddress != null) {
                     socketConnectionStarter.setConnectedToServer(false);
                 }
@@ -275,8 +290,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     }
 
     /**
-     * Set the socket read writer object
-     * @param socketReadWriter the socket read writer object
+     * Set the {@link SocketReadWriter} instance
+     *
+     * @param socketReadWriter the {@link SocketReadWriter} instance
      */
     private void setSocketReadWriter(SocketReadWriter socketReadWriter) {
         this.socketReadWriter = socketReadWriter;
