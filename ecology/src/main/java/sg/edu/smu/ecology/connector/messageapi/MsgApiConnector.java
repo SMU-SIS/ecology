@@ -33,7 +33,6 @@ import sg.edu.smu.ecology.encoding.MessageEncoder;
  */
 public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCallbacks,
         MessageApi.MessageListener {
-
     private final static String TAG = MsgApiConnector.class.getSimpleName();
 
     private GoogleApiClient googleApiClient;

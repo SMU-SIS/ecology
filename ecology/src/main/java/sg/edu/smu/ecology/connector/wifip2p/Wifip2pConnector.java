@@ -27,7 +27,7 @@ import sg.edu.smu.ecology.encoding.MessageEncoder;
  */
 public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInfoListener,
         Handler.Callback {
-
+    private final static String TAG = Wifip2pConnector.class.getSimpleName();
     // Used for client-server message handler
     static final int MESSAGE_RECEIVED = 0x400 + 1;
     static final int SOCKET_CONNECTED = 0x400 + 2;
@@ -35,7 +35,6 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     // Used for setting up wifip2p connection
     static final int TIME_OUT = 5000;
     static final int SERVER_PORT = 6868;
-    private final static String TAG = Wifip2pConnector.class.getSimpleName();
     // To listen to certain events of wifi direct
     private final IntentFilter intentFilter = new IntentFilter();
     // Message encoder to encode the message into byte arrays before sending it.
