@@ -27,6 +27,7 @@ public class BluetoothClientConnector extends BluetoothConnector {
     private BluetoothSocketReadWriter clientToServerSocketReadWriter;
 
     private BluetoothClientConnectThread bluetoothClientConnectThread;
+    // Contains the list of threads trying to establish a connection with all the paired devices
     private List<BluetoothClientConnectThread> clientConnectThreadsList = new ArrayList<>();
     private ClientConnectionListener clientConnectionListener = new ClientConnectionListener() {
         @Override
@@ -35,7 +36,8 @@ public class BluetoothClientConnector extends BluetoothConnector {
             Log.i(TAG, "Client connected to server");
             // Set the client connect thread connected to the server
             setBluetoothClientConnectThread(bluetoothClientConnectThread);
-            // Interrupt other client connect threads that are no longer required
+            // Interrupt other client connect threads that are no longer required since a thread has
+            // connected to the server
             if (clientConnectThreadsList.size() > 0) {
                 interruptOtherClientConnectThreads();
             }
@@ -48,7 +50,7 @@ public class BluetoothClientConnector extends BluetoothConnector {
     @Override
     public void setupBluetoothConnection() {
         // Among the paired devices, any device can be the server. So try connecting to each and
-        // every paired device
+        // every paired device until a connection is established
         for (int i = 0; i < getPairedDevicesList().size(); i++) {
             BluetoothClientConnectThread bluetoothClientConnectThread = new
                     BluetoothClientConnectThread(getBluetoothAdapter(),
@@ -61,8 +63,14 @@ public class BluetoothClientConnector extends BluetoothConnector {
         Log.i(TAG, "clientConnectThreadsList size " + clientConnectThreadsList.size());
     }
 
+    /**
+     * Return the list of {@link BluetoothSocketReadWriter} threads
+     *
+     * @return the list of client server threads
+     */
     @Override
     public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
+        // Since the client can have only one connection(to server)
         return Collections.singletonList(clientToServerSocketReadWriter);
     }
 

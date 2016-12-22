@@ -26,11 +26,26 @@ class BluetoothSocketReadWriter extends Thread {
     private DataOutputStream outputStream;
     private int clientId = 0;
 
+    /**
+     * Constructor used in {@link BluetoothClientConnectThread} by a {@link BluetoothClientConnector}
+     * instance
+     *
+     * @param bluetoothSocket the connected bluetooth socket
+     * @param handler         to handle the messages
+     */
     BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
     }
 
+    /**
+     * Constructor used in {@link BluetoothServerAcceptThread} by a {@link BluetoothServerConnector}
+     * instance
+     *
+     * @param bluetoothSocket the connected bluetooth socket
+     * @param handler         to handle the messages
+     * @param clientId        the id of the connected client
+     */
     BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler, int clientId) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
@@ -49,6 +64,7 @@ class BluetoothSocketReadWriter extends Thread {
 
             while (true) {
                 try {
+                    // Get the length of the data
                     int toRead = inputStream.readInt();
                     int currentRead = 0;
 
@@ -90,6 +106,7 @@ class BluetoothSocketReadWriter extends Thread {
 
     /**
      * Write the length of bytes to be written
+     *
      * @param length the length of the bytes
      */
     void writeInt(int length) {

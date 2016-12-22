@@ -74,6 +74,11 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     // Message decoder to decode byte arrays into messages.
     private final MessageDecoder messageDecoder = new MessageDecoder();
 
+    /**
+     * Send message to all the connected devices in the ecology
+     *
+     * @param message the content of the message to be sent
+     */
     @Override
     public void sendMessage(List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
@@ -103,6 +108,12 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
+    /**
+     * Connect to the ecology
+     *
+     * @param context  the application context
+     * @param deviceId the id of th device
+     */
     @Override
     public void connect(Context context, String deviceId) {
         this.context = context;
@@ -134,6 +145,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
+    /**
+     * Disconnect from the ecology
+     */
     @Override
     public void disconnect() {
         onConnectorConnected = false;
@@ -146,6 +160,12 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         return onConnectorConnected;
     }
 
+    /**
+     * Handle the incoming messages
+     *
+     * @param msg the received message
+     * @return if the message was handled or not
+     */
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
@@ -168,15 +188,30 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         return true;
     }
 
+    /**
+     * Gets the {@link Receiver} instance of this connector
+     *
+     * @return the {@link Receiver} instance of this connector
+     */
     Receiver getReceiver() {
         return receiver;
     }
 
+    /**
+     * Sets the {@link Receiver} instance of this connector
+     *
+     * @param receiver the {@link Receiver} instance of this connector
+     */
     @Override
     public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
     }
 
+    /**
+     * Get the list of device ids of connected devices in the ecology
+     *
+     * @return the list of device ids of connected devices in the ecology
+     */
     Map<Integer, String> getDeviceIdsList() {
         return deviceIdsList;
     }
@@ -214,24 +249,44 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
     }
 
+    /**
+     * Get the {@link BluetoothAdapter} instance of this device
+     *
+     * @return the {@link BluetoothAdapter} instance of this device
+     */
     BluetoothAdapter getBluetoothAdapter() {
         return bluetoothAdapter;
     }
 
+    /**
+     * Get the list of {@link BluetoothDevice} currently paired to this device
+     *
+     * @return the list of {@link BluetoothDevice} currently paired to this device
+     */
     List<BluetoothDevice> getPairedDevicesList() {
         return pairedDevicesList;
     }
 
+    /**
+     * Get the {@link Handler} instance used for handling messages
+     *
+     * @return the {@link Handler} instance
+     */
     Handler getHandler() {
         return handler;
     }
 
+    /**
+     * Get the device id of this device
+     *
+     * @return the device id of this device
+     */
     String getDeviceId() {
         return deviceId;
     }
 
     /**
-     * Add all the paired devices
+     * Add all devices that are currently paired with this device
      */
     void addPairedDevices() {
         // Get the paired devices' list
@@ -256,7 +311,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     /**
-     * Get the UUIDs list
+     * Get the UUIDs list used for setting up a bluetooth connection
      *
      * @return the UUID list
      */

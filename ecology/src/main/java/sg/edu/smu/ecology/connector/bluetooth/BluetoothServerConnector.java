@@ -41,6 +41,11 @@ public class BluetoothServerConnector extends BluetoothConnector {
         }
     }
 
+    /**
+     * Return the list of {@link BluetoothSocketReadWriter} threads
+     *
+     * @return the list of server client connection threads
+     */
     @Override
     public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
         return clientConnectionThreadsList.values();
@@ -49,7 +54,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
     /**
      * When a client device gets connected
      *
-     * @param msg the message received
+     * @param msg the message received containing the details
      */
     @Override
     public void onDeviceConnected(Message msg) {
@@ -136,6 +141,9 @@ public class BluetoothServerConnector extends BluetoothConnector {
         }
     }
 
+    /**
+     * Disconnect from the ecology
+     */
     @Override
     public void disconnect() {
         super.disconnect();
