@@ -1,8 +1,5 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector;
 
-
-import java.util.List;
-import java.util.Vector;
 
 /**
  * Created by Quentin ROY on 18/6/16.
