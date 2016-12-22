@@ -11,17 +11,17 @@ import android.util.Log;
 /**
  * Broadcast receiver that receives intent broadcast
  */
-class BroadcastManager extends BroadcastReceiver {
+class Wifip2pBroadcastManager extends BroadcastReceiver {
 
-    private static final String TAG = BroadcastManager.class.getSimpleName();
+    private static final String TAG = Wifip2pBroadcastManager.class.getSimpleName();
 
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private Wifip2pConnector wifip2pConnector;
     private Boolean wifip2pConnected = false;
 
-    public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                            Wifip2pConnector wifip2pConnector) {
+    public Wifip2pBroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
+                                   Wifip2pConnector wifip2pConnector) {
         super();
         this.manager = manager;
         this.channel = channel;

@@ -42,7 +42,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     private SocketReadWriter socketReadWriter;
     private Handler handler = new Handler(this);
     private Connector.Receiver receiver;
-    private BroadcastManager broadcastManager = null;
+    private Wifip2pBroadcastManager wifip2pBroadcastManager = null;
     private SocketConnectionStarter socketConnectionStarter;
     // Registers if the connector is connected.
     private Boolean onConnectorConnected = false;
@@ -131,9 +131,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
                 applicationContext.getMainLooper(), null);
 
         // To notify about various events occurring with respect to the WiFiP2P connection
-        broadcastManager = new BroadcastManager(manager, channel, this);
+        wifip2pBroadcastManager = new Wifip2pBroadcastManager(manager, channel, this);
         // Register the broadcast receiver with the intent values to be matched
-        applicationContext.registerReceiver(broadcastManager, intentFilter);
+        applicationContext.registerReceiver(wifip2pBroadcastManager, intentFilter);
     }
 
     /**
@@ -143,7 +143,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     public void disconnect() {
         onConnectorConnected = false;
 
-        applicationContext.unregisterReceiver(broadcastManager);
+        applicationContext.unregisterReceiver(wifip2pBroadcastManager);
 
         if (connectionStarter != null && connectionStarter.isAlive() &&
                 !connectionStarter.isInterrupted()) {
