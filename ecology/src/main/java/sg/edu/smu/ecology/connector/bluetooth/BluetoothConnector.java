@@ -77,7 +77,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     /**
      * Send message to all the connected devices in the ecology
      *
-     * @param message the content of the message to be sent
+     * @param message the message to be sent
      */
     @Override
     public void sendMessage(List<Object> message) {
@@ -111,7 +111,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     /**
      * Connect to the ecology
      *
-     * @param context  the application context
+     * @param context  the activity context
      * @param deviceId the id of th device
      */
     @Override

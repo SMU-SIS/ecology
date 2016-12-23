@@ -36,8 +36,8 @@ public class BluetoothClientConnector extends BluetoothConnector {
             Log.i(TAG, "Client connected to server");
             // Set the client connect thread connected to the server
             setBluetoothClientConnectThread(bluetoothClientConnectThread);
-            // Interrupt other client connect threads that are no longer required since a thread has
-            // connected to the server
+            // Interrupt other client connect threads that are no longer required since one was
+            // able to establish a connection
             if (clientConnectThreadsList.size() > 0) {
                 interruptOtherClientConnectThreads();
             }
@@ -66,7 +66,7 @@ public class BluetoothClientConnector extends BluetoothConnector {
     /**
      * Return the list of {@link BluetoothSocketReadWriter} threads
      *
-     * @return the list of client server threads
+     * @return the list of client server connection threads
      */
     @Override
     public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
