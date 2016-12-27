@@ -32,10 +32,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
     static final int MESSAGE_RECEIVED = 0x400 + 1;
     static final int SOCKET_CONNECTED = 0x400 + 2;
     static final int SOCKET_CLOSE = 0x400 + 3;
-    // Used for setting up wifip2p connection
+    // Used for setting up wifi p2p connection
     static final int TIME_OUT = 5000;
     static final int SERVER_PORT = 6868;
-    // To listen to certain events of wifi direct
+    // To listen to certain events of wifi p2p
     private final IntentFilter intentFilter = new IntentFilter();
     // Message encoder to encode the message into byte arrays before sending it.
     private final MessageEncoder messageEncoder = new MessageEncoder();

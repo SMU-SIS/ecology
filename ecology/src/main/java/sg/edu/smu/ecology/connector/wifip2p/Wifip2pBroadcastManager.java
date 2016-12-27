@@ -9,7 +9,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
 /**
- * Broadcast receiver that receives intent broadcast related to WiFI P2P connection
+ * A BroadcastReceiver that notifies of important wifi p2p events.
  */
 class Wifip2pBroadcastManager extends BroadcastReceiver {
 
@@ -20,6 +20,11 @@ class Wifip2pBroadcastManager extends BroadcastReceiver {
     private Wifip2pConnector wifip2pConnector;
     private Boolean wifip2pConnected = false;
 
+    /**
+     * @param manager WifiP2pManager system service
+     * @param channel Wifi p2p channel
+     * @param wifip2pConnector the connector associated with the receiver
+     */
     public Wifip2pBroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
                                    Wifip2pConnector wifip2pConnector) {
         super();
@@ -29,7 +34,8 @@ class Wifip2pBroadcastManager extends BroadcastReceiver {
     }
 
     /**
-     * This method is called when the BroadcastReceiver is receiving an Intent broadcast.
+     * This method is called when the BroadcastReceiver is receiving an Intent broadcast related to
+     * wifi p2p events
      *
      * @param context the Context in which the receiver is running.
      * @param intent  the Intent being received.

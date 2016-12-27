@@ -11,18 +11,22 @@ import android.util.Log;
  */
 
 /**
- * Broadcast receiver that receives intent broadcast related to Bluetooth connection
+ * A BroadcastReceiver that notifies of important bluetooth events.
  */
 class BluetoothBroadcastManager extends BroadcastReceiver {
     private static final String TAG = BluetoothBroadcastManager.class.getSimpleName();
     private BluetoothConnector bluetoothConnector;
 
+    /**
+     * @param bluetoothConnector the connector associated with the receiver
+     */
     public BluetoothBroadcastManager(BluetoothConnector bluetoothConnector) {
         this.bluetoothConnector = bluetoothConnector;
     }
 
     /**
-     * This method is called when the BroadcastReceiver is receiving an Intent broadcast.
+     * This method is called when the BroadcastReceiver is receiving an Intent broadcast related to
+     * bluetooth events
      *
      * @param context the Context in which the receiver is running.
      * @param intent  the Intent being received.
