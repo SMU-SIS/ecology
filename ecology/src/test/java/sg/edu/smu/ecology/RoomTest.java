@@ -50,15 +50,15 @@ public class RoomTest {
         room = null;
     }
 
-    // To verify if event broadcaster and data sync receives the right message from room
+    // To verify if event broadcaster receives the right message from room
     @Test
-    public void testOnMessage() throws Exception {
+    public void testOnReceiveEventBroadcasterMessage() throws Exception {
         // To get the mock eventBroadcaster
         PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster
                 (any(EventBroadcaster.Connector.class))).thenReturn(eventBroadcaster);
         eventBroadcaster = room.getEventBroadcaster();
 
-        // To get the mock eventBroadcaster
+        // To get the mock data sync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
                 any(DataSync.SyncDataChangeListener.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
@@ -72,16 +72,30 @@ public class RoomTest {
 
         // To verify that data sync doesn't receive the data from room
         verify(dataSync, never()).onMessage(data1.subList(0, data1.size() - 1));
+    }
+
+    // To verify if data sync receives the right message from room
+    @Test
+    public void testOnReceiveDataSyncMessage() throws Exception {
+        // To get the mock eventBroadcaster
+        PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster
+                (any(EventBroadcaster.Connector.class))).thenReturn(eventBroadcaster);
+        eventBroadcaster = room.getEventBroadcaster();
+
+        // To get the mock data sync
+        PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
+                any(DataSync.SyncDataChangeListener.class))).thenReturn(dataSync);
+        dataSync = room.getDataSyncObject();
 
         // Test data - contains data sync message routing id
         List<Object> data2 = Arrays.<Object>asList(1, "test2", 0);
         room.onMessage(data2);
 
-        // To verify that event broadcaster doesn't receive the data from room
-        verify(eventBroadcaster, never()).onRoomMessage(data2.subList(0, data2.size() - 1));
-
         // To verify if data sync receives the correct data from room
         verify(dataSync, times(1)).onMessage(data2.subList(0, data2.size() - 1));
+
+        // To verify that event broadcaster doesn't receive the data from room
+        verify(eventBroadcaster, never()).onRoomMessage(data2.subList(0, data2.size() - 1));
     }
 
     // To verify if ecology receives the event broadcaster message from Room
