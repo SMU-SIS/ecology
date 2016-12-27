@@ -2,6 +2,8 @@ package sg.edu.smu.ecology;
 
 import android.content.Context;
 
+import sg.edu.smu.ecology.connector.Connector;
+
 /**
  * Created by anurooppv on 1/8/2016.
  * This class is used to get Ecology instance required to connect and send messages to other devices

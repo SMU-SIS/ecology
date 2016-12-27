@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.os.Handler;
 import android.util.Log;
@@ -13,25 +13,38 @@ import java.net.SocketTimeoutException;
 /**
  * Created by tnnguyen on 28/4/16.
  */
-public class SocketConnectionStarter extends Thread {
-    private static final String TAG = SocketConnectionStarter.class.getSimpleName();
 
+/**
+ * This threads run when a client device starts looking for connections
+ */
+class SocketConnectionStarter extends Thread {
+    private static final String TAG = SocketConnectionStarter.class.getSimpleName();
+    // Handles the messages
     private Handler handler;
     private InetAddress address;
+    // To manage an established connection
     private SocketReadWriter socketReadWriter;
     private Socket socket = null;
     // To record the status of the connection
     private boolean connectedToServer = false;
 
-    public SocketConnectionStarter(Handler handler, InetAddress groupOwnerAddress) {
+    SocketConnectionStarter(Handler handler, InetAddress groupOwnerAddress) {
         this.handler = handler;
         this.address = groupOwnerAddress;
     }
 
-    public void setConnectedToServer(boolean connectedToServer) {
+    /**
+     * Set the status of the connection accordingly
+     *
+     * @param connectedToServer indicates the current connection status
+     */
+    void setConnectedToServer(boolean connectedToServer) {
         this.connectedToServer = connectedToServer;
     }
 
+    /**
+     * A disconnection request is received
+     */
     @Override
     public void interrupt() {
         super.interrupt();
@@ -40,6 +53,9 @@ public class SocketConnectionStarter extends Thread {
         }
     }
 
+    /**
+     * Keep looking for connections till a disconnection request is received
+     */
     @Override
     public void run() {
         // Try connecting till the connection is setup
@@ -53,13 +69,13 @@ public class SocketConnectionStarter extends Thread {
                     socket.setReuseAddress(true);
                     socket.bind(null);
 
-                    socket.connect(new InetSocketAddress(address.getHostAddress(), Settings.SERVER_PORT),
-                            Settings.TIME_OUT);
+                    socket.connect(new InetSocketAddress(address.getHostAddress(),
+                            Wifip2pConnector.SERVER_PORT), Wifip2pConnector.TIME_OUT);
                     socketReadWriter = new SocketReadWriter(socket, handler);
                     new Thread(socketReadWriter).start();
 
-                    // When connected, set this to true
-                    connectedToServer = true;
+                    // A connection has been established
+                    setConnectedToServer(true);
                 }
             } catch (ConnectException e) {
                 Log.i(TAG, e.getMessage());
@@ -75,7 +91,7 @@ public class SocketConnectionStarter extends Thread {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e1) {
-                    // restore interrupted status
+                    // Restore interrupted status
                     interrupt();
                 }
             } catch (IOException e) {
