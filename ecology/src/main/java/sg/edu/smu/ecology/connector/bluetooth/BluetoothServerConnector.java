@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.os.Message;
 import android.util.Log;
@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import sg.edu.smu.ecology.Settings;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -39,6 +41,11 @@ public class BluetoothServerConnector extends BluetoothConnector {
         }
     }
 
+    /**
+     * Return the list of {@link BluetoothSocketReadWriter} threads
+     *
+     * @return the list of server client connection threads
+     */
     @Override
     public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
         return clientConnectionThreadsList.values();
@@ -47,7 +54,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
     /**
      * When a client device gets connected
      *
-     * @param msg the message received
+     * @param msg the message received containing the details
      */
     @Override
     public void onDeviceConnected(Message msg) {
@@ -134,6 +141,9 @@ public class BluetoothServerConnector extends BluetoothConnector {
         }
     }
 
+    /**
+     * Disconnect from the ecology
+     */
     @Override
     public void disconnect() {
         super.disconnect();

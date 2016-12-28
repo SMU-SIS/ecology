@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.app.ListFragment;
 import android.content.Context;
@@ -16,6 +16,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import sg.edu.smu.ecology.R;
 
 /**
  * Created by anurooppv on 14/7/2016.

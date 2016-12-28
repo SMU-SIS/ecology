@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -26,11 +26,26 @@ class BluetoothSocketReadWriter extends Thread {
     private DataOutputStream outputStream;
     private int clientId = 0;
 
+    /**
+     * Constructor used in {@link BluetoothClientConnectThread} by a {@link BluetoothClientConnector}
+     * instance
+     *
+     * @param bluetoothSocket the connected bluetooth socket
+     * @param handler         to handle the messages
+     */
     BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
     }
 
+    /**
+     * Constructor used in {@link BluetoothServerAcceptThread} by a {@link BluetoothServerConnector}
+     * instance
+     *
+     * @param bluetoothSocket the connected bluetooth socket
+     * @param handler         to handle the messages
+     * @param clientId        the id of the connected client
+     */
     BluetoothSocketReadWriter(BluetoothSocket bluetoothSocket, Handler handler, int clientId) {
         this.bluetoothSocket = bluetoothSocket;
         this.handler = handler;
@@ -44,16 +59,18 @@ class BluetoothSocketReadWriter extends Thread {
             inputStream = new DataInputStream(bluetoothSocket.getInputStream());
             outputStream = new DataOutputStream(bluetoothSocket.getOutputStream());
 
-            handler.obtainMessage(Settings.SOCKET_CONNECTED, clientId, 0, this).sendToTarget();
+            handler.obtainMessage(BluetoothConnector.SOCKET_CONNECTED, clientId, 0, this).
+                    sendToTarget();
 
             while (true) {
                 try {
+                    // Get the length of the data
                     int toRead = inputStream.readInt();
                     int currentRead = 0;
 
                     // This indicates that the other device is disconnected from ecology
                     if (toRead == END_OF_FILE) {
-                        handler.obtainMessage(Settings.SOCKET_CLOSE, clientId, 0,
+                        handler.obtainMessage(BluetoothConnector.SOCKET_CLOSE, clientId, 0,
                                 this).sendToTarget();
                         break;
                     }
@@ -64,7 +81,7 @@ class BluetoothSocketReadWriter extends Thread {
                                 currentRead);
                     }
                     Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
-                    handler.obtainMessage(Settings.MESSAGE_RECEIVED, clientId, 0,
+                    handler.obtainMessage(BluetoothConnector.MESSAGE_RECEIVED, clientId, 0,
                             dataBuffer).sendToTarget();
                 } catch (IOException e) {
                     break;
@@ -87,6 +104,11 @@ class BluetoothSocketReadWriter extends Thread {
         }
     }
 
+    /**
+     * Write the length of bytes to be written
+     *
+     * @param length the length of the bytes
+     */
     void writeInt(int length) {
         try {
             outputStream.writeInt(length);

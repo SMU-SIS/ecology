@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.os.Handler;
 import android.util.Log;
@@ -13,35 +13,43 @@ import java.util.Arrays;
 /**
  * Created by anurooppv on 1/6/2016.
  */
-public class SocketReadWriter implements Runnable {
-    private static final String TAG = SocketReadWriter.class.getSimpleName();
 
+/**
+ * This runs during a connection with a remote device using wifi p2p. It also handles all the
+ * incoming and outgoing messages.
+ */
+class SocketReadWriter implements Runnable {
+    private static final String TAG = SocketReadWriter.class.getSimpleName();
     private static final int END_OF_FILE = -1;
     private Handler handler;
     private Socket socket = null;
     private DataOutputStream outputStream;
 
-    public SocketReadWriter(Socket socket, Handler handler) {
+    SocketReadWriter(Socket socket, Handler handler) {
         this.socket = socket;
         this.handler = handler;
     }
 
-    // This method is called when the device is disconnected from ecology
-    public void onInterrupt(){
+    /**
+     * This method is called when the device is disconnected from ecology
+     */
+    void onInterrupt() {
         // To indicate that the device is disconnected from ecology
-        if(!socket.isClosed()) {
+        if (!socket.isClosed()) {
             writeInt(END_OF_FILE);
         }
     }
 
+    /**
+     * This runs as long as the connections is active and handles the incoming messages
+     */
     @Override
     public void run() {
         try {
             DataInputStream inputStream = new DataInputStream(socket.getInputStream());
             outputStream = new DataOutputStream(socket.getOutputStream());
 
-            Log.i(TAG, "Socket read/writer started");
-            handler.obtainMessage(Settings.SOCKET_CONNECTED, this).sendToTarget();
+            handler.obtainMessage(Wifip2pConnector.SOCKET_CONNECTED, this).sendToTarget();
 
             while (true) {
                 try {
@@ -49,17 +57,19 @@ public class SocketReadWriter implements Runnable {
                     int currentRead = 0;
 
                     // This indicates that the other device is disconnected from ecology
-                    if(toRead == END_OF_FILE){
+                    if (toRead == END_OF_FILE) {
                         break;
                     }
 
                     while (currentRead < toRead) {
                         byte[] dataBuffer = new byte[toRead];
 
-                        currentRead += inputStream.read(dataBuffer, currentRead, toRead - currentRead);
+                        currentRead += inputStream.read(dataBuffer, currentRead,
+                                toRead - currentRead);
                         Log.i(TAG, "buffer " + Arrays.toString(dataBuffer));
 
-                        handler.obtainMessage(Settings.MESSAGE_RECEIVED, dataBuffer).sendToTarget();
+                        handler.obtainMessage(Wifip2pConnector.MESSAGE_RECEIVED,
+                                dataBuffer).sendToTarget();
                     }
                 } catch (EOFException e) {
                     Log.i(TAG, "EOFException");
@@ -75,14 +85,19 @@ public class SocketReadWriter implements Runnable {
                 socket.close();
                 Log.i(TAG, "socket close");
 
-                handler.obtainMessage(Settings.SOCKET_CLOSE, null).sendToTarget();
+                handler.obtainMessage(Wifip2pConnector.SOCKET_CLOSE, null).sendToTarget();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void writeData(byte[] buffer) {
+    /**
+     * Write to the connected OutStream.
+     *
+     * @param buffer The bytes to write
+     */
+    void writeData(byte[] buffer) {
         try {
             outputStream.write(buffer);
         } catch (IOException e) {
@@ -90,7 +105,12 @@ public class SocketReadWriter implements Runnable {
         }
     }
 
-    public void writeInt(int length) {
+    /**
+     * Write the length of bytes to be written
+     *
+     * @param length the length of the bytes
+     */
+    void writeInt(int length) {
         try {
             outputStream.writeInt(length);
         } catch (IOException e) {

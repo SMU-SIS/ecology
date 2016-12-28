@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -27,9 +27,12 @@ class BluetoothServerAcceptThread extends Thread {
     // Name for the SDP record when creating server socket
     private static final String NAME = "EcologyBluetoothConnector";
     private BluetoothServerSocket serverSocket = null;
+    // The list of UUIDs that will be used to establish a bluetooth connection
     private List<UUID> uuidsList;
+    // The list of disconnected UUIDs so that it can be reused.
     private List<UUID> disconnectedUuidsList = new ArrayList<>();
     private BluetoothAdapter bluetoothAdapter;
+    // To store the connection threads of all the connected clients
     private Map<Integer, BluetoothSocketReadWriter> bluetoothSocketReadWritersList = new HashMap<>();
     private Handler handler;
     private int clientId = 0;
@@ -68,6 +71,7 @@ class BluetoothServerAcceptThread extends Thread {
                 }
             }
             Log.i(TAG, "All eight UUIDs used ");
+            // Restart listening when all the UUIDs have been tried for connection
             restartUuidsListening = true;
         } catch (IOException e) {
 
@@ -89,6 +93,11 @@ class BluetoothServerAcceptThread extends Thread {
         clientUuidList.put(clientId, uuid);
     }
 
+    /**
+     * Handle the client disconnection
+     *
+     * @param clientId the id of the client that got disconnected
+     */
     void handleClientDisconnection(int clientId) {
         disconnectedUuidsList.add(clientUuidList.get(clientId));
         Log.i(TAG, "disconnectedUuidsList " + disconnectedUuidsList);
@@ -101,6 +110,11 @@ class BluetoothServerAcceptThread extends Thread {
         }
     }
 
+    /**
+     * Remove the connection thread of the disconnected client
+     *
+     * @param clientId the client id of the disconnected device
+     */
     private void updateSocketReadWritersList(int clientId) {
         bluetoothSocketReadWritersList.get(clientId).closeDisconnectedSocket();
         bluetoothSocketReadWritersList.remove(clientId);

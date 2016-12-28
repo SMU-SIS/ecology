@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
 
@@ -34,6 +35,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
 
     private static final int REQUEST_ENABLE_BT = 1;
+    // Used for client-server message handler
+    static final int MESSAGE_RECEIVED = 0x400 + 1;
+    static final int SOCKET_CONNECTED = 0x400 + 2;
+    static final int SOCKET_CLOSE = 0x400 + 3;
     // Seven randomly-generated UUIDs. These must match on both server and client.
     private static final List<UUID> uuidsList = Arrays.asList(
             UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"),
@@ -69,6 +74,11 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     // Message decoder to decode byte arrays into messages.
     private final MessageDecoder messageDecoder = new MessageDecoder();
 
+    /**
+     * Send message to all the connected devices in the ecology
+     *
+     * @param message the message to be sent
+     */
     @Override
     public void sendMessage(List<Object> message) {
         List<Object> msg = new ArrayList<>(message);
@@ -98,6 +108,12 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
+    /**
+     * Connect to the ecology
+     *
+     * @param context  the activity context
+     * @param deviceId the id of th device
+     */
     @Override
     public void connect(Context context, String deviceId) {
         this.context = context;
@@ -129,6 +145,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         }
     }
 
+    /**
+     * Disconnect from the ecology
+     */
     @Override
     public void disconnect() {
         onConnectorConnected = false;
@@ -141,20 +160,26 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         return onConnectorConnected;
     }
 
+    /**
+     * Handle the incoming messages
+     *
+     * @param msg the received message
+     * @return if the message was handled or not
+     */
     @Override
     public boolean handleMessage(Message msg) {
         switch (msg.what) {
-            case Settings.MESSAGE_RECEIVED:
+            case MESSAGE_RECEIVED:
                 Log.d(TAG, " MESSAGE RECEIVED");
                 onMessageReceived(msg);
                 break;
 
-            case Settings.SOCKET_CONNECTED:
+            case SOCKET_CONNECTED:
                 onConnectorConnected = true;
                 onDeviceConnected(msg);
                 break;
 
-            case Settings.SOCKET_CLOSE:
+            case SOCKET_CLOSE:
                 onConnectorConnected = false;
                 Log.d(TAG, "Socket Close");
                 onDeviceDisconnected(msg);
@@ -163,15 +188,31 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         return true;
     }
 
+    /**
+     * Gets the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
+     *
+     * @return the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
+     */
     Receiver getReceiver() {
         return receiver;
     }
 
+    /**
+     * Sets the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this connector
+     *
+     * @param receiver the {@link sg.edu.smu.ecology.connector.Connector.Receiver} instance of this
+     *                 connector
+     */
     @Override
     public void setReceiver(Receiver receiver) {
         this.receiver = receiver;
     }
 
+    /**
+     * Get the list of device ids of connected devices in the ecology
+     *
+     * @return the list of device ids of connected devices in the ecology
+     */
     Map<Integer, String> getDeviceIdsList() {
         return deviceIdsList;
     }
@@ -209,24 +250,44 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
     }
 
+    /**
+     * Get the {@link BluetoothAdapter} instance of this device
+     *
+     * @return the {@link BluetoothAdapter} instance of this device
+     */
     BluetoothAdapter getBluetoothAdapter() {
         return bluetoothAdapter;
     }
 
+    /**
+     * Get the list of {@link BluetoothDevice} currently paired to this device
+     *
+     * @return the list of {@link BluetoothDevice} currently paired to this device
+     */
     List<BluetoothDevice> getPairedDevicesList() {
         return pairedDevicesList;
     }
 
+    /**
+     * Get the {@link Handler} instance used for handling messages
+     *
+     * @return the {@link Handler} instance
+     */
     Handler getHandler() {
         return handler;
     }
 
+    /**
+     * Get the device id of this device
+     *
+     * @return the device id of this device
+     */
     String getDeviceId() {
         return deviceId;
     }
 
     /**
-     * Add all the paired devices
+     * Add all devices that are currently paired with this device
      */
     void addPairedDevices() {
         // Get the paired devices' list
@@ -251,7 +312,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     }
 
     /**
-     * Get the UUIDs list
+     * Get the UUIDs list used for setting up a bluetooth connection
      *
      * @return the UUID list
      */

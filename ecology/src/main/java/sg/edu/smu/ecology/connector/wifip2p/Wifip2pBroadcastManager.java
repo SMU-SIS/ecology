@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.wifip2p;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,25 +9,37 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.util.Log;
 
 /**
- * Broadcast receiver that receives intent broadcast
+ * A BroadcastReceiver that notifies of important wifi p2p events.
  */
-public class BroadcastManager extends BroadcastReceiver {
+class Wifip2pBroadcastManager extends BroadcastReceiver {
 
-    private static final String TAG = BroadcastManager.class.getSimpleName();
+    private static final String TAG = Wifip2pBroadcastManager.class.getSimpleName();
 
     private WifiP2pManager manager;
     private WifiP2pManager.Channel channel;
     private Wifip2pConnector wifip2pConnector;
     private Boolean wifip2pConnected = false;
 
-    public BroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
-                            Wifip2pConnector wifip2pConnector) {
+    /**
+     * @param manager WifiP2pManager system service
+     * @param channel Wifi p2p channel
+     * @param wifip2pConnector the connector associated with the receiver
+     */
+    public Wifip2pBroadcastManager(WifiP2pManager manager, WifiP2pManager.Channel channel,
+                                   Wifip2pConnector wifip2pConnector) {
         super();
         this.manager = manager;
         this.channel = channel;
         this.wifip2pConnector = wifip2pConnector;
     }
 
+    /**
+     * This method is called when the BroadcastReceiver is receiving an Intent broadcast related to
+     * wifi p2p events
+     *
+     * @param context the Context in which the receiver is running.
+     * @param intent  the Intent being received.
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
@@ -45,8 +57,8 @@ public class BroadcastManager extends BroadcastReceiver {
             // Not required currently as we don't populate the peer list
             /*if (manager != null) {
                 Log.i(TAG, "requestpeers");
-                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.getFragmentManager().
-                        findFragmentByTag("peerList"));
+                manager.requestPeers(channel, (WifiP2pManager.PeerListListener) activity.
+                getFragmentManager().findFragmentByTag("peerList"));
             }*/
         } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
             if (manager != null) {

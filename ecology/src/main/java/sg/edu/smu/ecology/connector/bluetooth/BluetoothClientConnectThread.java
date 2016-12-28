@@ -1,4 +1,4 @@
-package sg.edu.smu.ecology;
+package sg.edu.smu.ecology.connector.bluetooth;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -23,7 +23,9 @@ class BluetoothClientConnectThread extends Thread {
     private final BluetoothDevice bluetoothDevice;
     private BluetoothSocket bluetoothSocket;
     private BluetoothAdapter bluetoothAdapter;
+    // UUID which is currently being tried to establish a connection
     private UUID uuidToTry;
+    // The list of UUIDs to try
     private List<UUID> uuidsList;
     private BluetoothSocketReadWriter bluetoothSocketReadWriter;
     private Handler handler;
@@ -106,13 +108,23 @@ class BluetoothClientConnectThread extends Thread {
         Log.i(TAG, "Done ");
     }
 
+    /**
+     * Handle the server disconnection. Immediately the client device will start looking for new
+     * connections
+     */
     void handleServerDisconnection() {
+        // To start looking for new connections
         connectedToServer = false;
         if (bluetoothSocketReadWriter != null) {
             bluetoothSocketReadWriter.closeDisconnectedSocket();
         }
     }
 
+    /**
+     * Create a thread to manage the newly established bluetooth connection
+     *
+     * @param socket the connected bluetooth socket
+     */
     private void createSocketReadWriter(BluetoothSocket socket) {
         bluetoothSocketReadWriter = new BluetoothSocketReadWriter(socket, handler);
         bluetoothSocketReadWriter.start();

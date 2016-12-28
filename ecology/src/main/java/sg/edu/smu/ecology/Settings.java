@@ -3,14 +3,9 @@ package sg.edu.smu.ecology;
 /**
  * Created by tnnguyen on 28/4/16.
  */
-class Settings {
-    static final int MESSAGE_RECEIVED = 0x400 + 1;
-    static final int SOCKET_CONNECTED = 0x400 + 2;
-    static final int SOCKET_CLOSE = 0x400 + 3;
-    static final int TIME_OUT = 5000;
-    static int SERVER_PORT = 6868;
-    static final String DEVICE_DISCONNECTED = "device:disconnected";
-    static final String DEVICE_CONNECTED = "device:connected";
-    static final String DEVICE_ID_EXCHANGE = "deviceId";
-    static final String SYNC_DATA = "syncData";
+public class Settings {
+    public static final String DEVICE_DISCONNECTED = "device:disconnected";
+    public static final String DEVICE_CONNECTED = "device:connected";
+    public static final String DEVICE_ID_EXCHANGE = "deviceId";
+    public static final String SYNC_DATA = "syncData";
 }
