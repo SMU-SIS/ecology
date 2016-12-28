@@ -4,16 +4,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -41,21 +37,31 @@ public class DataSyncTest {
     }
 
     // To verify that when a new sync data is set, connector and sync data change listener are
-    // invoked correctly
+    // invoked correctly and also if sync data has been saved correctly
     @Test
-    public void testSetData(){
+    public void testSetData() {
         dataSync.setData("color", "red");
 
+        // To check if connector is invoked once
         verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "red", null);
+
+        // To check if the new sync data has been saved correctly
+        assertEquals(dataSync.getData("color"), "red");
     }
 
     // To verify that when the device receives a sync data change from another device in the
-    // ecology, sync data change listener is invoked correctly
+    // ecology, sync data change listener is invoked correctly and also if sync data has been saved
+    // correctly
     @Test
-    public void testOnMessage(){
-        dataSync.onMessage(Arrays.<Object>asList("Color", "black"));
+    public void testOnMessage() {
+        dataSync.onMessage(Arrays.<Object>asList("color", "black"));
 
-        verify(syncDataChangeListener, times(1)).onDataUpdate("Color", "black", null);
+        // To check if sync data change listener is invoked once
+        verify(syncDataChangeListener, times(1)).onDataUpdate("color", "black", null);
+
+        // To check if the new sync data has been saved correctly
+        assertEquals(dataSync.getData("color"), "black");
     }
 }
