@@ -26,17 +26,15 @@ import static org.mockito.Mockito.verify;
 public class EventBroadcasterTest {
 
     @Mock
-    private Room room;
-    @Mock
     private EventReceiver eventReceiver1, eventReceiver2;
-
+    @Mock
+    EventBroadcaster.Connector connector;
     private EventBroadcaster eventBroadcaster;
-
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        eventBroadcaster = new EventBroadcaster(room);
+        eventBroadcaster = new EventBroadcaster(connector);
     }
 
     @After
@@ -76,7 +74,7 @@ public class EventBroadcasterTest {
         eventBroadcaster.publish("test");
 
         // Verify that the right data reaches the room.
-        verify(room).onEventBroadcasterMessage(Collections.singletonList((Object) "test"));
+        verify(connector).onEventBroadcasterMessage(Collections.singletonList((Object) "test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent("test", Collections.emptyList());
     }
@@ -96,7 +94,7 @@ public class EventBroadcasterTest {
         roomData.add("test");
 
         // Verify that the right data reaches the room.
-        verify(room).onEventBroadcasterMessage(roomData);
+        verify(connector).onEventBroadcasterMessage(roomData);
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent("test", data);
     }
@@ -110,7 +108,7 @@ public class EventBroadcasterTest {
         eventBroadcaster.publishWithArgs("test", 1, 4, "hello");
 
         // Verify that the right data reaches the room.
-        verify(room).onEventBroadcasterMessage(Arrays.<Object>asList(1, 4, "hello", "test"));
+        verify(connector).onEventBroadcasterMessage(Arrays.<Object>asList(1, 4, "hello", "test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent(
                 "test", Arrays.<Object>asList(1, 4, "hello"));
@@ -118,13 +116,12 @@ public class EventBroadcasterTest {
         eventBroadcaster.publishWithArgs("test", 0);
 
         // Verify that the right data reaches the room.
-        verify(room).onEventBroadcasterMessage(Arrays.<Object>asList(0, "test"));
+        verify(connector).onEventBroadcasterMessage(Arrays.<Object>asList(0, "test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent("test", Collections.<Object>singletonList(0));
 
 
     }
-
 
     // Check if message goes to an unsubscribed event receiver
     @Test
