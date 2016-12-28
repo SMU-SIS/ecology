@@ -10,6 +10,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -90,5 +91,26 @@ public class DataSyncTest {
         verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "blue"));
         // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "blue", "red");
+    }
+
+    // To verify if message or event is not sent when the user sets the same data as before
+    @Test
+    public void testWhenSameSyncDataSet(){
+        dataSync.setData("color", "red");
+        assertEquals(dataSync.getData("color"), "red");
+
+        // To check if connector is invoked once
+        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To check if sync data change listener is invoked once
+        verify(syncDataChangeListener, times(1)).onDataUpdate("color", "red", null);
+
+        // Set the same data as before
+        dataSync.setData("color", "red");
+        assertEquals(dataSync.getData("color"), "red");
+
+        // To check if connector is not invoked
+        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To check if sync data change listener is not invoked
+        verify(syncDataChangeListener, never()).onDataUpdate("color", "red", "red");
     }
 }
