@@ -64,4 +64,21 @@ public class DataSyncTest {
         // To check if the new sync data has been saved correctly
         assertEquals(dataSync.getData("color"), "black");
     }
+
+    // To verify that when an non-existent sync data is requested, a null is returned
+    @Test
+    public void testGetNonExistentData(){
+        assertEquals(dataSync.getData("color"), null);
+    }
+
+    // To verify that when a sync data value is over written, new value will be returned when queried
+    @Test
+    public void testOverwriteSyncData(){
+        dataSync.setData("color", "red");
+        assertEquals(dataSync.getData("color"), "red");
+
+        // Over-write the data sync value corresponding to the given key
+        dataSync.setData("color", "blue");
+        assertEquals(dataSync.getData("color"), "blue");
+    }
 }
