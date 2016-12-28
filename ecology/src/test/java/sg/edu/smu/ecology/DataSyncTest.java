@@ -77,8 +77,18 @@ public class DataSyncTest {
         dataSync.setData("color", "red");
         assertEquals(dataSync.getData("color"), "red");
 
+        // To check if connector is invoked once
+        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To check if sync data change listener is invoked once
+        verify(syncDataChangeListener, times(1)).onDataUpdate("color", "red", null);
+
         // Over-write the data sync value corresponding to the given key
         dataSync.setData("color", "blue");
         assertEquals(dataSync.getData("color"), "blue");
+
+        // To check if connector is invoked once
+        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "blue"));
+        // To check if sync data change listener is invoked once
+        verify(syncDataChangeListener, times(1)).onDataUpdate("color", "blue", "red");
     }
 }
