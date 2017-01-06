@@ -21,7 +21,6 @@ import sg.edu.smu.ecology.connector.Connector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -65,15 +64,25 @@ public class EcologyTest {
         // Test data
         List<Object> data = Arrays.<Object>asList(1, "test");
 
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+
         String roomName = "room";
-        ecology.onRoomMessage(roomName, data);
+        ecology.onRoomMessage(roomName, message);
+
+        // To capture the argument in the sendMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).sendMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
 
         // Room name will be added at the end of the data before passing it to connector
         Vector<Object> connectorData = new Vector<>(data);
         connectorData.add(roomName);
 
-        // To verify if the connector received the message
-        verify(connector).sendMessage(connectorData);
+        // To verify if the connector received the correct data
+        assertEquals(messageArgument.getArguments(), connectorData);
     }
 
     // Check if room is added or not
@@ -111,6 +120,9 @@ public class EcologyTest {
         // Test data
         List<Object> data = Arrays.<Object>asList(1, "test", roomName);
 
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+
         // To verify if add receiver was called only once
         verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
@@ -126,19 +138,30 @@ public class EcologyTest {
         room = ecology.getRoom("room");
 
         // Receiver gets the message
-        receiver.onMessage(data);
+        receiver.onMessage(message);
 
+        // To capture the argument in the onMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
         // To verify if the message reaches the correct room
-        verify(room, times(1)).onMessage(data.subList(0, data.size() - 1));
+        verify(room, times(1)).onMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that correct data is passed
+        assertEquals(messageArgument.getArguments(), data.subList(0, data.size() - 1));
     }
 
-    //When message is received from a connector - check for inappropriate rooms
+    // When message is received from a connector - check for inappropriate rooms
     @Test
     public void testNoRoomFoundReceiverMessage() {
         // Different room name
         String roomName = "room2";
         // Test data
         List<Object> data = Arrays.<Object>asList(1, "test", roomName);
+
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
 
         // To verify if add receiver was called only once
         verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
@@ -155,10 +178,10 @@ public class EcologyTest {
         room = ecology.getRoom("room");
 
         // Receiver gets the message destined for room 2
-        receiver.onMessage(data);
+        receiver.onMessage(message);
 
         // To verify that the message never reached room
-        verify(room, never()).onMessage(data.subList(0, data.size() - 1));
+        verify(room, never()).onMessage(any(EcologyMessage.class));
     }
 
     // When message is received from a connector - check for incorrect message format
@@ -177,8 +200,11 @@ public class EcologyTest {
         // Test data - no room name is added
         List<Object> data = Arrays.<Object>asList(1, 23);
 
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+
         // Receiver receives the message
-        receiver.onMessage(data);
+        receiver.onMessage(message);
 
         // Verify the mock
         PowerMockito.verifyStatic(times(1));
