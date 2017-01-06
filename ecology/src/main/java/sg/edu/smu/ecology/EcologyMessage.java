@@ -17,8 +17,8 @@ public class EcologyMessage {
      */
     private List<Object> arguments = new ArrayList<>();
 
-    public EcologyMessage(List<Object> arguments) {
-        this.arguments = arguments;
+    public EcologyMessage(List<Object> data) {
+        addArguments(data);
     }
 
     /**
