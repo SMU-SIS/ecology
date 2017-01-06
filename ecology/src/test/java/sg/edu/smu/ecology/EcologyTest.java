@@ -227,7 +227,7 @@ public class EcologyTest {
         // To verify if add receiver was called only once
         verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        // To capture the argument in the addReceiver method
+        // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(connector).setReceiver(receiverCaptor.capture());
         // Create a local mock receiver
@@ -260,7 +260,7 @@ public class EcologyTest {
         // To verify if add receiver was called only once
         verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
 
-        // To capture the argument in the addReceiver method
+        // To capture the argument in the setReceiver method
         ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
         verify(connector).setReceiver(receiverCaptor.capture());
         // Create a local mock receiver

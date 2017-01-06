@@ -109,7 +109,7 @@ public class RoomTest {
 
         room.onMessage(message);
 
-        // To capture the argument in the onRoomMessage method
+        // To capture the argument in the onMessage method
         ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
         verify(dataSync, times(1)).onMessage(messageCaptor.capture());
         // Create a local mock ecology message
