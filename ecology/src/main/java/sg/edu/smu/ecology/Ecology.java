@@ -4,9 +4,7 @@ package sg.edu.smu.ecology;
 import android.content.Context;
 import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import sg.edu.smu.ecology.connector.Connector;
@@ -60,7 +58,7 @@ public class Ecology {
         this.connector.setReceiver(new Connector.Receiver() {
 
             @Override
-            public void onMessage(List<Object> message) {
+            public void onMessage(EcologyMessage message) {
                 Ecology.this.onConnectorMessage(message);
             }
 
@@ -117,10 +115,11 @@ public class Ecology {
      *
      * @param message the message content
      */
-    private void onConnectorMessage(List<Object> message) {
+    private void onConnectorMessage(EcologyMessage message) {
+        EcologyMessage msg = new EcologyMessage(message.getArguments());
         String targetRoomName = null;
         try {
-            targetRoomName = (String) message.get(message.size() - 1);
+            targetRoomName = (String) msg.fetchArgument();
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             //throw new IllegalArgumentException("Unrecognized message format.");
             Log.e(TAG, "Exception " + e.getMessage());
@@ -128,7 +127,7 @@ public class Ecology {
 
         Room room = rooms.get(targetRoomName);
         if (room != null) {
-            room.onMessage(message.subList(0, message.size() - 1));
+            room.onMessage(msg);
         }
 
     }
@@ -139,9 +138,9 @@ public class Ecology {
      * @param roomName the name of the room who send the event
      * @param message  the content of the message
      */
-    void onRoomMessage(String roomName, List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(roomName);
+    void onRoomMessage(String roomName, EcologyMessage message) {
+        EcologyMessage msg = new EcologyMessage(message.getArguments());
+        msg.addArgument(roomName);
         connector.sendMessage(msg);
     }
 
