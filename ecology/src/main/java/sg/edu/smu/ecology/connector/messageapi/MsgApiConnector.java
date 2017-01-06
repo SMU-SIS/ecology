@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
@@ -53,11 +54,12 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * @param message the message to be sent
      */
     @Override
-    public void sendMessage(List<Object> message) {
+    public void sendMessage(EcologyMessage message) {
+        List<Object> msg = message.getArguments();
         // Retrieve eventType
-        final String eventType = (String) message.get(message.size() - 2);
+        final String eventType = (String) msg.get(msg.size() - 2);
 
-        byte[] encodedMessageData = encodeMessage(message);
+        byte[] encodedMessageData = encodeMessage(msg);
         Log.i(TAG, "data " + Arrays.toString(encodedMessageData));
 
         String messagePath = " ";
@@ -224,7 +226,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         data = messageDecoder.decode(messageEvent.getData());
         Log.i(TAG, "Data received" + data);
 
-        receiver.onMessage(data);
+        receiver.onMessage(new EcologyMessage(data));
     }
 
 }
