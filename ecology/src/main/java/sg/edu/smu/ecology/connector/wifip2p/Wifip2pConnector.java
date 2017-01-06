@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.nio.charset.CharacterCodingException;
 import java.util.List;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
@@ -78,9 +79,10 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * @param message the message to be sent
      */
     @Override
-    public void sendMessage(List<Object> message) {
+    public void sendMessage(EcologyMessage message) {
+        List<Object> msg = message.getArguments();
         if (socketReadWriter != null) {
-            byte[] encodedMessageData = encodeMessage(message);
+            byte[] encodedMessageData = encodeMessage(msg);
             writeData(encodedMessageData);
         }
     }
@@ -260,7 +262,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
                 Log.i(TAG, " eventType " + eventTypeReceived);
 
-                receiver.onMessage(data);
+                receiver.onMessage(new EcologyMessage(data));
                 break;
 
             case SOCKET_CONNECTED:
