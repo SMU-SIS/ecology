@@ -4,17 +4,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static junit.framework.Assert.fail;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -50,11 +52,19 @@ public class EventBroadcasterTest {
 
         // Test data
         List<Object> data = Arrays.<Object>asList(11, "test1");
-        eventBroadcaster.onRoomMessage(data);
+
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+
+        eventBroadcaster.onRoomMessage(message);
 
         // Test data
         List<Object> data2 = Arrays.<Object>asList(21, "test2");
-        eventBroadcaster.onRoomMessage(data2);
+
+        EcologyMessage message2 = mock(EcologyMessage.class);
+        PowerMockito.when(message2.getArguments()).thenReturn(data2);
+
+        eventBroadcaster.onRoomMessage(message2);
 
         // To verify that the right event receiver is being called the message is received
         verify(eventReceiver1).handleEvent("test1", data.subList(0, data.size() - 1));
@@ -73,8 +83,15 @@ public class EventBroadcasterTest {
 
         eventBroadcaster.publish("test");
 
-        // Verify that the right data reaches the room.
-        verify(connector).onEventBroadcasterMessage(Collections.singletonList((Object) "test"));
+        // To capture the argument in the onEventBroadcasterMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // To check if right value is passed
+        assertEquals(messageArgument.getArguments(), Collections.<Object>singletonList("test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent("test", Collections.emptyList());
     }
@@ -89,12 +106,15 @@ public class EventBroadcasterTest {
         List<Object> data = Arrays.<Object>asList(1, 23);
         eventBroadcaster.publish("test", data);
 
-        // Publish method adds the event type at the end
-        List<Object> roomData = new ArrayList<>(data);
-        roomData.add("test");
+        // To capture the argument in the onEventBroadcasterMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
 
         // Verify that the right data reaches the room.
-        verify(connector).onEventBroadcasterMessage(roomData);
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent("test", data);
     }
@@ -107,20 +127,31 @@ public class EventBroadcasterTest {
 
         eventBroadcaster.publishWithArgs("test", 1, 4, "hello");
 
+        // To capture the argument in the onEventBroadcasterMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
         // Verify that the right data reaches the room.
-        verify(connector).onEventBroadcasterMessage(Arrays.<Object>asList(1, 4, "hello", "test"));
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 4, "hello", "test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent(
                 "test", Arrays.<Object>asList(1, 4, "hello"));
 
         eventBroadcaster.publishWithArgs("test", 0);
 
+        // To capture the argument in the onEventBroadcasterMessage method
+        verify(connector, times(2)).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument2;
+        messageArgument2 = messageCaptor.getValue();
+
         // Verify that the right data reaches the room.
-        verify(connector).onEventBroadcasterMessage(Arrays.<Object>asList(0, "test"));
+        assertEquals(messageArgument2.getArguments(), Arrays.asList(0, "test"));
         // Verify that the event has also been received by the local receiver.
         verify(eventReceiver1, times(1)).handleEvent("test", Collections.<Object>singletonList(0));
-
-
     }
 
     // Check if message goes to an unsubscribed event receiver
@@ -240,8 +271,14 @@ public class EventBroadcasterTest {
             }
         });
 
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, 4, "a string", "test");
+
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+
         // Send the message to the eventBroadcaster (last argument is the event type).
-        eventBroadcaster.onRoomMessage(Arrays.<Object>asList(1, 4, "a string", "test"));
+        eventBroadcaster.onRoomMessage(message);
     }
 
 }
