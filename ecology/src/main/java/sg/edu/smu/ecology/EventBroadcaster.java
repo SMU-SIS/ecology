@@ -15,17 +15,11 @@ import java.util.Map;
 public class EventBroadcaster {
 
     private final static String TAG = EventBroadcaster.class.getSimpleName();
-
-    interface Connector {
-        void onEventBroadcasterMessage(EcologyMessage message);
-    }
-
     /**
      * The recipient for event broadcaster messages.
      */
     private final Connector connector;
     private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
-
     /**
      * @param connector the recipient for event broadcaster messages.
      */
@@ -155,5 +149,9 @@ public class EventBroadcaster {
      */
     void publishLocalEvent(String eventType, List<Object> data) {
         passEventToReceivers(eventType, data);
+    }
+
+    interface Connector {
+        void onEventBroadcasterMessage(EcologyMessage message);
     }
 }

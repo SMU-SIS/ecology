@@ -8,7 +8,7 @@ import java.util.List;
  */
 
 /**
- * This class is used to save the message data to sent to other connected devices in the ecology
+ * This class is used to save the message data to be sent to other connected devices in the ecology
  */
 public class EcologyMessage {
     private static final String TAG = EcologyMessage.class.getSimpleName();
