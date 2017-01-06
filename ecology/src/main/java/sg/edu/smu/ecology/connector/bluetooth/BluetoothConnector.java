@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
@@ -80,8 +81,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param message the message to be sent
      */
     @Override
-    public void sendMessage(List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
+    public void sendMessage(EcologyMessage message) {
+        List<Object> msg = message.getArguments();
         msg.add(RECEIVER_MESSAGE_ID);
         doSendMessage(msg, getBluetoothSocketReadWriterList());
     }
@@ -247,7 +248,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      */
     void onReceiverMessage(Message msg, List<Object> messageData) {
         // Remove the routing id before passing the message to receiver
-        getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
+        getReceiver().onMessage(new EcologyMessage(messageData.subList(0, messageData.size() - 1)));
     }
 
     /**
