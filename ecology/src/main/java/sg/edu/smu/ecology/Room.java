@@ -1,9 +1,7 @@
 package sg.edu.smu.ecology;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Quentin ROY on 20/6/16.
@@ -81,7 +79,7 @@ public class Room {
         if (eventBroadcaster == null) {
             eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(new EventBroadcaster.Connector() {
                 @Override
-                public void onEventBroadcasterMessage(List<Object> message) {
+                public void onEventBroadcasterMessage(EcologyMessage message) {
                     Room.this.onEventBroadcasterMessage(message);
                 }
             });
@@ -96,7 +94,7 @@ public class Room {
         if (dataSync == null) {
             dataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
                 @Override
-                public void onMessage(List<Object> message) {
+                public void onMessage(EcologyMessage message) {
                     Room.this.onDataSyncMessage(message);
                 }
             }, new DataSync.SyncDataChangeListener() {
@@ -115,13 +113,16 @@ public class Room {
      *
      * @param message the content of the message
      */
-    void onMessage(List<Object> message) {
+    void onMessage(EcologyMessage message) {
+        EcologyMessage msg = new EcologyMessage(message.getArguments());
+        Integer messageId = (Integer) msg.fetchArgument();
+
         // Check if the received message is a sync data message or an event broadcaster event and
         // route them accordingly.
-        if (message.get(message.size() - 1).equals(SYNC_DATA_MESSAGE_ID)) {
-            getDataSyncObject().onMessage(message.subList(0, message.size() - 1));
-        } else if (message.get(message.size() - 1).equals(EVENT_MESSAGE_ID)) {
-            getEventBroadcaster().onRoomMessage(message.subList(0, message.size() - 1));
+        if (messageId == SYNC_DATA_MESSAGE_ID) {
+            getDataSyncObject().onMessage(msg);
+        } else if (messageId == EVENT_MESSAGE_ID) {
+            getEventBroadcaster().onRoomMessage(msg);
         }
     }
 
@@ -131,9 +132,9 @@ public class Room {
      *
      * @param message the message
      */
-    private void onEventBroadcasterMessage(List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(EVENT_MESSAGE_ID);
+    private void onEventBroadcasterMessage(EcologyMessage message) {
+        EcologyMessage msg = new EcologyMessage(message.getArguments());
+        msg.addArgument(EVENT_MESSAGE_ID);
         ecology.onRoomMessage(name, msg);
     }
 
@@ -143,9 +144,9 @@ public class Room {
      *
      * @param message the message
      */
-    private void onDataSyncMessage(List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(SYNC_DATA_MESSAGE_ID);
+    private void onDataSyncMessage(EcologyMessage message) {
+        EcologyMessage msg = new EcologyMessage(message.getArguments());
+        msg.addArgument(SYNC_DATA_MESSAGE_ID);
         ecology.onRoomMessage(name, msg);
     }
 
