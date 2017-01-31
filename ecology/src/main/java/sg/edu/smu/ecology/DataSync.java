@@ -61,10 +61,8 @@ public class DataSync {
      * @param message the content of the message
      */
     void onMessage(EcologyMessage message) {
-        EcologyMessage msg = new EcologyMessage(message.getArguments());
-
-        Object newValue = msg.fetchArgument();
-        Object key = msg.fetchArgument();
+        Object newValue = message.fetchArgument();
+        Object key = message.fetchArgument();
         Object oldValue = dataSyncValues.get(key);
 
         dataSyncValues.put(key, newValue);
