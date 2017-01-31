@@ -7,7 +7,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.util.ArrayList;
@@ -15,7 +17,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -64,14 +68,34 @@ public class RoomTest {
         dataSync = room.getDataSyncObject();
 
         // Test data - contains event message routing id
-        List<Object> data1 = Arrays.<Object>asList(1, "test1", 1);
-        room.onMessage(data1);
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
+        data.add(1);
+
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
+
+        room.onMessage(message);
+
+        // To capture the argument in the onRoomMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(eventBroadcaster, times(1)).onRoomMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
 
         // To verify if event broadcaster receives the correct data from room
-        verify(eventBroadcaster, times(1)).onRoomMessage(data1.subList(0, data1.size() - 1));
+        assertEquals(messageArgument.getArguments(), Arrays.<Object>asList(10, "test"));
 
         // To verify that data sync doesn't receive the data from room
-        verify(dataSync, never()).onMessage(data1.subList(0, data1.size() - 1));
+        verify(dataSync, never()).onMessage(any(EcologyMessage.class));
     }
 
     // To verify if data sync receives the right message from room
@@ -88,21 +112,43 @@ public class RoomTest {
         dataSync = room.getDataSyncObject();
 
         // Test data - contains data sync message routing id
-        List<Object> data2 = Arrays.<Object>asList(1, "test2", 0);
-        room.onMessage(data2);
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
+        data.add(0);
 
-        // To verify if data sync receives the correct data from room
-        verify(dataSync, times(1)).onMessage(data2.subList(0, data2.size() - 1));
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
+
+        room.onMessage(message);
+
+        // To capture the argument in the onMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(dataSync, times(1)).onMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // To verify if event broadcaster receives the correct data from room
+        assertEquals(messageArgument.getArguments(), Arrays.<Object>asList(10, "test"));
 
         // To verify that event broadcaster doesn't receive the data from room
-        verify(eventBroadcaster, never()).onRoomMessage(data2.subList(0, data2.size() - 1));
+        verify(eventBroadcaster, never()).onRoomMessage(any(EcologyMessage.class));
     }
 
     // To verify if ecology receives the event broadcaster message from Room
     @Test
     public void testOnEventBroadcasterMessage() throws Exception {
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test1");
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
 
         // To get the mock eventBroadcaster
         PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster
@@ -115,20 +161,45 @@ public class RoomTest {
         verify(eventBroadcasterFactory).createEventBroadcaster(connectorCaptor.capture());
         EventBroadcaster.Connector connector = connectorCaptor.getValue();
 
-        connector.onEventBroadcasterMessage(data);
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
 
-        List<Object> ecologyData = new ArrayList<>(data);
-        // Add event message id
-        ecologyData.add(1);
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                data.add(1);
+                return null;
+            }
+        }).when(message).addArgument(1);
+
+        connector.onEventBroadcasterMessage(message);
+
+        // To capture the argument in the onRoomMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        ArgumentCaptor<String> roomNameCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(ecology, times(1)).onRoomMessage(roomNameCaptor.capture(), messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+        String roomNameValue = roomNameCaptor.getValue();
+
+        // Add event message id at the end
+        List<Object> ecologyData = Arrays.<Object>asList(10, "test", 1);
+
         // To verify that ecology receives the correct message from room
-        verify(ecology).onRoomMessage(roomName, ecologyData);
+        assertEquals(messageArgument.getArguments(), ecologyData);
+        // To verify that correct room name is passed to the ecology
+        assertEquals(roomNameValue, roomName);
     }
 
     // To verify if ecology receives the data sync message from Room
     @Test
     public void testOnDataSyncMessage() throws Exception {
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test1");
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
 
         // To get the mock DataSync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
@@ -142,13 +213,36 @@ public class RoomTest {
                 any(DataSync.SyncDataChangeListener.class));
         DataSync.Connector dataSyncConnector = connectorCaptor.getValue();
 
-        dataSyncConnector.onMessage(data);
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
 
-        List<Object> ecologyData = new ArrayList<>(data);
-        // Add data sync message id
-        ecologyData.add(0);
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                data.add(0);
+                return null;
+            }
+        }).when(message).addArgument(0);
+
+        dataSyncConnector.onMessage(message);
+
+        // To capture the argument in the onRoomMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        ArgumentCaptor<String> roomNameCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(ecology, times(1)).onRoomMessage(roomNameCaptor.capture(), messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+        String roomNameValue = roomNameCaptor.getValue();
+
+        // Add data sync message id at the end
+        List<Object> ecologyData = Arrays.<Object>asList(10, "test", 0);
+
         // To verify that ecology receives the correct message from room
-        verify(ecology).onRoomMessage(roomName, ecologyData);
+        assertEquals(messageArgument.getArguments(), ecologyData);
+        // To verify that correct room name is passed to the ecology
+        assertEquals(roomNameValue, roomName);
     }
 
     // To verify if a local event is published when a sync data update happens

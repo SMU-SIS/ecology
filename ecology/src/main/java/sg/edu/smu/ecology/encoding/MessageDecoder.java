@@ -1,10 +1,10 @@
 package sg.edu.smu.ecology.encoding;
 
-import java.util.List;
+import sg.edu.smu.ecology.EcologyMessage;
 
 /**
  * Created by Quentin ROY on 15/12/16.
- *
+ * <p>
  * Decode byte arrays (usually created by {@link MessageEncoder} into messages (i.e. lists of
  * objects).
  */
@@ -14,21 +14,21 @@ public class MessageDecoder {
     /**
      * Decode a byte array into a message.
      *
-     * @param data The byte array
+     * @param data   The byte array
      * @param length (optional) The amount of byte to read from the byte array.
-     * @return The message (a list of objects).
+     * @return The ecology message.
      */
-    public List<Object> decode(byte[] data, int length) {
-        return decoder.convertMessageArgs(data, length);
+    public EcologyMessage decode(byte[] data, int length) {
+        return new EcologyMessage(decoder.convertMessageArgs(data, length));
     }
 
     /**
      * Decode a byte array into a message.
      *
      * @param data The byte array
-     * @return The message (a list of objects).
+     * @return The ecology message.
      */
-    public List<Object> decode(byte[] data){
+    public EcologyMessage decode(byte[] data) {
         return decode(data, data.length);
     }
 }

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.Settings;
 
 /**
@@ -115,9 +116,9 @@ public class BluetoothClientConnector extends BluetoothConnector {
      * @param messageData the decoded data
      */
     @Override
-    public void onConnectorMessage(Message msg, List<Object> messageData) {
-        String eventTypeReceived = (String) messageData.get(messageData.size() - 2);
-        String deviceIdReceived = (String) messageData.get(messageData.size() - 3);
+    public void onConnectorMessage(Message msg, EcologyMessage messageData) {
+        String eventTypeReceived = (String) messageData.fetchArgument();
+        String deviceIdReceived = (String) messageData.fetchArgument();
 
         if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
             // Save the id of the newly connected device

@@ -2,7 +2,7 @@ package sg.edu.smu.ecology.connector;
 
 import android.content.Context;
 
-import java.util.List;
+import sg.edu.smu.ecology.EcologyMessage;
 
 /**
  * Created by Quentin ROY on 17/6/16.
@@ -17,7 +17,7 @@ public interface Connector {
      *
      * @param message the content of the message
      */
-    public void sendMessage(List<Object> message);
+    public void sendMessage(EcologyMessage message);
 
     /**
      * Set the receiver of the connector.
@@ -55,7 +55,7 @@ public interface Connector {
          *
          * @param message the content of the message
          */
-        public void onMessage(List<Object> message);
+        public void onMessage(EcologyMessage message);
 
         /**
          * Receive the device connection notifications

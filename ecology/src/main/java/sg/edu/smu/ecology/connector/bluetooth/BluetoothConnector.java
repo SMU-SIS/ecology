@@ -11,7 +11,6 @@ import android.os.Message;
 import android.util.Log;
 
 import java.nio.charset.CharacterCodingException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,6 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
@@ -80,10 +80,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param message the message to be sent
      */
     @Override
-    public void sendMessage(List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(RECEIVER_MESSAGE_ID);
-        doSendMessage(msg, getBluetoothSocketReadWriterList());
+    public void sendMessage(EcologyMessage message) {
+        message.addArgument(RECEIVER_MESSAGE_ID);
+        doSendMessage(message, getBluetoothSocketReadWriterList());
     }
 
     /**
@@ -94,12 +93,12 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      */
     void sendConnectorMessage(List<Object> message,
                               Collection<BluetoothSocketReadWriter> bluetoothSocketReadWriters) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(CONNECTOR_MESSAGE_ID);
+        EcologyMessage msg = new EcologyMessage(message);
+        msg.addArgument(CONNECTOR_MESSAGE_ID);
         doSendMessage(msg, bluetoothSocketReadWriters);
     }
 
-    private void doSendMessage(List<Object> message, Collection<BluetoothSocketReadWriter>
+    private void doSendMessage(EcologyMessage message, Collection<BluetoothSocketReadWriter>
             bluetoothSocketReadWriters) {
         byte[] encodedMessageData = encodeMessage(message);
 
@@ -225,17 +224,18 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private void onMessageReceived(Message msg) {
         byte[] readBuf = (byte[]) msg.obj;
 
-        List<Object> data;
-        data = messageDecoder.decode(readBuf);
-        Log.i(TAG, "data " + data);
+        EcologyMessage message;
+        message = messageDecoder.decode(readBuf);
+        Log.i(TAG, "data " + message.getArguments());
 
-        Integer receivedMessageId = (Integer) data.get(data.size() - 1);
+        // Fetch the routing id of the received message
+        Integer receivedMessageId = (Integer) message.fetchArgument();
 
         // Check if the received data is a connector message or a receiver message
         if (receivedMessageId.equals(CONNECTOR_MESSAGE_ID)) {
-            onConnectorMessage(msg, data);
+            onConnectorMessage(msg, message);
         } else if (receivedMessageId.equals(RECEIVER_MESSAGE_ID)) {
-            onReceiverMessage(msg, data);
+            onReceiverMessage(msg, message);
         }
     }
 
@@ -245,9 +245,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param msg         the message received
      * @param messageData the decoded data
      */
-    void onReceiverMessage(Message msg, List<Object> messageData) {
-        // Remove the routing id before passing the message to receiver
-        getReceiver().onMessage(messageData.subList(0, messageData.size() - 1));
+    void onReceiverMessage(Message msg, EcologyMessage messageData) {
+        getReceiver().onMessage(messageData);
     }
 
     /**
@@ -326,7 +325,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param message the message to be encoded
      * @return the encoded message
      */
-    private byte[] encodeMessage(List<Object> message) {
+    private byte[] encodeMessage(EcologyMessage message) {
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
@@ -360,5 +359,5 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     public abstract void onDeviceDisconnected(Message msg);
 
-    public abstract void onConnectorMessage(Message msg, List<Object> messageData);
+    public abstract void onConnectorMessage(Message msg, EcologyMessage messageData);
 }

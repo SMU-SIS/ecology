@@ -2,7 +2,6 @@ package sg.edu.smu.ecology;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,8 +39,8 @@ public class DataSync {
         Object oldValue = dataSyncValues.get(key);
         dataSyncValues.put(key, value);
         // Check if old value is not same as the new value
-        if(oldValue != value) {
-            connector.onMessage(Arrays.asList(key, value));
+        if (oldValue != value) {
+            connector.onMessage(new EcologyMessage(Arrays.asList(key, value)));
             dataChangeListener.onDataUpdate(key, value, oldValue);
         }
     }
@@ -61,17 +60,17 @@ public class DataSync {
      *
      * @param message the content of the message
      */
-    void onMessage(List<Object> message) {
-        Object key = message.get(0);
+    void onMessage(EcologyMessage message) {
+        Object newValue = message.fetchArgument();
+        Object key = message.fetchArgument();
         Object oldValue = dataSyncValues.get(key);
-        Object newValue = message.get(1);
 
         dataSyncValues.put(key, newValue);
         dataChangeListener.onDataUpdate(key, newValue, oldValue);
     }
 
     interface Connector {
-        void onMessage(List<Object> message);
+        void onMessage(EcologyMessage message);
     }
 
     interface SyncDataChangeListener {

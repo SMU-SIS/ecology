@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
@@ -53,9 +54,10 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * @param message the message to be sent
      */
     @Override
-    public void sendMessage(List<Object> message) {
+    public void sendMessage(EcologyMessage message) {
+        List<Object> msg = message.getArguments();
         // Retrieve eventType
-        final String eventType = (String) message.get(message.size() - 2);
+        final String eventType = (String) msg.get(msg.size() - 2);
 
         byte[] encodedMessageData = encodeMessage(message);
         Log.i(TAG, "data " + Arrays.toString(encodedMessageData));
@@ -76,7 +78,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * @param message the message to be encoded
      * @return the encoded message
      */
-    private byte[] encodeMessage(List<Object> message) {
+    private byte[] encodeMessage(EcologyMessage message) {
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
@@ -220,7 +222,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     public void onMessageReceived(MessageEvent messageEvent) {
         MessageDecoder messageDecoder = new MessageDecoder();
 
-        List<Object> data;
+        EcologyMessage data;
         data = messageDecoder.decode(messageEvent.getData());
         Log.i(TAG, "Data received" + data);
 

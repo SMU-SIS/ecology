@@ -4,12 +4,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,8 +47,15 @@ public class DataSyncTest {
     public void testSetData() {
         dataSync.setData("color", "red");
 
-        // To check if connector is invoked once
-        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To capture the argument in the onMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // To check if right value is passed
+        assertEquals(messageArgument.getArguments(), Arrays.asList("color", "red"));
         // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "red", null);
 
@@ -57,7 +68,10 @@ public class DataSyncTest {
     // correctly
     @Test
     public void testOnMessage() {
-        dataSync.onMessage(Arrays.<Object>asList("color", "black"));
+        EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.when(message.fetchArgument()).thenReturn("black", "color");
+
+        dataSync.onMessage(message);
 
         // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "black", null);
@@ -68,18 +82,25 @@ public class DataSyncTest {
 
     // To verify that when an non-existent sync data is requested, a null is returned
     @Test
-    public void testGetNonExistentData(){
+    public void testGetNonExistentData() {
         assertEquals(dataSync.getData("color"), null);
     }
 
     // To verify that when a sync data value is over written, new value will be returned when queried
     @Test
-    public void testOverwriteSyncData(){
+    public void testOverwriteSyncData() {
         dataSync.setData("color", "red");
         assertEquals(dataSync.getData("color"), "red");
 
-        // To check if connector is invoked once
-        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To capture the argument in the onMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // To check if right value is passed
+        assertEquals(messageArgument.getArguments(), Arrays.asList("color", "red"));
         // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "red", null);
 
@@ -87,20 +108,32 @@ public class DataSyncTest {
         dataSync.setData("color", "blue");
         assertEquals(dataSync.getData("color"), "blue");
 
-        // To check if connector is invoked once
-        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "blue"));
+        verify(connector, times(2)).onMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument2;
+        messageArgument2 = messageCaptor.getValue();
+
+        // To check if right value is passed
+        assertEquals(messageArgument2.getArguments(), Arrays.asList("color", "blue"));
         // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "blue", "red");
     }
 
     // To verify if message or event is not sent when the user sets the same data as before
     @Test
-    public void testWhenSameSyncDataSet(){
+    public void testWhenSameSyncDataSet() {
         dataSync.setData("color", "red");
         assertEquals(dataSync.getData("color"), "red");
 
-        // To check if connector is invoked once
-        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        // To capture the argument in the onMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // To check if right value is passed
+        assertEquals(messageArgument.getArguments(), Arrays.asList("color", "red"));
         // To check if sync data change listener is invoked once
         verify(syncDataChangeListener, times(1)).onDataUpdate("color", "red", null);
 
@@ -109,7 +142,8 @@ public class DataSyncTest {
         assertEquals(dataSync.getData("color"), "red");
 
         // To check if connector is not invoked
-        verify(connector, times(1)).onMessage(Arrays.<Object>asList("color", "red"));
+        verify(connector, times(1)).onMessage(any(EcologyMessage.class));
+
         // To check if sync data change listener is not invoked
         verify(syncDataChangeListener, never()).onDataUpdate("color", "red", "red");
     }

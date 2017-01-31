@@ -12,8 +12,8 @@ import android.util.Log;
 
 import java.net.InetAddress;
 import java.nio.charset.CharacterCodingException;
-import java.util.List;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
 import sg.edu.smu.ecology.encoding.MessageDecoder;
 import sg.edu.smu.ecology.encoding.MessageEncoder;
@@ -78,7 +78,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * @param message the message to be sent
      */
     @Override
-    public void sendMessage(List<Object> message) {
+    public void sendMessage(EcologyMessage message) {
         if (socketReadWriter != null) {
             byte[] encodedMessageData = encodeMessage(message);
             writeData(encodedMessageData);
@@ -91,7 +91,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * @param message the message to be encoded
      * @return the encoded message
      */
-    private byte[] encodeMessage(List<Object> message) {
+    private byte[] encodeMessage(EcologyMessage message) {
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
@@ -247,18 +247,9 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
                 MessageDecoder messageDecoder = new MessageDecoder();
 
-                List<Object> data;
+                EcologyMessage data;
                 data = messageDecoder.decode(readBuf);
-                Log.i(TAG, "data " + data);
-
-                String eventTypeReceived = null;
-                try {
-                    eventTypeReceived = (String) data.get(data.size() - 2);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    e.printStackTrace();
-                }
-
-                Log.i(TAG, " eventType " + eventTypeReceived);
+                Log.i(TAG, "data " + data.getArguments());
 
                 receiver.onMessage(data);
                 break;
