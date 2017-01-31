@@ -10,7 +10,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -69,10 +68,8 @@ public class DataSyncTest {
     // correctly
     @Test
     public void testOnMessage() {
-        List<Object> data = Arrays.<Object>asList("color", "black");
-
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.when(message.fetchArgument()).thenReturn("black", "color");
 
         dataSync.onMessage(message);
 
