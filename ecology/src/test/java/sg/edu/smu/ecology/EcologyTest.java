@@ -9,10 +9,13 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -62,12 +65,23 @@ public class EcologyTest {
     @Test
     public void testOnRoomMessage() throws Exception {
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test");
+        final List<Object> data = new ArrayList<>();
+        data.add(1);
+        data.add("test");
+
+        final String roomName = "room";
 
         EcologyMessage message = mock(EcologyMessage.class);
+        PowerMockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                data.add(roomName);
+                return null;
+            }
+        }).when(message).addArgument(roomName);
         PowerMockito.when(message.getArguments()).thenReturn(data);
 
-        String roomName = "room";
         ecology.onRoomMessage(roomName, message);
 
         // To capture the argument in the sendMessage method
@@ -78,8 +92,7 @@ public class EcologyTest {
         messageArgument = messageCaptor.getValue();
 
         // Room name will be added at the end of the data before passing it to connector
-        Vector<Object> connectorData = new Vector<>(data);
-        connectorData.add(roomName);
+        Vector<Object> connectorData = new Vector<Object>(Arrays.asList(1, "test", roomName));
 
         // To verify if the connector received the correct data
         assertEquals(messageArgument.getArguments(), connectorData);
@@ -116,12 +129,21 @@ public class EcologyTest {
     // When message is received from a connector - check for correct room
     @Test
     public void testCorrectRoomMessage() throws Exception {
-        String roomName = "room";
+        final String roomName = "room";
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test", roomName);
+        final List<Object> data = new ArrayList<>();
+        data.add(1);
+        data.add("test");
+        data.add(roomName);
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
 
         // To verify if add receiver was called only once
         verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
@@ -149,7 +171,7 @@ public class EcologyTest {
         messageArgument = messageCaptor.getValue();
 
         // Verify that correct data is passed
-        assertEquals(messageArgument.getArguments(), data.subList(0, data.size() - 1));
+        assertEquals(messageArgument.getArguments(), Arrays.<Object>asList(1, "test"));
     }
 
     // When message is received from a connector - check for inappropriate rooms
@@ -201,7 +223,7 @@ public class EcologyTest {
         List<Object> data = Arrays.<Object>asList(1, 23);
 
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.when(message.fetchArgument()).thenReturn(23);
 
         // Receiver receives the message
         receiver.onMessage(message);
