@@ -4,11 +4,12 @@ import org.apache.mina.core.buffer.IoBuffer;
 
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
-import java.util.List;
+
+import sg.edu.smu.ecology.EcologyMessage;
 
 /**
  * Created by Quentin ROY on 15/12/16.
- *
+ * <p>
  * Encode messages (list of objects) into byte arrays in a format decodable by a
  * {@link MessageDecoder}.
  */
@@ -18,15 +19,14 @@ public class MessageEncoder {
     private DataEncoder encoder = new DataEncoder();
 
     /**
-     *
-     * @param message The message to encode.
+     * @param message The ecology message to encode.
      * @return The message encoded.
      * @throws CharacterCodingException
      */
-    public byte[] encode(List<Object> message) throws CharacterCodingException {
+    public byte[] encode(EcologyMessage message) throws CharacterCodingException {
         // Create the message data.
         MessageData data = new MessageData();
-        for(Object obj: message){
+        for (Object obj : message.getArguments()) {
             data.addArgument(obj);
         }
         // Allocate an auto-expending buffer to receive the encoded version of the message.
