@@ -7,7 +7,9 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.util.ArrayList;
@@ -66,11 +68,19 @@ public class RoomTest {
         dataSync = room.getDataSyncObject();
 
         // Test data - contains event message routing id
-        List<Object> data = Arrays.<Object>asList(1, "test1", 1);
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
+        data.add(1);
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
-        ;
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
 
         room.onMessage(message);
 
@@ -82,7 +92,7 @@ public class RoomTest {
         messageArgument = messageCaptor.getValue();
 
         // To verify if event broadcaster receives the correct data from room
-        assertEquals(messageArgument.getArguments(), data.subList(0, data.size() - 1));
+        assertEquals(messageArgument.getArguments(), Arrays.<Object>asList(10, "test"));
 
         // To verify that data sync doesn't receive the data from room
         verify(dataSync, never()).onMessage(any(EcologyMessage.class));
@@ -102,10 +112,19 @@ public class RoomTest {
         dataSync = room.getDataSyncObject();
 
         // Test data - contains data sync message routing id
-        List<Object> data = Arrays.<Object>asList(1, "test2", 0);
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
+        data.add(0);
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
 
         room.onMessage(message);
 
@@ -117,7 +136,7 @@ public class RoomTest {
         messageArgument = messageCaptor.getValue();
 
         // To verify if event broadcaster receives the correct data from room
-        assertEquals(messageArgument.getArguments(), data.subList(0, data.size() - 1));
+        assertEquals(messageArgument.getArguments(), Arrays.<Object>asList(10, "test"));
 
         // To verify that event broadcaster doesn't receive the data from room
         verify(eventBroadcaster, never()).onRoomMessage(any(EcologyMessage.class));
@@ -127,7 +146,9 @@ public class RoomTest {
     @Test
     public void testOnEventBroadcasterMessage() throws Exception {
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test1");
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
 
         // To get the mock eventBroadcaster
         PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster
@@ -142,7 +163,14 @@ public class RoomTest {
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
-        ;
+        PowerMockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                data.add(1);
+                return null;
+            }
+        }).when(message).addArgument(1);
 
         connector.onEventBroadcasterMessage(message);
 
@@ -156,9 +184,8 @@ public class RoomTest {
         messageArgument = messageCaptor.getValue();
         String roomNameValue = roomNameCaptor.getValue();
 
-        List<Object> ecologyData = new ArrayList<>(data);
-        // Add event message id
-        ecologyData.add(1);
+        // Add event message id at the end
+        List<Object> ecologyData = Arrays.<Object>asList(10, "test", 1);
 
         // To verify that ecology receives the correct message from room
         assertEquals(messageArgument.getArguments(), ecologyData);
@@ -170,7 +197,9 @@ public class RoomTest {
     @Test
     public void testOnDataSyncMessage() throws Exception {
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test1");
+        final List<Object> data = new ArrayList<>();
+        data.add(10);
+        data.add("test");
 
         // To get the mock DataSync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
@@ -186,7 +215,14 @@ public class RoomTest {
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
-        ;
+        PowerMockito.doAnswer(new Answer<Object>() {
+
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                data.add(0);
+                return null;
+            }
+        }).when(message).addArgument(0);
 
         dataSyncConnector.onMessage(message);
 
@@ -200,9 +236,8 @@ public class RoomTest {
         messageArgument = messageCaptor.getValue();
         String roomNameValue = roomNameCaptor.getValue();
 
-        List<Object> ecologyData = new ArrayList<>(data);
-        // Add data sync message id
-        ecologyData.add(0);
+        // Add data sync message id at the end
+        List<Object> ecologyData = Arrays.<Object>asList(10, "test", 0);
 
         // To verify that ecology receives the correct message from room
         assertEquals(messageArgument.getArguments(), ecologyData);
