@@ -54,7 +54,8 @@ public class EventBroadcasterTest {
         List<Object> data = Arrays.<Object>asList(11, "test1");
 
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.when(message.getArguments()).thenReturn(data.subList(0, data.size() - 1));
+        PowerMockito.when(message.fetchArgument()).thenReturn("test1");
 
         eventBroadcaster.onRoomMessage(message);
 
@@ -62,7 +63,8 @@ public class EventBroadcasterTest {
         List<Object> data2 = Arrays.<Object>asList(21, "test2");
 
         EcologyMessage message2 = mock(EcologyMessage.class);
-        PowerMockito.when(message2.getArguments()).thenReturn(data2);
+        PowerMockito.when(message2.getArguments()).thenReturn(data2.subList(0, data.size() - 1));
+        PowerMockito.when(message2.fetchArgument()).thenReturn("test2");
 
         eventBroadcaster.onRoomMessage(message2);
 
