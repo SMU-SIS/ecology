@@ -12,7 +12,6 @@ import android.util.Log;
 
 import java.net.InetAddress;
 import java.nio.charset.CharacterCodingException;
-import java.util.List;
 
 import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.connector.Connector;
@@ -80,9 +79,8 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      */
     @Override
     public void sendMessage(EcologyMessage message) {
-        List<Object> msg = message.getArguments();
         if (socketReadWriter != null) {
-            byte[] encodedMessageData = encodeMessage(msg);
+            byte[] encodedMessageData = encodeMessage(message);
             writeData(encodedMessageData);
         }
     }
@@ -93,7 +91,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * @param message the message to be encoded
      * @return the encoded message
      */
-    private byte[] encodeMessage(List<Object> message) {
+    private byte[] encodeMessage(EcologyMessage message) {
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
@@ -249,20 +247,11 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
                 MessageDecoder messageDecoder = new MessageDecoder();
 
-                List<Object> data;
+                EcologyMessage data;
                 data = messageDecoder.decode(readBuf);
-                Log.i(TAG, "data " + data);
+                Log.i(TAG, "data " + data.getArguments());
 
-                String eventTypeReceived = null;
-                try {
-                    eventTypeReceived = (String) data.get(data.size() - 2);
-                } catch (ArrayIndexOutOfBoundsException e) {
-                    e.printStackTrace();
-                }
-
-                Log.i(TAG, " eventType " + eventTypeReceived);
-
-                receiver.onMessage(new EcologyMessage(data));
+                receiver.onMessage(data);
                 break;
 
             case SOCKET_CONNECTED:
