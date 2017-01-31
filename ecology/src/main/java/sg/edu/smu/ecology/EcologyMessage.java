@@ -26,7 +26,7 @@ public class EcologyMessage {
      *
      * @param data the data to be added
      */
-    void addArgument(Object data) {
+    public void addArgument(Object data) {
         arguments.add(data);
     }
 
@@ -44,7 +44,7 @@ public class EcologyMessage {
      *
      * @return the last value in the message data
      */
-    Object fetchArgument() {
+    public Object fetchArgument() {
         return arguments.remove(arguments.size() - 1);
     }
 
