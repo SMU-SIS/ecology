@@ -116,10 +116,9 @@ public class Ecology {
      * @param message the message content
      */
     private void onConnectorMessage(EcologyMessage message) {
-        EcologyMessage msg = new EcologyMessage(message.getArguments());
         String targetRoomName = null;
         try {
-            targetRoomName = (String) msg.fetchArgument();
+            targetRoomName = (String) message.fetchArgument();
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             //throw new IllegalArgumentException("Unrecognized message format.");
             Log.e(TAG, "Exception " + e.getMessage());
@@ -127,7 +126,7 @@ public class Ecology {
 
         Room room = rooms.get(targetRoomName);
         if (room != null) {
-            room.onMessage(msg);
+            room.onMessage(message);
         }
 
     }
@@ -139,9 +138,8 @@ public class Ecology {
      * @param message  the content of the message
      */
     void onRoomMessage(String roomName, EcologyMessage message) {
-        EcologyMessage msg = new EcologyMessage(message.getArguments());
-        msg.addArgument(roomName);
-        connector.sendMessage(msg);
+        message.addArgument(roomName);
+        connector.sendMessage(message);
     }
 
     /**
