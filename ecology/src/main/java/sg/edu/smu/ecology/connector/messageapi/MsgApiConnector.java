@@ -59,7 +59,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
         // Retrieve eventType
         final String eventType = (String) msg.get(msg.size() - 2);
 
-        byte[] encodedMessageData = encodeMessage(msg);
+        byte[] encodedMessageData = encodeMessage(message);
         Log.i(TAG, "data " + Arrays.toString(encodedMessageData));
 
         String messagePath = " ";
@@ -78,7 +78,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
      * @param message the message to be encoded
      * @return the encoded message
      */
-    private byte[] encodeMessage(List<Object> message) {
+    private byte[] encodeMessage(EcologyMessage message) {
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
@@ -222,11 +222,11 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
     public void onMessageReceived(MessageEvent messageEvent) {
         MessageDecoder messageDecoder = new MessageDecoder();
 
-        List<Object> data;
+        EcologyMessage data;
         data = messageDecoder.decode(messageEvent.getData());
         Log.i(TAG, "Data received" + data);
 
-        receiver.onMessage(new EcologyMessage(data));
+        receiver.onMessage(data);
     }
 
 }
