@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.Settings;
 
 /**
@@ -78,7 +79,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
      * @param messageData the decoded data
      */
     @Override
-    public void onReceiverMessage(Message msg, List<Object> messageData) {
+    public void onReceiverMessage(Message msg, EcologyMessage messageData) {
         forwardMessage((byte[]) msg.obj, msg.arg1);
         super.onReceiverMessage(msg, messageData);
     }
@@ -114,14 +115,16 @@ public class BluetoothServerConnector extends BluetoothConnector {
      * @param messageData the decoded data
      */
     @Override
-    public void onConnectorMessage(Message msg, List<Object> messageData) {
-        String deviceIdReceived = (String) messageData.get(messageData.size() - 3);
+    public void onConnectorMessage(Message msg, EcologyMessage messageData) {
+        String eventTypeReceived = (String) messageData.fetchArgument();
+        String deviceIdReceived = (String) messageData.fetchArgument();
 
         forwardMessage((byte[]) msg.obj, msg.arg1);
 
-        getDeviceIdsList().put(msg.arg1, deviceIdReceived);
-
-        getReceiver().onDeviceConnected(deviceIdReceived);
+        if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
+            getDeviceIdsList().put(msg.arg1, deviceIdReceived);
+            getReceiver().onDeviceConnected(deviceIdReceived);
+        }
     }
 
     /**
