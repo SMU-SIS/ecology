@@ -20,6 +20,7 @@ public class EventBroadcaster {
      */
     private final Connector connector;
     private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
+
     /**
      * @param connector the recipient for event broadcaster messages.
      */
@@ -38,16 +39,14 @@ public class EventBroadcaster {
     }
 
     private void handleEventMessage(EcologyMessage message) {
-        EcologyMessage msg = new EcologyMessage(message.getArguments());
-
         // Grab the event's type.
         String eventType;
         try {
-            eventType = (String) msg.fetchArgument();
+            eventType = (String) message.fetchArgument();
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             throw new IllegalArgumentException("Unrecognized event message format.");
         }
-        passEventToReceivers(eventType, msg.getArguments());
+        passEventToReceivers(eventType, message.getArguments());
     }
 
     // Forward an event to the receivers.
