@@ -90,7 +90,7 @@ public class Room {
     /**
      * @return the data sync object.
      */
-    public DataSync getDataSyncObject() {
+    public DataSync getDataSyncObject(Boolean dataSyncReference) {
         if (dataSync == null) {
             dataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
                 @Override
@@ -103,7 +103,7 @@ public class Room {
                     getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
-            });
+            }, dataSyncReference);
         }
         return dataSync;
     }
@@ -119,7 +119,7 @@ public class Room {
         // Check if the received message is a sync data message or an event broadcaster event and
         // route them accordingly.
         if (messageId == SYNC_DATA_MESSAGE_ID) {
-            getDataSyncObject().onMessage(message);
+            dataSync.onMessage(message);
         } else if (messageId == EVENT_MESSAGE_ID) {
             getEventBroadcaster().onRoomMessage(message);
         }
@@ -175,8 +175,9 @@ public class Room {
 
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
-                                DataSync.SyncDataChangeListener dataSyncChangeListener) {
-            return new DataSync(connector, dataSyncChangeListener);
+                                DataSync.SyncDataChangeListener dataSyncChangeListener,
+                                boolean dataSyncReference) {
+            return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
         }
     }
 }
