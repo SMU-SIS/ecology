@@ -17,6 +17,21 @@ public class EcologyMessage {
      */
     private List<Object> arguments = new ArrayList<>();
 
+    /**
+     * The source device id
+     */
+    private String source;
+
+    /**
+     * The list of target devices
+     */
+    private List<String> targets = new ArrayList<>();
+
+    /**
+     * To indicate the target type
+     */
+    private TARGET_TYPES targetType;
+
     public EcologyMessage(List<Object> data) {
         addArguments(data);
     }
@@ -55,5 +70,66 @@ public class EcologyMessage {
      */
     public List<Object> getArguments() {
         return arguments;
+    }
+
+    /**
+     * Get the source(device id) of the message
+     *
+     * @return the id of the source device of the message
+     */
+    public String getSource() {
+        return source;
+    }
+
+    /**
+     * Set the source of the message
+     *
+     * @param source the id of the source device
+     */
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    /**
+     * Get the list of targets for the message
+     *
+     * @return the list of target devices
+     */
+    public List<String> getTargets() {
+        return targets;
+    }
+
+    /**
+     * Set the target devices the message needs to be sent
+     *
+     * @param targets the list of target devices
+     */
+    public void setTargets(List<String> targets) {
+        this.targets = targets;
+    }
+
+    /**
+     * Get the target type of the message
+     *
+     * @return the target type of the message
+     */
+    public TARGET_TYPES getTargetType() {
+        return targetType;
+    }
+
+    /**
+     * Set the target type for the message
+     *
+     * @param targetType the target type for this message
+     */
+    public void setTargetType(TARGET_TYPES targetType) {
+        this.targetType = targetType;
+    }
+
+    /**
+     * The values that target type can have
+     */
+    public enum TARGET_TYPES {
+        SERVER, BROADCAST, SPECIFIC
     }
 }
