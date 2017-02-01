@@ -113,6 +113,7 @@ public class EventBroadcaster {
         // Create the message to be sent to the other devices of the ecology.
         EcologyMessage message = new EcologyMessage(data);
         message.addArgument(eventType);
+        message.setTargetType(EcologyMessage.TARGET_TYPES.BROADCAST);
 
         connector.onEventBroadcasterMessage(message);
         // Pass the event to the local receivers.
