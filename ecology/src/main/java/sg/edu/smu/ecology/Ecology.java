@@ -37,6 +37,11 @@ public class Ecology {
     private Map<String, Room> rooms = new HashMap<>();
 
     /**
+     * The id of this device
+     */
+    private String deviceId;
+
+    /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
      */
@@ -100,6 +105,7 @@ public class Ecology {
      * Connect to the ecology.
      */
     void connect(Context context, String deviceId) {
+        this.deviceId = deviceId;
         connector.connect(context, deviceId);
     }
 
@@ -139,6 +145,7 @@ public class Ecology {
      */
     void onRoomMessage(String roomName, EcologyMessage message) {
         message.addArgument(roomName);
+        message.setSource(deviceId);
         connector.sendMessage(message);
     }
 
