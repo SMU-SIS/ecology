@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,20 +14,44 @@ import java.util.Map;
  */
 public class DataSync {
     private static final String TAG = DataSync.class.getSimpleName();
-    // Notified when the data has changed.
+    private final static int INITIAL_SYNC_MESSAGE_INDICATOR = 0;
+    private final static int DATA_SYNC_MESSAGE_INDICATOR = 1;
+    /**
+     * Notified when the data has changed.
+     */
     private final SyncDataChangeListener dataChangeListener;
+    /**
+     * Notify when a message needs to be forwarded to the corresponding DataSyncs in the other
+     * devices of the ecology.
+     */
+    private final Connector connector;
     /**
      * To store the sync data as a key value pair
      */
     private Map<Object, Object> dataSyncValues = new HashMap<>();
+    /**
+     * Whether this is the sync data reference or not
+     */
+    private boolean dataSyncReference;
 
-    // Notify when a message needs to be forwarded to the corresponding DataSyncs in the other
-    // devices of the ecology.
-    private final Connector connector;
-
-    DataSync(Connector connector, SyncDataChangeListener dataChangeListener) {
+    DataSync(Connector connector, SyncDataChangeListener dataChangeListener,
+             boolean dataSyncReference) {
         this.connector = connector;
         this.dataChangeListener = dataChangeListener;
+        this.dataSyncReference = dataSyncReference;
+        if (!dataSyncReference) {
+            requestDataSynchronization();
+        }
+    }
+
+    /**
+     * To request for the current sync data from the reference
+     */
+    private void requestDataSynchronization() {
+        EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
+                INITIAL_SYNC_MESSAGE_INDICATOR));
+        message.setTargetType(EcologyMessage.TARGET_TYPES.SERVER);
+        connector.onMessage(message);
     }
 
     /**
@@ -40,7 +65,10 @@ public class DataSync {
         dataSyncValues.put(key, value);
         // Check if old value is not same as the new value
         if (oldValue != value) {
-            connector.onMessage(new EcologyMessage(Arrays.asList(key, value)));
+            EcologyMessage message = new EcologyMessage(Arrays.asList(key, value,
+                    DATA_SYNC_MESSAGE_INDICATOR));
+            message.setTargetType(EcologyMessage.TARGET_TYPES.BROADCAST);
+            connector.onMessage(message);
             dataChangeListener.onDataUpdate(key, value, oldValue);
         }
     }
@@ -61,6 +89,52 @@ public class DataSync {
      * @param message the content of the message
      */
     void onMessage(EcologyMessage message) {
+        Integer messageIndicator = (Integer) message.fetchArgument();
+
+        if (messageIndicator == DATA_SYNC_MESSAGE_INDICATOR) {
+            onDataSyncMessage(message);
+        } else if (messageIndicator == INITIAL_SYNC_MESSAGE_INDICATOR) {
+            onInitialDataSyncMessage(message);
+        }
+    }
+
+    /**
+     * When the initial data sync message is received
+     *
+     * @param msg the received message
+     */
+    private void onInitialDataSyncMessage(EcologyMessage msg) {
+        if (dataSyncReference) {
+            EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
+                    INITIAL_SYNC_MESSAGE_INDICATOR));
+            message.setTargetType(EcologyMessage.TARGET_TYPES.SPECIFIC);
+            message.setTargets(Collections.singletonList(msg.getSource()));
+            connector.onMessage(message);
+        } else {
+            saveInitialSyncData((Map<?, ?>) msg.fetchArgument());
+        }
+    }
+
+    /**
+     * To save the initial sync data received from the reference.
+     *
+     * @param syncData the initial sync data received from the reference
+     */
+    private void saveInitialSyncData(Map<?, ?> syncData) {
+        for (Object key : syncData.keySet()) {
+            Object newValue = syncData.get(key);
+            Object oldValue = dataSyncValues.get(key);
+            dataSyncValues.put(key, newValue);
+            dataChangeListener.onDataUpdate(key, newValue, oldValue);
+        }
+    }
+
+    /**
+     * When a data sync message is received
+     *
+     * @param message the received message
+     */
+    private void onDataSyncMessage(EcologyMessage message) {
         Object newValue = message.fetchArgument();
         Object key = message.fetchArgument();
         Object oldValue = dataSyncValues.get(key);
