@@ -13,6 +13,12 @@ import java.util.List;
 public class EcologyMessage {
     private static final String TAG = EcologyMessage.class.getSimpleName();
     /**
+     * The values that target type can have
+     */
+    public static final int TARGET_TYPE_SERVER = 0;
+    public static final int TARGET_TYPE_SPECIFIC = 1;
+    public static final int TARGET_TYPE_BROADCAST = 2;
+    /**
      * The content of the message
      */
     private List<Object> arguments = new ArrayList<>();
@@ -30,7 +36,7 @@ public class EcologyMessage {
     /**
      * To indicate the target type
      */
-    private TARGET_TYPES targetType;
+    private Integer targetType;
 
     public EcologyMessage(List<Object> data) {
         addArguments(data);
@@ -78,7 +84,11 @@ public class EcologyMessage {
      * @return the id of the source device of the message
      */
     public String getSource() {
-        return source;
+        if (source != null) {
+            return source;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -113,8 +123,12 @@ public class EcologyMessage {
      *
      * @return the target type of the message
      */
-    public TARGET_TYPES getTargetType() {
-        return targetType;
+    public Integer getTargetType() {
+        if (targetType != null)
+            return targetType;
+        else {
+            return null;
+        }
     }
 
     /**
@@ -122,14 +136,7 @@ public class EcologyMessage {
      *
      * @param targetType the target type for this message
      */
-    public void setTargetType(TARGET_TYPES targetType) {
+    public void setTargetType(Integer targetType) {
         this.targetType = targetType;
-    }
-
-    /**
-     * The values that target type can have
-     */
-    public enum TARGET_TYPES {
-        SERVER, BROADCAST, SPECIFIC
     }
 }
