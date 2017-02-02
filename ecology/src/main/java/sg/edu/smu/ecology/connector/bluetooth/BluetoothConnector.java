@@ -82,7 +82,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     @Override
     public void sendMessage(EcologyMessage message) {
         message.addArgument(RECEIVER_MESSAGE_ID);
-        doSendMessage(message, getBluetoothSocketReadWriterList());
+
+        doSendMessage(message, getBluetoothSocketReadWriterList(message.getTargetType(),
+                message.getTargets()));
     }
 
     /**
@@ -91,11 +93,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @param message                    the message to be sent
      * @param bluetoothSocketReadWriters thread list of destination devices
      */
-    void sendConnectorMessage(List<Object> message,
+    void sendConnectorMessage(EcologyMessage message,
                               Collection<BluetoothSocketReadWriter> bluetoothSocketReadWriters) {
-        EcologyMessage msg = new EcologyMessage(message);
-        msg.addArgument(CONNECTOR_MESSAGE_ID);
-        doSendMessage(msg, bluetoothSocketReadWriters);
+        message.addArgument(CONNECTOR_MESSAGE_ID);
+        doSendMessage(message, bluetoothSocketReadWriters);
     }
 
     private void doSendMessage(EcologyMessage message, Collection<BluetoothSocketReadWriter>
@@ -353,7 +354,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
     public abstract void setupBluetoothConnection();
 
-    public abstract Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList();
+    public abstract Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList(
+            Integer targetType, List<String> targets);
 
     public abstract void onDeviceConnected(Message msg);
 
