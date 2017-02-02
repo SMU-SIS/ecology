@@ -227,6 +227,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
 
         EcologyMessage message;
         message = messageDecoder.decode(readBuf);
+        message.setTargetType((Integer) message.fetchArgument());
+        message.setTargets((List<String>) message.fetchArgument());
+        message.setSource((String) message.fetchArgument());
         Log.i(TAG, "data " + message.getArguments());
 
         // Fetch the routing id of the received message
@@ -327,6 +330,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
      * @return the encoded message
      */
     private byte[] encodeMessage(EcologyMessage message) {
+        message.addArgument(message.getSource());
+        message.addArgument(message.getTargets());
+        message.addArgument(message.getTargetType());
         try {
             return messageEncoder.encode(message);
         } catch (CharacterCodingException e) {
