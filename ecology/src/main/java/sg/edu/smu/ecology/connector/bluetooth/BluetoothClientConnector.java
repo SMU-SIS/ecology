@@ -70,9 +70,10 @@ public class BluetoothClientConnector extends BluetoothConnector {
      * @return the list of client server connection threads
      */
     @Override
-    public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
+    public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList(
+            Integer targetType, List<String> targets) {
         // Since the client can have only one connection(to server)
-        return Collections.singletonList(clientToServerSocketReadWriter);
+        return getBluetoothSocketReadWriterList();
     }
 
     /**
@@ -87,9 +88,16 @@ public class BluetoothClientConnector extends BluetoothConnector {
 
         clientToServerSocketReadWriter = (BluetoothSocketReadWriter) object;
 
+        EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(getDeviceId(),
+                Settings.DEVICE_ID_EXCHANGE));
+        message.setSource(getDeviceId());
+        message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
         // Send the client device Id to the server device
-        sendConnectorMessage(Arrays.<Object>asList(getDeviceId(), Settings.DEVICE_ID_EXCHANGE),
-                getBluetoothSocketReadWriterList());
+        sendConnectorMessage(message, getBluetoothSocketReadWriterList());
+    }
+
+    private Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
+        return Collections.singletonList(clientToServerSocketReadWriter);
     }
 
     /**
@@ -107,6 +115,35 @@ public class BluetoothClientConnector extends BluetoothConnector {
         getDeviceIdsList().clear();
 
         clientToServerSocketReadWriter = null;
+    }
+
+    /**
+     * When a receiver message is received
+     *
+     * @param msg         the message received
+     * @param messageData the decoded data
+     */
+    @Override
+    public void onReceiverMessage(Message msg, EcologyMessage messageData) {
+        int targetType = messageData.getTargetType();
+        Log.i(TAG, "targetType " + targetType);
+
+        switch (targetType) {
+            case EcologyMessage.TARGET_TYPE_BROADCAST:
+                super.onReceiverMessage(msg, messageData);
+                break;
+
+            case EcologyMessage.TARGET_TYPE_SPECIFIC:
+                for (String target : messageData.getTargets()) {
+                    if (target.equals(getDeviceId())) {
+                        super.onReceiverMessage(msg, messageData);
+                    }
+                }
+                break;
+
+            default:
+                break;
+        }
     }
 
     /**
