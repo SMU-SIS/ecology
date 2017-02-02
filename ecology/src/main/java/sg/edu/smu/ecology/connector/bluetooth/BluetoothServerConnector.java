@@ -111,7 +111,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
                         clientTargets.add(target);
                     }
                 }
-                if (clientTargets.size() > 1) {
+                if (clientTargets.size() > 0) {
                     messageData.setTargets(clientTargets);
                     sendMessage(messageData);
                 }
