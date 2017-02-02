@@ -50,7 +50,7 @@ public class DataSync {
     private void requestDataSynchronization() {
         EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
                 INITIAL_SYNC_MESSAGE_INDICATOR));
-        message.setTargetType(EcologyMessage.TARGET_TYPES.SERVER);
+        message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
         connector.onMessage(message);
     }
 
@@ -67,7 +67,7 @@ public class DataSync {
         if (oldValue != value) {
             EcologyMessage message = new EcologyMessage(Arrays.asList(key, value,
                     DATA_SYNC_MESSAGE_INDICATOR));
-            message.setTargetType(EcologyMessage.TARGET_TYPES.BROADCAST);
+            message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
             connector.onMessage(message);
             dataChangeListener.onDataUpdate(key, value, oldValue);
         }
@@ -107,7 +107,7 @@ public class DataSync {
         if (dataSyncReference) {
             EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
                     INITIAL_SYNC_MESSAGE_INDICATOR));
-            message.setTargetType(EcologyMessage.TARGET_TYPES.SPECIFIC);
+            message.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
             message.setTargets(Collections.singletonList(msg.getSource()));
             connector.onMessage(message);
         } else {
