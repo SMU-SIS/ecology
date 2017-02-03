@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology.encoding;
 
+import java.util.List;
+
 import sg.edu.smu.ecology.EcologyMessage;
 
 /**
@@ -19,7 +21,11 @@ public class MessageDecoder {
      * @return The ecology message.
      */
     public EcologyMessage decode(byte[] data, int length) {
-        return new EcologyMessage(decoder.convertMessageArgs(data, length));
+        EcologyMessage message = new EcologyMessage(decoder.convertMessageArgs(data, length));
+        message.setTargetType((Integer) message.fetchArgument());
+        message.setTargets((List<String>) message.fetchArgument());
+        message.setSource((String) message.fetchArgument());
+        return message;
     }
 
     /**
