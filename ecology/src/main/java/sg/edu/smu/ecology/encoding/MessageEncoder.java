@@ -29,6 +29,10 @@ public class MessageEncoder {
         for (Object obj : message.getArguments()) {
             data.addArgument(obj);
         }
+        data.addArgument(message.getSource());
+        data.addArgument(message.getTargets());
+        data.addArgument(message.getTargetType());
+
         // Allocate an auto-expending buffer to receive the encoded version of the message.
         IoBuffer buffer = IoBuffer.allocate(data.getMaximumByteSize(), false);
         try {
