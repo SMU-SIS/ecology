@@ -151,20 +151,28 @@ public class Room {
      * Called when a device is connected
      *
      * @param deviceId the id of the device that got connected
+     * @param isDataReference if the device is the data reference or not
      */
-    void onDeviceConnected(String deviceId) {
+    void onDeviceConnected(String deviceId, Boolean isDataReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
+        if(isDataReference){
+            dataSync.onConnected();
+        }
     }
 
     /**
      * Called when a device is disconnected
      *
      * @param deviceId the id of the device that got disconnected
+     * @param isDataReference if the device is the data reference or not
      */
-    void onDeviceDisconnected(String deviceId) {
+    void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
+        if(isDataReference){
+            dataSync.onDisconnected();
+        }
     }
 
     static class EventBroadcasterFactory {
