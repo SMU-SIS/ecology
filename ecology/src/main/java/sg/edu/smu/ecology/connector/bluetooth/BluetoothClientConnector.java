@@ -28,6 +28,7 @@ public class BluetoothClientConnector extends BluetoothConnector {
     private BluetoothSocketReadWriter clientToServerSocketReadWriter;
 
     private BluetoothClientConnectThread bluetoothClientConnectThread;
+    private String dataRefDeviceId;
     // Contains the list of threads trying to establish a connection with all the paired devices
     private List<BluetoothClientConnectThread> clientConnectThreadsList = new ArrayList<>();
     private ClientConnectionListener clientConnectionListener = new ClientConnectionListener() {
@@ -88,7 +89,7 @@ public class BluetoothClientConnector extends BluetoothConnector {
 
         clientToServerSocketReadWriter = (BluetoothSocketReadWriter) object;
 
-        EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(getDeviceId(),
+        EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(false, getDeviceId(),
                 Settings.DEVICE_ID_EXCHANGE));
         message.setSource(getDeviceId());
         message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
@@ -110,8 +111,11 @@ public class BluetoothClientConnector extends BluetoothConnector {
         handleServerDisconnection();
 
         for (String deviceId : getDeviceIdsList().values()) {
-            getReceiver().onDeviceDisconnected(deviceId);
+            if (!deviceId.equals(dataRefDeviceId)) {
+                getReceiver().onDeviceDisconnected(deviceId, false);
+            }
         }
+        getReceiver().onDeviceDisconnected(dataRefDeviceId, true);
         getDeviceIdsList().clear();
 
         clientToServerSocketReadWriter = null;
@@ -156,13 +160,17 @@ public class BluetoothClientConnector extends BluetoothConnector {
     public void onConnectorMessage(Message msg, EcologyMessage messageData) {
         String eventTypeReceived = (String) messageData.fetchArgument();
         String deviceIdReceived = (String) messageData.fetchArgument();
+        Boolean dataReference = (Boolean) messageData.fetchArgument();
 
         if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
             // Save the id of the newly connected device
             getDeviceIdsList().put((getDeviceIdsList().size()), deviceIdReceived);
             Log.i(TAG, "deviceIdList " + getDeviceIdsList());
 
-            getReceiver().onDeviceConnected(deviceIdReceived);
+            getReceiver().onDeviceConnected(deviceIdReceived, dataReference);
+            if (dataReference) {
+                dataRefDeviceId = deviceIdReceived;
+            }
         } else if (eventTypeReceived.equals(Settings.DEVICE_DISCONNECTED)) {
             // Remove the id of the disconnected device
             Iterator<Integer> iterator = getDeviceIdsList().keySet().iterator();
@@ -174,7 +182,7 @@ public class BluetoothClientConnector extends BluetoothConnector {
             }
             Log.i(TAG, "deviceIdList " + getDeviceIdsList());
 
-            getReceiver().onDeviceDisconnected(deviceIdReceived);
+            getReceiver().onDeviceDisconnected(deviceIdReceived, dataReference);
         }
     }
 
