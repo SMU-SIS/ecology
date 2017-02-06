@@ -68,13 +68,13 @@ public class Ecology {
             }
 
             @Override
-            public void onDeviceConnected(String deviceId) {
-                Ecology.this.onDeviceConnected(deviceId);
+            public void onDeviceConnected(String deviceId, Boolean isDataReference) {
+                Ecology.this.onDeviceConnected(deviceId, isDataReference);
             }
 
             @Override
-            public void onDeviceDisconnected(String deviceId) {
-                Ecology.this.onDeviceDisconnected(deviceId);
+            public void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
+                Ecology.this.onDeviceDisconnected(deviceId, isDataReference);
             }
         });
     }
@@ -83,10 +83,11 @@ public class Ecology {
      * Called when a device is connected
      *
      * @param deviceId the id of the device that got connected
+     * @param isDataReference if the device is the data reference or not
      */
-    private void onDeviceConnected(String deviceId) {
+    private void onDeviceConnected(String deviceId, Boolean isDataReference) {
         for (Room room : rooms.values()) {
-            room.onDeviceConnected(deviceId);
+            room.onDeviceConnected(deviceId, isDataReference);
         }
     }
 
@@ -94,10 +95,11 @@ public class Ecology {
      * Called when a device is disconnected.
      *
      * @param deviceId the id of the device that got disconnected
+     * @param isDataReference if the device is the data reference or not
      */
-    private void onDeviceDisconnected(String deviceId) {
+    private void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
         for (Room room : rooms.values()) {
-            room.onDeviceDisconnected(deviceId);
+            room.onDeviceDisconnected(deviceId, isDataReference);
         }
     }
 
