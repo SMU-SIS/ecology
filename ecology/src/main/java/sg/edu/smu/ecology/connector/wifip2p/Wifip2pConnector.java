@@ -164,7 +164,7 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
      * Called when the wifip2p connection is disconnected.
      */
     void onWifiP2pConnectionDisconnected() {
-        receiver.onDeviceDisconnected(" ");
+        receiver.onDeviceDisconnected(" ", false);
     }
 
     @Override
@@ -261,14 +261,14 @@ public class Wifip2pConnector implements Connector, WifiP2pManager.ConnectionInf
 
                 onConnectorConnected = true;
 
-                receiver.onDeviceConnected(" ");
+                receiver.onDeviceConnected(" ",false);
                 break;
 
             case SOCKET_CLOSE:
                 Log.d(TAG, "Socket Close");
                 onConnectorConnected = false;
 
-                receiver.onDeviceDisconnected(" ");
+                receiver.onDeviceDisconnected(" ", false);
 
                 // For peers, if the owner has been disconnected, immediately start looking for new
                 // connections
