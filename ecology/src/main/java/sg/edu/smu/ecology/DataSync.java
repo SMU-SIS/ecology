@@ -32,26 +32,30 @@ public class DataSync {
     /**
      * Whether this is the sync data reference or not
      */
-    private boolean dataSyncReference;
+    private boolean isDataSyncReference;
+
+    /**
+     * Whether data is currently synchronized with the data reference or not.
+     */
+    private boolean isSynchronized = false;
 
     DataSync(Connector connector, SyncDataChangeListener dataChangeListener,
-             boolean dataSyncReference) {
+             boolean isDataSyncReference) {
         this.connector = connector;
         this.dataChangeListener = dataChangeListener;
-        this.dataSyncReference = dataSyncReference;
-        if (!dataSyncReference) {
-            requestDataSynchronization();
-        }
+        this.isDataSyncReference = isDataSyncReference;
     }
 
     /**
      * To request for the current sync data from the reference
      */
     private void requestDataSynchronization() {
-        EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
-                INITIAL_SYNC_MESSAGE_INDICATOR));
-        message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
-        connector.onMessage(message);
+        if (!isDataSyncReference) {
+            EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
+                    INITIAL_SYNC_MESSAGE_INDICATOR));
+            message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
+            connector.onMessage(message);
+        }
     }
 
     /**
@@ -99,12 +103,26 @@ public class DataSync {
     }
 
     /**
+     * This method is called when the device is not connected to the data reference device
+     */
+    void onConnected(){
+        requestDataSynchronization();
+    }
+
+    /**
+     * This method is called when the device is disconnected from the data reference device
+     */
+    void onDisconnected(){
+        isSynchronized = false;
+    }
+
+    /**
      * When the initial data sync message is received
      *
      * @param msg the received message
      */
     private void onInitialDataSyncMessage(EcologyMessage msg) {
-        if (dataSyncReference) {
+        if (isDataSyncReference) {
             EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
                     INITIAL_SYNC_MESSAGE_INDICATOR));
             message.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
@@ -121,12 +139,14 @@ public class DataSync {
      * @param syncData the initial sync data received from the reference
      */
     private void saveInitialSyncData(Map<?, ?> syncData) {
+        dataSyncValues.clear();
         for (Object key : syncData.keySet()) {
             Object newValue = syncData.get(key);
             Object oldValue = dataSyncValues.get(key);
             dataSyncValues.put(key, newValue);
             dataChangeListener.onDataUpdate(key, newValue, oldValue);
         }
+        isSynchronized = true;
     }
 
     /**
