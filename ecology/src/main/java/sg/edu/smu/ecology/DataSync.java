@@ -1,8 +1,11 @@
 package sg.edu.smu.ecology;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,14 +108,14 @@ public class DataSync {
     /**
      * This method is called when the device is not connected to the data reference device
      */
-    void onConnected(){
+    void onConnected() {
         requestDataSynchronization();
     }
 
     /**
      * This method is called when the device is disconnected from the data reference device
      */
-    void onDisconnected(){
+    void onDisconnected() {
         isSynchronized = false;
     }
 
@@ -134,17 +137,44 @@ public class DataSync {
     }
 
     /**
-     * To save the initial sync data received from the reference.
+     * To save the initial sync data received from the reference. 
      *
-     * @param syncData the initial sync data received from the reference
+     * @param initialSyncData the initial sync data received from the reference
      */
-    private void saveInitialSyncData(Map<?, ?> syncData) {
-        dataSyncValues.clear();
-        for (Object key : syncData.keySet()) {
-            Object newValue = syncData.get(key);
-            Object oldValue = dataSyncValues.get(key);
-            dataSyncValues.put(key, newValue);
-            dataChangeListener.onDataUpdate(key, newValue, oldValue);
+    private void saveInitialSyncData(Map<?, ?> initialSyncData) {
+        // Check if initial sync data is empty or not
+        if (initialSyncData.size() > 0) {
+            for (Object key : initialSyncData.keySet()) {
+                Object newValue = initialSyncData.get(key);
+                // Check if the key in initial sync data is already present in data sync
+                if (dataSyncValues.containsKey(key)) {
+                    // Update the value since the key is already present
+                    Object oldValue = dataSyncValues.get(key);
+                    dataSyncValues.put(key, newValue);
+                    dataChangeListener.onDataUpdate(key, newValue, oldValue);
+                } else {
+                    // Add the new key and value
+                    dataSyncValues.put(key, newValue);
+                    dataChangeListener.onDataUpdate(key, newValue, null);
+                }
+            }
+            // Remove the data corresponding to the keys that are not present in the initial data
+            // sync
+            Iterator<Object> iterator = dataSyncValues.keySet().iterator();
+            while (iterator.hasNext()) {
+                Object key = iterator.next();
+                if (!initialSyncData.containsKey(key)) {
+                    iterator.remove();
+                    dataChangeListener.onDataUpdate(key, null, null);
+                }
+            }
+        } else {
+            // Clear the current data sync when initial sync data is empty
+            List<Object> keys = new ArrayList<>(dataSyncValues.keySet());
+            dataSyncValues.clear();
+            for (Object key : keys) {
+                dataChangeListener.onDataUpdate(key, null, null);
+            }
         }
         isSynchronized = true;
     }
