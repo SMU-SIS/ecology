@@ -79,6 +79,14 @@ public class Room {
     }
 
     /**
+     * Get the ecology instance
+     * @return the ecology instance
+     */
+    public Ecology getEcology() {
+        return ecology;
+    }
+
+    /**
      * @return the event broadcaster associated with the room.
      */
     public EventBroadcaster getEventBroadcaster() {
