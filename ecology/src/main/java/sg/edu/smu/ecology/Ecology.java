@@ -42,11 +42,16 @@ public class Ecology {
     private String deviceId;
 
     /**
+     * Whether this is the data reference or not
+     */
+    private Boolean isDataReference;
+
+    /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
      */
-    public Ecology(Connector ecologyConnector) {
-        this(new RoomFactory(), ecologyConnector);
+    public Ecology(Connector ecologyConnector, Boolean isDataReference) {
+        this(new RoomFactory(), ecologyConnector, isDataReference);
     }
 
     /**
@@ -56,9 +61,10 @@ public class Ecology {
      * @param connector   the connector used to send messages to the other devices of the
      *                    ecology.
      */
-    Ecology(RoomFactory roomFactory, Connector connector) {
+    Ecology(RoomFactory roomFactory, Connector connector, Boolean isDataReference) {
         this.roomFactory = roomFactory;
         this.connector = connector;
+        this.isDataReference = isDataReference;
 
         this.connector.setReceiver(new Connector.Receiver() {
 
@@ -82,7 +88,7 @@ public class Ecology {
     /**
      * Called when a device is connected
      *
-     * @param deviceId the id of the device that got connected
+     * @param deviceId        the id of the device that got connected
      * @param isDataReference if the device is the data reference or not
      */
     private void onDeviceConnected(String deviceId, Boolean isDataReference) {
@@ -94,7 +100,7 @@ public class Ecology {
     /**
      * Called when a device is disconnected.
      *
-     * @param deviceId the id of the device that got disconnected
+     * @param deviceId        the id of the device that got disconnected
      * @param isDataReference if the device is the data reference or not
      */
     private void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
@@ -160,15 +166,15 @@ public class Ecology {
     public Room getRoom(String roomName) {
         Room room = rooms.get(roomName);
         if (room == null) {
-            room = roomFactory.createRoom(roomName, this);
+            room = roomFactory.createRoom(roomName, this, isDataReference);
             rooms.put(roomName, room);
         }
         return room;
     }
 
     static class RoomFactory {
-        public Room createRoom(String roomName, Ecology ecology) {
-            return new Room(roomName, ecology);
+        public Room createRoom(String roomName, Ecology ecology, Boolean isDataReference) {
+            return new Room(roomName, ecology, isDataReference);
         }
     }
 }
