@@ -45,11 +45,16 @@ public class Room {
     private DataSync dataSync;
 
     /**
+     * Whether this is the data reference or not
+     */
+    private Boolean isDataReference;
+
+    /**
      * @param name    the name of the room
      * @param ecology the ecology this room is part of
      */
-    public Room(String name, Ecology ecology) {
-        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory());
+    public Room(String name, Ecology ecology, Boolean isDataReference) {
+        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory(), isDataReference);
     }
 
     /**
@@ -61,7 +66,7 @@ public class Room {
      * @param dataSyncFactory         to create data sync instance
      */
     Room(String name, Ecology ecology, EventBroadcasterFactory eventBroadcasterFactory,
-         DataSyncFactory dataSyncFactory) {
+         DataSyncFactory dataSyncFactory, Boolean isDataReference) {
         if (name == null || name.length() == 0 || name.equals(" ")) {
             throw new IllegalArgumentException();
         }
@@ -70,6 +75,7 @@ public class Room {
         this.ecology = ecology;
         this.eventBroadcasterFactory = eventBroadcasterFactory;
         this.dataSyncFactory = dataSyncFactory;
+        this.isDataReference = isDataReference;
     }
 
     /**
@@ -90,7 +96,7 @@ public class Room {
     /**
      * @return the data sync object.
      */
-    public DataSync getDataSyncObject(Boolean dataSyncReference) {
+    public DataSync getDataSyncObject() {
         if (dataSync == null) {
             dataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
                 @Override
@@ -103,7 +109,7 @@ public class Room {
                     getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
-            }, dataSyncReference);
+            }, isDataReference);
         }
         return dataSync;
     }
@@ -150,13 +156,13 @@ public class Room {
     /**
      * Called when a device is connected
      *
-     * @param deviceId the id of the device that got connected
+     * @param deviceId        the id of the device that got connected
      * @param isDataReference if the device is the data reference or not
      */
     void onDeviceConnected(String deviceId, Boolean isDataReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
-        if(isDataReference){
+        if (isDataReference) {
             dataSync.onConnected();
         }
     }
@@ -164,13 +170,13 @@ public class Room {
     /**
      * Called when a device is disconnected
      *
-     * @param deviceId the id of the device that got disconnected
+     * @param deviceId        the id of the device that got disconnected
      * @param isDataReference if the device is the data reference or not
      */
     void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
-        if(isDataReference){
+        if (isDataReference) {
             dataSync.onDisconnected();
         }
     }
