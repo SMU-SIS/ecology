@@ -3,10 +3,10 @@ package sg.edu.smu.ecology;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by anurooppv on 29/11/2016.
@@ -31,7 +31,7 @@ public class DataSync {
     /**
      * To store the sync data as a key value pair
      */
-    private Map<Object, Object> dataSyncValues = new HashMap<>();
+    private Map<Object, Object> dataSyncValues = new ConcurrentHashMap<>();
     /**
      * Whether this is the sync data reference or not
      */
