@@ -3,7 +3,6 @@ package sg.edu.smu.ecology;
 import android.content.Context;
 
 import sg.edu.smu.ecology.connector.Connector;
-import sg.edu.smu.ecology.connector.bluetooth.BluetoothServerConnector;
 
 /**
  * Created by anurooppv on 1/8/2016.
@@ -23,15 +22,11 @@ public class EcologyCreator {
      * @param deviceId  the id of the device
      * @return the ecology instance
      */
-    public static Ecology connect(Connector connector, Context context, String deviceId) {
+    public static Ecology connect(Connector connector, Context context, String deviceId,
+                                  Boolean isDataReference) {
         // Ecology can be only connected once
         if (ecology != null) {
             throw new EcologyAlreadyConnectedException("The ecology has already been connected.");
-        }
-
-        Boolean isDataReference = false;
-        if (connector instanceof BluetoothServerConnector) {
-            isDataReference = true;
         }
 
         ecology = new Ecology(connector, isDataReference);
