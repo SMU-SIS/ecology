@@ -125,6 +125,14 @@ public class Ecology {
     }
 
     /**
+     * Get the device id of the device
+     * @return the device id
+     */
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    /**
      * Receive messages from the other devices of the ecology.
      *
      * @param message the message content
