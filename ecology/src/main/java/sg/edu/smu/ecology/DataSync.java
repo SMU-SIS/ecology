@@ -17,7 +17,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DataSync {
     private static final String TAG = DataSync.class.getSimpleName();
+    /**
+     * Routing ID for initial data sync messages
+     */
     private final static int INITIAL_SYNC_MESSAGE_INDICATOR = 0;
+    /**
+     * Routing ID for data sync messages
+     */
     private final static int DATA_SYNC_MESSAGE_INDICATOR = 1;
     /**
      * Notified when the data has changed.
@@ -137,7 +143,7 @@ public class DataSync {
     }
 
     /**
-     * To save the initial sync data received from the reference. 
+     * To save the initial sync data received from the reference.
      *
      * @param initialSyncData the initial sync data received from the reference
      */
