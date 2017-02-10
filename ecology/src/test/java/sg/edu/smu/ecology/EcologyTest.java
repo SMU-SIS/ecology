@@ -50,7 +50,7 @@ public class EcologyTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ecology = new Ecology(roomFactory, connector);
+        ecology = new Ecology(roomFactory, connector, false);
 
         // Prepare the mock
         PowerMockito.mockStatic(Log.class);
@@ -102,25 +102,25 @@ public class EcologyTest {
     @Test
     public void testGetRoom() throws Exception {
         // To get the mock room
-        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
         // To verify if room factory has been called with appropriate arguments
-        verify(roomFactory, times(1)).createRoom("room", ecology);
+        verify(roomFactory, times(1)).createRoom("room", ecology, false);
 
         // To verify that roomFactory is not called on the second time
         room = ecology.getRoom("room");
-        verify(roomFactory, times(1)).createRoom("room", ecology);
+        verify(roomFactory, times(1)).createRoom("room", ecology, false);
 
         // To verify the object returned by the getRoom call is the same one returned by room factory
-        assertEquals(room, roomFactory.createRoom("room", ecology));
+        assertEquals(room, roomFactory.createRoom("room", ecology, false));
 
         // To verify that objects returned are same for a given room name
         assertEquals(ecology.getRoom("room"), ecology.getRoom("room"));
 
         // To verify that room factory is called for a new room name
         room = ecology.getRoom("room1");
-        verify(roomFactory, times(1)).createRoom("room1", ecology);
+        verify(roomFactory, times(1)).createRoom("room1", ecology, false);
 
         // To verify that objects returned are not same for different room names
         assertNotEquals(ecology.getRoom("room"), ecology.getRoom("room1"));
@@ -156,7 +156,7 @@ public class EcologyTest {
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
-        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
         // Receiver gets the message
@@ -196,7 +196,7 @@ public class EcologyTest {
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
-        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
         // Receiver gets the message destined for room 2
@@ -257,21 +257,21 @@ public class EcologyTest {
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
-        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
         // One more room is added to the ecology
         Room room1 = mock(Room.class);
-        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology, false)).thenReturn(room1);
         room1 = ecology.getRoom("room1");
 
         String deviceId = "Mobile";
         // Receiver receives the message that the device has been connected to the ecology
-        receiver.onDeviceConnected(deviceId);
+        receiver.onDeviceConnected(deviceId, false);
 
         // To verify that all the rooms in the ecology receive the message
-        verify(room, times(1)).onDeviceConnected(deviceId);
-        verify(room1, times(1)).onDeviceConnected(deviceId);
+        verify(room, times(1)).onDeviceConnected(deviceId, false);
+        verify(room1, times(1)).onDeviceConnected(deviceId, false);
 
     }
 
@@ -290,20 +290,20 @@ public class EcologyTest {
         receiver = receiverCaptor.getValue();
 
         // To get the mock room
-        PowerMockito.when(roomFactory.createRoom("room", ecology)).thenReturn(room);
+        PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
         // One more room is added to the ecology
         Room room1 = mock(Room.class);
-        PowerMockito.when(roomFactory.createRoom("room1", ecology)).thenReturn(room1);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology, false)).thenReturn(room1);
         room1 = ecology.getRoom("room1");
 
         String deviceId = "Mobile";
         // Receiver receives the message that the device has been disconnected from the ecology
-        receiver.onDeviceDisconnected(deviceId);
+        receiver.onDeviceDisconnected(deviceId, false);
 
         // To verify that all the rooms in the ecology receive the message
-        verify(room, times(1)).onDeviceDisconnected(deviceId);
-        verify(room1, times(1)).onDeviceDisconnected(deviceId);
+        verify(room, times(1)).onDeviceDisconnected(deviceId, false);
+        verify(room1, times(1)).onDeviceDisconnected(deviceId, false);
     }
 }
