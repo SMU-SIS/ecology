@@ -2,6 +2,7 @@ package sg.edu.smu.ecology.encoding;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.powermock.api.mockito.PowerMockito;
 
 import java.nio.charset.CharacterCodingException;
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.Map;
 import sg.edu.smu.ecology.EcologyMessage;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 
 /**
@@ -24,16 +26,27 @@ public class MessageEncoderDecoderTest {
     private MessageEncoder encoder;
     private MessageDecoder decoder;
 
+    private EcologyMessage ecologyMessage;
+
     @Before
     public void setUp() throws Exception {
         encoder = new MessageEncoder();
         decoder = new MessageDecoder();
+
+        // Create the mock of EcologyMessage
+        ecologyMessage = mock(EcologyMessage.class);
+
+        PowerMockito.when(ecologyMessage.getSource()).thenReturn("Mobile");
+        PowerMockito.when(ecologyMessage.getTargetType()).thenReturn(EcologyMessage.TARGET_TYPE_SPECIFIC);
+        PowerMockito.when(ecologyMessage.getTargets()).thenReturn(Collections.singletonList("Watch"));
     }
 
     @Test
     public void emptyMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(Collections.emptyList());
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(Collections.emptyList()));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -42,8 +55,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneIntMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(Collections.<Object>singletonList(5));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(Collections.<Object>singletonList(5)));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -52,8 +67,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneFloatMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(Collections.<Object>singletonList(4.5f));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(Collections.<Object>singletonList(4.5f)));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -62,8 +79,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneDoubleMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(Collections.<Object>singletonList(4.5));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(Collections.<Object>singletonList(4.5)));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -72,8 +91,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneTrueBooleanMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(Collections.<Object>singletonList(true));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(Collections.<Object>singletonList(true)));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -82,8 +103,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneFalseBooleanMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(Collections.<Object>singletonList(false));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(Collections.<Object>singletonList(false)));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -92,10 +115,11 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneASCIIStringMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(
+                Collections.<Object>singletonList("simple easy string"));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(
-                Collections.<Object>singletonList("simple easy string"))
-        );
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -104,10 +128,11 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneUnicodeStringMessageEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(
+                Collections.<Object>singletonList("%ïô${å}thing[ò]#@«|"));
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(
-                Collections.<Object>singletonList("%ïô${å}thing[ò]#@«|"))
-        );
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -116,14 +141,14 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneByteArrayEncoding() throws CharacterCodingException {
-        // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(
                 Collections.<Object>singletonList(new byte[]{
-                        (byte) 0xe0, (byte) 0x4f, (byte) 0xd0, (byte) 0x20, (byte) 0xea, (byte) 0x3a, (byte) 0x69,
-                        (byte) 0x10, (byte) 0xa2, (byte) 0xd8, (byte) 0x08, (byte) 0x00, (byte) 0x2b, (byte) 0x30,
-                        (byte) 0x30, (byte) 0x9d
-                }))
-        );
+                        (byte) 0xe0, (byte) 0x4f, (byte) 0xd0, (byte) 0x20, (byte) 0xea, (byte) 0x3a,
+                        (byte) 0x69, (byte) 0x10, (byte) 0xa2, (byte) 0xd8, (byte) 0x08, (byte) 0x00,
+                        (byte) 0x2b, (byte) 0x30, (byte) 0x30, (byte) 0x9d
+                }));
+        // Encode the message.
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -138,9 +163,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneCharEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(
+                Collections.<Object>singletonList('c'));
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(
-                Collections.<Object>singletonList('c')));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -149,9 +175,10 @@ public class MessageEncoderDecoderTest {
 
     @Test
     public void oneUnicodeCharEncoding() throws CharacterCodingException {
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(
+                Collections.<Object>singletonList('î'));
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(
-                Collections.<Object>singletonList('î')));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -161,8 +188,9 @@ public class MessageEncoderDecoderTest {
     @Test
     public void oneNullEncoding() throws CharacterCodingException {
         List<Object> message = Collections.singletonList(null);
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -172,8 +200,10 @@ public class MessageEncoderDecoderTest {
     @Test
     public void oneEmptyListEncoding() throws CharacterCodingException {
         List<Object> message = Collections.<Object>singletonList(Collections.emptyList());
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -185,8 +215,10 @@ public class MessageEncoderDecoderTest {
         List<Object> message = Collections.<Object>singletonList(Arrays.asList(
                 5, 4, "hello", 2.5, true, 'c', "ˆˆø"
         ));
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -214,8 +246,10 @@ public class MessageEncoderDecoderTest {
                         2.5
                 )
         );
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -225,8 +259,10 @@ public class MessageEncoderDecoderTest {
     @Test
     public void emptyMapEncoding() throws CharacterCodingException {
         List<Object> message = Collections.<Object>singletonList(new HashMap<String, Object>());
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -246,8 +282,10 @@ public class MessageEncoderDecoderTest {
         map.put(0, "some string");
         map.put("key5", false);
         List<Object> message = Collections.<Object>singletonList(map);
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
@@ -285,8 +323,10 @@ public class MessageEncoderDecoderTest {
                 ),
                 "îIø", 'z', 'å', '7', null
         );
+        PowerMockito.when(ecologyMessage.getArguments()).thenReturn(message);
+
         // Encode the message.
-        byte[] encodedMessage = encoder.encode(new EcologyMessage(message));
+        byte[] encodedMessage = encoder.encode(ecologyMessage);
         // Decode it.
         EcologyMessage decodedMessage = decoder.decode(encodedMessage);
         // Make sure it is the same.
