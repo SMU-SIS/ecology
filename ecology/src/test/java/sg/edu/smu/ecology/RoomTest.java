@@ -46,7 +46,7 @@ public class RoomTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        room = new Room(roomName, ecology, eventBroadcasterFactory, dataSyncFactory);
+        room = new Room(roomName, ecology, eventBroadcasterFactory, dataSyncFactory, false);
     }
 
     @After
@@ -64,7 +64,7 @@ public class RoomTest {
 
         // To get the mock data sync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // Test data - contains event message routing id
@@ -108,7 +108,7 @@ public class RoomTest {
 
         // To get the mock data sync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // Test data - contains data sync message routing id
@@ -203,14 +203,14 @@ public class RoomTest {
 
         // To get the mock DataSync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // To capture the argument in the createDataSync method
         ArgumentCaptor<DataSync.Connector> connectorCaptor =
                 ArgumentCaptor.forClass(DataSync.Connector.class);
         verify(dataSyncFactory).createDataSync(connectorCaptor.capture(),
-                any(DataSync.SyncDataChangeListener.class));
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class));
         DataSync.Connector dataSyncConnector = connectorCaptor.getValue();
 
         EcologyMessage message = mock(EcologyMessage.class);
@@ -250,14 +250,14 @@ public class RoomTest {
     public void testOnSyncDataUpdate() {
         // To get the mock DataSync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // To capture the argument in the createDataSync method
         ArgumentCaptor<DataSync.SyncDataChangeListener> syncDataChangeListenerCaptor =
                 ArgumentCaptor.forClass(DataSync.SyncDataChangeListener.class);
         verify(dataSyncFactory).createDataSync(any(DataSync.Connector.class),
-                syncDataChangeListenerCaptor.capture());
+                syncDataChangeListenerCaptor.capture(), any(Boolean.class));
         DataSync.SyncDataChangeListener syncDataChangeListener = syncDataChangeListenerCaptor.getValue();
 
         // To get the mock eventBroadcaster
@@ -275,7 +275,7 @@ public class RoomTest {
     // Improper value is passed while creating a room
     @Test(expected = IllegalArgumentException.class)
     public void testIllegalArgumentException() {
-        room = new Room("", ecology);
+        room = new Room("", ecology, false);
     }
 
     // Check if a device connected to ecology message received is published as a local event
@@ -288,7 +288,7 @@ public class RoomTest {
 
         String deviceId = "Mobile";
         // Room receives the message that a device has been connected to the ecology
-        room.onDeviceConnected(deviceId);
+        room.onDeviceConnected(deviceId, false);
         String deviceConnected = "device:connected";
         // Verify that a local event is published with correct data
         verify(eventBroadcaster, times(1)).publishLocalEvent(deviceConnected,
@@ -305,7 +305,7 @@ public class RoomTest {
 
         String deviceId = "Mobile";
         // Room receives the message that a device has been disconnected from the ecology
-        room.onDeviceDisconnected(deviceId);
+        room.onDeviceDisconnected(deviceId, false);
         String deviceDisconnected = "device:disconnected";
         // Verify that a local event is published with correct data
         verify(eventBroadcaster, times(1)).publishLocalEvent(deviceDisconnected,
