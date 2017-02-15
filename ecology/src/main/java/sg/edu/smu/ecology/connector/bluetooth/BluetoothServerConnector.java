@@ -125,7 +125,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
         Object disconnectedObj = msg.obj;
 
         // A client device has been disconnected
-        getReceiver().onDeviceDisconnected(getDeviceIdsList().get(msg.arg1), false);
+        getReceiver().onDeviceDisconnected(getDeviceIdsList().get(msg.arg1));
 
         updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
 
@@ -152,7 +152,7 @@ public class BluetoothServerConnector extends BluetoothConnector {
 
         if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
             getDeviceIdsList().put(msg.arg1, deviceIdReceived);
-            getReceiver().onDeviceConnected(deviceIdReceived, false);
+            getReceiver().onDeviceConnected(deviceIdReceived);
         }
     }
 
