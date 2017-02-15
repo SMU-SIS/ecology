@@ -15,11 +15,6 @@ import java.util.Map;
 public class EventBroadcaster {
 
     private final static String TAG = EventBroadcaster.class.getSimpleName();
-
-    interface Connector {
-        void onEventBroadcasterMessage(List<Object> message);
-    }
-
     /**
      * The recipient for event broadcaster messages.
      */
@@ -38,20 +33,20 @@ public class EventBroadcaster {
      *
      * @param message the message
      */
-    void onRoomMessage(List<Object> message) {
+    void onRoomMessage(EcologyMessage message) {
         // Only message event are supported.
         handleEventMessage(message);
     }
 
-    private void handleEventMessage(List<Object> message) {
+    private void handleEventMessage(EcologyMessage message) {
         // Grab the event's type.
         String eventType;
         try {
-            eventType = (String) message.get(message.size() - 1);
+            eventType = (String) message.fetchArgument();
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             throw new IllegalArgumentException("Unrecognized event message format.");
         }
-        passEventToReceivers(eventType, message.subList(0, message.size() - 1));
+        passEventToReceivers(eventType, message.getArguments());
     }
 
     // Forward an event to the receivers.
@@ -116,9 +111,11 @@ public class EventBroadcaster {
      */
     public void publish(String eventType, List<Object> data) {
         // Create the message to be sent to the other devices of the ecology.
-        List<Object> msg = new ArrayList<>(data);
-        msg.add(eventType);
-        connector.onEventBroadcasterMessage(msg);
+        EcologyMessage message = new EcologyMessage(data);
+        message.addArgument(eventType);
+        message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
+
+        connector.onEventBroadcasterMessage(message);
         // Pass the event to the local receivers.
         publishLocalEvent(eventType, data);
     }
@@ -152,5 +149,9 @@ public class EventBroadcaster {
      */
     void publishLocalEvent(String eventType, List<Object> data) {
         passEventToReceivers(eventType, data);
+    }
+
+    interface Connector {
+        void onEventBroadcasterMessage(EcologyMessage message);
     }
 }

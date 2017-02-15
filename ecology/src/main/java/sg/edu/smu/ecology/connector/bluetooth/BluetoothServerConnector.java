@@ -3,13 +3,16 @@ package sg.edu.smu.ecology.connector.bluetooth;
 import android.os.Message;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.Settings;
 
 /**
@@ -44,11 +47,18 @@ public class BluetoothServerConnector extends BluetoothConnector {
     /**
      * Return the list of {@link BluetoothSocketReadWriter} threads
      *
+     * @param targetType specifies the target type
+     * @param targets    the target device ids for the message to be sent
      * @return the list of server client connection threads
      */
     @Override
-    public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
-        return clientConnectionThreadsList.values();
+    public Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList(
+            Integer targetType, List<String> targets) {
+        if (targetType == EcologyMessage.TARGET_TYPE_SPECIFIC) {
+            return getSpecificBluetoothReadWriterList(targets);
+        } else {
+            return getBluetoothSocketReadWriterList();
+        }
     }
 
     /**
@@ -64,8 +74,9 @@ public class BluetoothServerConnector extends BluetoothConnector {
         updateClientsList((BluetoothSocketReadWriter) obj, msg.arg1);
 
         // Pass the server device Id to the connected client device.
-        sendMessageToClient(Arrays.<Object>asList(getDeviceId(), Settings.DEVICE_ID_EXCHANGE),
-                clientConnectionThreadsList.get(msg.arg1));
+        sendMessageToClient(Arrays.<Object>asList(true, getDeviceId(),
+                Settings.DEVICE_ID_EXCHANGE), Collections.singletonList
+                (clientConnectionThreadsList.get(msg.arg1)));
 
         // To notify the new client about the already connected client devices in the ecology
         sendConnectedClientsIds(msg.arg1, clientConnectionThreadsList.get(msg.arg1));
@@ -78,9 +89,38 @@ public class BluetoothServerConnector extends BluetoothConnector {
      * @param messageData the decoded data
      */
     @Override
-    public void onReceiverMessage(Message msg, List<Object> messageData) {
-        forwardMessage((byte[]) msg.obj, msg.arg1);
-        super.onReceiverMessage(msg, messageData);
+    public void onReceiverMessage(Message msg, EcologyMessage messageData) {
+        int targetType = messageData.getTargetType();
+        Log.i(TAG, "targetType " + targetType);
+
+        switch (targetType) {
+            case EcologyMessage.TARGET_TYPE_SERVER:
+                super.onReceiverMessage(msg, messageData);
+                break;
+
+            case EcologyMessage.TARGET_TYPE_BROADCAST:
+                forwardMessage((byte[]) msg.obj, msg.arg1);
+                super.onReceiverMessage(msg, messageData);
+                break;
+
+            case EcologyMessage.TARGET_TYPE_SPECIFIC:
+                List<String> clientTargets = new ArrayList<>();
+                for (String target : messageData.getTargets()) {
+                    if (target.equals(getDeviceId())) {
+                        super.onReceiverMessage(msg, messageData);
+                    } else {
+                        clientTargets.add(target);
+                    }
+                }
+                if (clientTargets.size() > 0) {
+                    messageData.setTargets(clientTargets);
+                    sendMessage(messageData);
+                }
+                break;
+
+            default:
+                break;
+        }
     }
 
     /**
@@ -93,18 +133,25 @@ public class BluetoothServerConnector extends BluetoothConnector {
         Object disconnectedObj = msg.obj;
 
         // A client device has been disconnected
-        getReceiver().onDeviceDisconnected(getDeviceIdsList().get(msg.arg1));
+        getReceiver().onDeviceDisconnected(getDeviceIdsList().get(msg.arg1), false);
 
         updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
 
+        EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(false,
+                getDeviceIdsList().get(msg.arg1), Settings.DEVICE_DISCONNECTED));
+        message.setSource(getDeviceId());
+        message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
         // To notify other connected client devices in the ecology
-        sendConnectorMessage(Arrays.<Object>asList(getDeviceIdsList().get(msg.arg1),
-                Settings.DEVICE_DISCONNECTED), getBluetoothSocketReadWriterList());
+        sendConnectorMessage(message, getBluetoothSocketReadWriterList());
 
         // Update the connected devices list
         getDeviceIdsList().remove(msg.arg1);
 
         handleClientDisconnection(msg.arg1);
+    }
+
+    private Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
+        return clientConnectionThreadsList.values();
     }
 
     /**
@@ -114,14 +161,17 @@ public class BluetoothServerConnector extends BluetoothConnector {
      * @param messageData the decoded data
      */
     @Override
-    public void onConnectorMessage(Message msg, List<Object> messageData) {
-        String deviceIdReceived = (String) messageData.get(messageData.size() - 3);
+    public void onConnectorMessage(Message msg, EcologyMessage messageData) {
+        String eventTypeReceived = (String) messageData.fetchArgument();
+        String deviceIdReceived = (String) messageData.fetchArgument();
+        Boolean dataReference = (Boolean) messageData.fetchArgument();
 
         forwardMessage((byte[]) msg.obj, msg.arg1);
 
-        getDeviceIdsList().put(msg.arg1, deviceIdReceived);
-
-        getReceiver().onDeviceConnected(deviceIdReceived);
+        if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
+            getDeviceIdsList().put(msg.arg1, deviceIdReceived);
+            getReceiver().onDeviceConnected(deviceIdReceived, dataReference);
+        }
     }
 
     /**
@@ -195,8 +245,11 @@ public class BluetoothServerConnector extends BluetoothConnector {
 
         for (String deviceId : getDeviceIdsList().values()) {
             if (!deviceId.equals(newDeviceId)) {
-                sendConnectorMessage(Arrays.<Object>asList(deviceId, Settings.DEVICE_ID_EXCHANGE),
-                        Collections.singletonList(clientConnectionThread));
+                EcologyMessage msg = new EcologyMessage(Arrays.<Object>asList(false, deviceId,
+                        Settings.DEVICE_ID_EXCHANGE));
+                msg.setSource(getDeviceId());
+                msg.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
+                sendConnectorMessage(msg, Collections.singletonList(clientConnectionThread));
             }
         }
     }
@@ -208,7 +261,31 @@ public class BluetoothServerConnector extends BluetoothConnector {
      * @param clientConnectionThread the client thread of the destination device
      */
     private void sendMessageToClient(List<Object> message,
-                                     BluetoothSocketReadWriter clientConnectionThread) {
-        sendConnectorMessage(message, Collections.singletonList(clientConnectionThread));
+                                     List<BluetoothSocketReadWriter> clientConnectionThread) {
+        EcologyMessage msg = new EcologyMessage(message);
+        msg.setSource(getDeviceId());
+        msg.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
+        sendConnectorMessage(msg, clientConnectionThread);
+    }
+
+    /**
+     * Get the Bluetooth read writers thread list of a given list of target devices.
+     *
+     * @param targets the targets for the message to be sent
+     * @return the list of Bluetooth read writers thread list of th targets
+     */
+    private List<BluetoothSocketReadWriter> getSpecificBluetoothReadWriterList(List<String> targets) {
+        List<BluetoothSocketReadWriter> bluetoothSocketReadWriterList = new ArrayList<>();
+
+        Set<Integer> keySet = getDeviceIdsList().keySet();
+
+        for (Integer key : keySet) {
+            for (String target : targets) {
+                if (getDeviceIdsList().get(key).equals(target)) {
+                    bluetoothSocketReadWriterList.add(clientConnectionThreadsList.get(key));
+                }
+            }
+        }
+        return bluetoothSocketReadWriterList;
     }
 }

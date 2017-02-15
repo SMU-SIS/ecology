@@ -1,9 +1,7 @@
 package sg.edu.smu.ecology;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Quentin ROY on 20/6/16.
@@ -47,11 +45,16 @@ public class Room {
     private DataSync dataSync;
 
     /**
+     * Whether this is the data reference or not
+     */
+    private Boolean isDataReference;
+
+    /**
      * @param name    the name of the room
      * @param ecology the ecology this room is part of
      */
-    public Room(String name, Ecology ecology) {
-        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory());
+    public Room(String name, Ecology ecology, Boolean isDataReference) {
+        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory(), isDataReference);
     }
 
     /**
@@ -63,7 +66,7 @@ public class Room {
      * @param dataSyncFactory         to create data sync instance
      */
     Room(String name, Ecology ecology, EventBroadcasterFactory eventBroadcasterFactory,
-         DataSyncFactory dataSyncFactory) {
+         DataSyncFactory dataSyncFactory, Boolean isDataReference) {
         if (name == null || name.length() == 0 || name.equals(" ")) {
             throw new IllegalArgumentException();
         }
@@ -72,6 +75,15 @@ public class Room {
         this.ecology = ecology;
         this.eventBroadcasterFactory = eventBroadcasterFactory;
         this.dataSyncFactory = dataSyncFactory;
+        this.isDataReference = isDataReference;
+    }
+
+    /**
+     * Get the ecology instance
+     * @return the ecology instance
+     */
+    public Ecology getEcology() {
+        return ecology;
     }
 
     /**
@@ -81,7 +93,7 @@ public class Room {
         if (eventBroadcaster == null) {
             eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(new EventBroadcaster.Connector() {
                 @Override
-                public void onEventBroadcasterMessage(List<Object> message) {
+                public void onEventBroadcasterMessage(EcologyMessage message) {
                     Room.this.onEventBroadcasterMessage(message);
                 }
             });
@@ -96,7 +108,7 @@ public class Room {
         if (dataSync == null) {
             dataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
                 @Override
-                public void onMessage(List<Object> message) {
+                public void onMessage(EcologyMessage message) {
                     Room.this.onDataSyncMessage(message);
                 }
             }, new DataSync.SyncDataChangeListener() {
@@ -105,7 +117,7 @@ public class Room {
                     getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
-            });
+            }, isDataReference);
         }
         return dataSync;
     }
@@ -115,13 +127,15 @@ public class Room {
      *
      * @param message the content of the message
      */
-    void onMessage(List<Object> message) {
+    void onMessage(EcologyMessage message) {
+        Integer messageId = (Integer) message.fetchArgument();
+
         // Check if the received message is a sync data message or an event broadcaster event and
         // route them accordingly.
-        if (message.get(message.size() - 1).equals(SYNC_DATA_MESSAGE_ID)) {
-            getDataSyncObject().onMessage(message.subList(0, message.size() - 1));
-        } else if (message.get(message.size() - 1).equals(EVENT_MESSAGE_ID)) {
-            getEventBroadcaster().onRoomMessage(message.subList(0, message.size() - 1));
+        if (messageId == SYNC_DATA_MESSAGE_ID) {
+            dataSync.onMessage(message);
+        } else if (messageId == EVENT_MESSAGE_ID) {
+            getEventBroadcaster().onRoomMessage(message);
         }
     }
 
@@ -131,10 +145,9 @@ public class Room {
      *
      * @param message the message
      */
-    private void onEventBroadcasterMessage(List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(EVENT_MESSAGE_ID);
-        ecology.onRoomMessage(name, msg);
+    private void onEventBroadcasterMessage(EcologyMessage message) {
+        message.addArgument(EVENT_MESSAGE_ID);
+        ecology.onRoomMessage(name, message);
     }
 
     /**
@@ -143,30 +156,37 @@ public class Room {
      *
      * @param message the message
      */
-    private void onDataSyncMessage(List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(SYNC_DATA_MESSAGE_ID);
-        ecology.onRoomMessage(name, msg);
+    private void onDataSyncMessage(EcologyMessage message) {
+        message.addArgument(SYNC_DATA_MESSAGE_ID);
+        ecology.onRoomMessage(name, message);
     }
 
     /**
      * Called when a device is connected
      *
-     * @param deviceId the id of the device that got connected
+     * @param deviceId        the id of the device that got connected
+     * @param isDataReference if the device is the data reference or not
      */
-    void onDeviceConnected(String deviceId) {
+    void onDeviceConnected(String deviceId, Boolean isDataReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
+        if (isDataReference) {
+            dataSync.onConnected();
+        }
     }
 
     /**
      * Called when a device is disconnected
      *
-     * @param deviceId the id of the device that got disconnected
+     * @param deviceId        the id of the device that got disconnected
+     * @param isDataReference if the device is the data reference or not
      */
-    void onDeviceDisconnected(String deviceId) {
+    void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
+        if (isDataReference) {
+            dataSync.onDisconnected();
+        }
     }
 
     static class EventBroadcasterFactory {
@@ -177,8 +197,9 @@ public class Room {
 
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
-                                DataSync.SyncDataChangeListener dataSyncChangeListener) {
-            return new DataSync(connector, dataSyncChangeListener);
+                                DataSync.SyncDataChangeListener dataSyncChangeListener,
+                                boolean dataSyncReference) {
+            return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
         }
     }
 }

@@ -4,9 +4,7 @@ package sg.edu.smu.ecology;
 import android.content.Context;
 import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import sg.edu.smu.ecology.connector.Connector;
@@ -39,11 +37,21 @@ public class Ecology {
     private Map<String, Room> rooms = new HashMap<>();
 
     /**
+     * The id of this device
+     */
+    private String deviceId;
+
+    /**
+     * Whether this is the data reference or not
+     */
+    private Boolean isDataReference;
+
+    /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
      */
-    public Ecology(Connector ecologyConnector) {
-        this(new RoomFactory(), ecologyConnector);
+    public Ecology(Connector ecologyConnector, Boolean isDataReference) {
+        this(new RoomFactory(), ecologyConnector, isDataReference);
     }
 
     /**
@@ -53,25 +61,26 @@ public class Ecology {
      * @param connector   the connector used to send messages to the other devices of the
      *                    ecology.
      */
-    Ecology(RoomFactory roomFactory, Connector connector) {
+    Ecology(RoomFactory roomFactory, Connector connector, Boolean isDataReference) {
         this.roomFactory = roomFactory;
         this.connector = connector;
+        this.isDataReference = isDataReference;
 
         this.connector.setReceiver(new Connector.Receiver() {
 
             @Override
-            public void onMessage(List<Object> message) {
+            public void onMessage(EcologyMessage message) {
                 Ecology.this.onConnectorMessage(message);
             }
 
             @Override
-            public void onDeviceConnected(String deviceId) {
-                Ecology.this.onDeviceConnected(deviceId);
+            public void onDeviceConnected(String deviceId, Boolean isDataReference) {
+                Ecology.this.onDeviceConnected(deviceId, isDataReference);
             }
 
             @Override
-            public void onDeviceDisconnected(String deviceId) {
-                Ecology.this.onDeviceDisconnected(deviceId);
+            public void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
+                Ecology.this.onDeviceDisconnected(deviceId, isDataReference);
             }
         });
     }
@@ -79,22 +88,24 @@ public class Ecology {
     /**
      * Called when a device is connected
      *
-     * @param deviceId the id of the device that got connected
+     * @param deviceId        the id of the device that got connected
+     * @param isDataReference if the device is the data reference or not
      */
-    private void onDeviceConnected(String deviceId) {
+    private void onDeviceConnected(String deviceId, Boolean isDataReference) {
         for (Room room : rooms.values()) {
-            room.onDeviceConnected(deviceId);
+            room.onDeviceConnected(deviceId, isDataReference);
         }
     }
 
     /**
      * Called when a device is disconnected.
      *
-     * @param deviceId the id of the device that got disconnected
+     * @param deviceId        the id of the device that got disconnected
+     * @param isDataReference if the device is the data reference or not
      */
-    private void onDeviceDisconnected(String deviceId) {
+    private void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
         for (Room room : rooms.values()) {
-            room.onDeviceDisconnected(deviceId);
+            room.onDeviceDisconnected(deviceId, isDataReference);
         }
     }
 
@@ -102,6 +113,7 @@ public class Ecology {
      * Connect to the ecology.
      */
     void connect(Context context, String deviceId) {
+        this.deviceId = deviceId;
         connector.connect(context, deviceId);
     }
 
@@ -113,14 +125,22 @@ public class Ecology {
     }
 
     /**
+     * Get the device id of the device
+     * @return the device id
+     */
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    /**
      * Receive messages from the other devices of the ecology.
      *
      * @param message the message content
      */
-    private void onConnectorMessage(List<Object> message) {
+    private void onConnectorMessage(EcologyMessage message) {
         String targetRoomName = null;
         try {
-            targetRoomName = (String) message.get(message.size() - 1);
+            targetRoomName = (String) message.fetchArgument();
         } catch (ClassCastException | IndexOutOfBoundsException e) {
             //throw new IllegalArgumentException("Unrecognized message format.");
             Log.e(TAG, "Exception " + e.getMessage());
@@ -128,7 +148,7 @@ public class Ecology {
 
         Room room = rooms.get(targetRoomName);
         if (room != null) {
-            room.onMessage(message.subList(0, message.size() - 1));
+            room.onMessage(message);
         }
 
     }
@@ -139,10 +159,10 @@ public class Ecology {
      * @param roomName the name of the room who send the event
      * @param message  the content of the message
      */
-    void onRoomMessage(String roomName, List<Object> message) {
-        List<Object> msg = new ArrayList<>(message);
-        msg.add(roomName);
-        connector.sendMessage(msg);
+    void onRoomMessage(String roomName, EcologyMessage message) {
+        message.addArgument(roomName);
+        message.setSource(deviceId);
+        connector.sendMessage(message);
     }
 
     /**
@@ -154,15 +174,15 @@ public class Ecology {
     public Room getRoom(String roomName) {
         Room room = rooms.get(roomName);
         if (room == null) {
-            room = roomFactory.createRoom(roomName, this);
+            room = roomFactory.createRoom(roomName, this, isDataReference);
             rooms.put(roomName, room);
         }
         return room;
     }
 
     static class RoomFactory {
-        public Room createRoom(String roomName, Ecology ecology) {
-            return new Room(roomName, ecology);
+        public Room createRoom(String roomName, Ecology ecology, Boolean isDataReference) {
+            return new Room(roomName, ecology, isDataReference);
         }
     }
 }

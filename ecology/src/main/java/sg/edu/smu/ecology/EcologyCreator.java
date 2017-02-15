@@ -22,13 +22,14 @@ public class EcologyCreator {
      * @param deviceId  the id of the device
      * @return the ecology instance
      */
-    public static Ecology connect(Connector connector, Context context, String deviceId) {
+    public static Ecology connect(Connector connector, Context context, String deviceId,
+                                  Boolean isDataReference) {
         // Ecology can be only connected once
         if (ecology != null) {
             throw new EcologyAlreadyConnectedException("The ecology has already been connected.");
         }
 
-        ecology = new Ecology(connector);
+        ecology = new Ecology(connector, isDataReference);
         // Connect to the ecology
         ecology.connect(context, deviceId);
 

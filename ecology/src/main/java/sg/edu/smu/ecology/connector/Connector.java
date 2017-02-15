@@ -2,7 +2,7 @@ package sg.edu.smu.ecology.connector;
 
 import android.content.Context;
 
-import java.util.List;
+import sg.edu.smu.ecology.EcologyMessage;
 
 /**
  * Created by Quentin ROY on 17/6/16.
@@ -17,7 +17,7 @@ public interface Connector {
      *
      * @param message the content of the message
      */
-    public void sendMessage(List<Object> message);
+    public void sendMessage(EcologyMessage message);
 
     /**
      * Set the receiver of the connector.
@@ -55,21 +55,23 @@ public interface Connector {
          *
          * @param message the content of the message
          */
-        public void onMessage(List<Object> message);
+        public void onMessage(EcologyMessage message);
 
         /**
          * Receive the device connection notifications
          *
          * @param deviceId the id of the device that got connected
+         * @param isDataReference if the device is the data reference or not
          */
-        public void onDeviceConnected(String deviceId);
+        public void onDeviceConnected(String deviceId, Boolean isDataReference);
 
         /**
          * Receive the device disconnection notifications
          *
          * @param deviceId the id of the device that got disconnected
+         * @param isDataReference if the device is the data reference or not
          */
-        public void onDeviceDisconnected(String deviceId);
+        public void onDeviceDisconnected(String deviceId, Boolean isDataReference);
 
     }
 

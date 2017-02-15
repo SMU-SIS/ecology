@@ -40,3 +40,16 @@ dependencies {
         exclude module: 'objenesis'
     }
 }
+
+task deleteJar(type: Delete) {
+    delete 'libs/ecology.jar'
+}
+
+task createJar(type: Copy) {
+    from('build/intermediates/bundles/release/')
+    into('libs/')
+    include('classes.jar')
+    rename('classes.jar', 'ecology.jar')
+}
+
+createJar.dependsOn(deleteJar, build)
