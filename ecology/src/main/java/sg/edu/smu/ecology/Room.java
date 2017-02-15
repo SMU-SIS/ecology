@@ -1,7 +1,7 @@
 package sg.edu.smu.ecology;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 /**
  * Created by Quentin ROY on 20/6/16.
@@ -80,7 +80,6 @@ public class Room {
 
     /**
      * Get the ecology instance
-     *
      * @return the ecology instance
      */
     public Ecology getEcology() {
@@ -169,6 +168,8 @@ public class Room {
      * @param isDataReference if the device is the data reference or not
      */
     void onDeviceConnected(String deviceId, Boolean isDataReference) {
+        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
+                Collections.<Object>singletonList(deviceId));
         if (isDataReference) {
             dataSync.onConnected();
         }
@@ -181,18 +182,11 @@ public class Room {
      * @param isDataReference if the device is the data reference or not
      */
     void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
+        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
+                Collections.<Object>singletonList(deviceId));
         if (isDataReference) {
             dataSync.onDisconnected();
         }
-    }
-
-    /**
-     * Called when a device in the ecology is connected or disconnected
-     *
-     * @param devicesList the list of currently available devices
-     */
-    void onDevicesListUpdate(List<Object> devicesList) {
-        getEventBroadcaster().publishLocalEvent(Settings.DEVICES_AVAILABLE, devicesList);
     }
 
     static class EventBroadcasterFactory {
