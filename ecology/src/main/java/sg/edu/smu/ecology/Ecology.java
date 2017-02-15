@@ -89,12 +89,17 @@ public class Ecology {
         ecologyDataSync = new DataSync(new DataSync.Connector() {
             @Override
             public void onMessage(EcologyMessage message) {
-                onEcologyDataSyncMessage(message);
+                Log.i(TAG, "onMessage " + message.getArguments());
+                if (isDataReference) {
+                    onEcologyDataSyncMessage(message);
+                }
             }
         }, new DataSync.SyncDataChangeListener() {
             @Override
             public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
-                onDevicesListUpdate();
+                if (dataId.equals("devices")) {
+                    onDevicesListUpdate((Map<Object, Object>) newValue, (Map<Object, Object>) oldValue);
+                }
             }
         }, isDataReference);
 
@@ -106,33 +111,84 @@ public class Ecology {
             }
 
             @Override
-            public void onDeviceConnected(String deviceId, Boolean isDeviceDataReference) {
+            public void onDeviceConnected(String deviceId) {
                 if (isDataReference) {
-                    syncConnectedDeviceId(deviceId);
+                    syncConnectedDeviceId(deviceId, false);
                 }
-                Ecology.this.onDeviceConnected(deviceId, isDeviceDataReference);
             }
 
             @Override
-            public void onDeviceDisconnected(String deviceId, Boolean isDeviceDataReference) {
+            public void onDeviceDisconnected(String deviceId) {
                 if (isDataReference) {
                     syncDisconnectedDeviceId(deviceId);
+                } else {
+                    ecologyDataSync.setData("devices", new HashMap<>());
                 }
-                Ecology.this.onDeviceDisconnected(deviceId, isDeviceDataReference);
             }
         });
     }
 
     /**
+     * When the list of available devices in the ecology has been updated
+     * @param newValue the new list of available devices
+     * @param oldValue the old list of available devices
+     */
+    private void onDevicesListUpdate(Map<Object, Object> newValue, Map<Object, Object> oldValue) {
+        Log.i(TAG, "newValue " + newValue);
+        Log.i(TAG, "oldValue " + oldValue);
+
+        if (oldValue == null) {
+            for (Object id : newValue.keySet()) {
+                String devId = (String) id;
+                Log.i(TAG, "onDeviceConnected " + devId);
+                if (!devId.equals(deviceId)) {
+                    onDeviceConnected(devId, (Boolean) newValue.get(devId));
+                }
+            }
+        } else {
+            Map<Object, Object> diff = new HashMap<>();
+            diff.putAll(newValue);
+            diff.putAll(oldValue);
+
+            if (newValue.size() > oldValue.size()) {
+                diff.entrySet().removeAll(oldValue.entrySet());
+                for (Object id : diff.keySet()) {
+                    String devId = (String) id;
+                    Log.i(TAG, "onDeviceConnected " + devId);
+                    if (!devId.equals(deviceId)) {
+                        onDeviceConnected(devId, (Boolean) diff.get(devId));
+                    }
+                }
+            } else {
+                diff.entrySet().removeAll(newValue.entrySet());
+                for (Object id : diff.keySet()) {
+                    String devId = (String) id;
+                    Log.i(TAG, "onDeviceDisconnected " + devId);
+                    if (!devId.equals(deviceId)) {
+                        onDeviceDisconnected(devId, (Boolean) diff.get(devId));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Sync the device id of the newly connected device in the ecology data sync
      *
-     * @param deviceId the device id of the newly connected device
+     * @param newDeviceId     the device id of the newly connected device
+     * @param isDataReference whether the device is the data reference
      */
-    private void syncConnectedDeviceId(String deviceId) {
-        List<String> devicesList = new ArrayList<>((Collection<? extends String>)
-                ecologyDataSync.getData("Devices"));
-        devicesList.add(deviceId);
-        ecologyDataSync.setData("Devices", devicesList);
+    private void syncConnectedDeviceId(String newDeviceId, boolean isDataReference) {
+        if (ecologyDataSync.getData("devices") == null) {
+            ecologyDataSync.setData("devices", new HashMap<Object, Object>() {{
+                put(deviceId, true);
+            }});
+        }
+
+        Map<Object, Object> devicesList = new HashMap<>((Map<?, ?>) ecologyDataSync.getData("devices"));
+        ;
+        devicesList.put(newDeviceId, isDataReference);
+        ecologyDataSync.setData("devices", devicesList);
     }
 
     /**
@@ -141,18 +197,18 @@ public class Ecology {
      * @param deviceId the device id of the disconnected device
      */
     private void syncDisconnectedDeviceId(String deviceId) {
-        List<String> devicesList = new ArrayList<>((Collection<? extends String>)
-                ecologyDataSync.getData("Devices"));
-        Iterator<String> iterator = devicesList.iterator();
+        Map<Object, Object> devicesList = new HashMap<>((Map<?, ?>) ecologyDataSync.getData
+                ("devices"));
+        Iterator<Object> iterator = devicesList.keySet().iterator();
 
         // Remove it's own device id
         while (iterator.hasNext()) {
-            String key = iterator.next();
+            String key = (String) iterator.next();
             if (key.equals(deviceId)) {
                 iterator.remove();
             }
         }
-        ecologyDataSync.setData("Devices", devicesList);
+        ecologyDataSync.setData("devices", devicesList);
     }
 
     /**
@@ -180,24 +236,11 @@ public class Ecology {
     }
 
     /**
-     * Called when devices list in ecology data sync is updated
-     */
-    private void onDevicesListUpdate() {
-        for (Room room : rooms.values()) {
-            room.onDevicesListUpdate(new ArrayList<Object>(getAvailableDevices()));
-        }
-    }
-
-    /**
      * Connect to the ecology.
      */
-    void connect(Context context, String deviceId) {
+    void connect(Context context, final String deviceId) {
         this.deviceId = deviceId;
         connector.connect(context, deviceId);
-        if (isDataReference) {
-            Log.i(TAG, "setData ");
-            ecologyDataSync.setData("Devices", Collections.singletonList(deviceId));
-        }
     }
 
     /**
@@ -282,18 +325,12 @@ public class Ecology {
      * @return the list of available devices in the ecology
      */
     public List<String> getAvailableDevices() {
-        List<String> devicesList = new ArrayList<>((Collection<? extends String>)
-                ecologyDataSync.getData("Devices"));
-        Iterator<String> iterator = devicesList.iterator();
-
-        // Remove it's own device id
-        while (iterator.hasNext()) {
-            String key = iterator.next();
-            if (key.equals(deviceId)) {
-                iterator.remove();
-            }
+        if (ecologyDataSync.getData("devices") != null) {
+            return new ArrayList<>((Collection<? extends String>) ((Map<?, ?>) ecologyDataSync.getData
+                    ("devices")).keySet());
+        } else {
+            return Collections.emptyList();
         }
-        return devicesList;
     }
 
     /**
