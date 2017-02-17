@@ -6,7 +6,6 @@ package sg.edu.smu.ecology;
 public class Settings {
     public static final String DEVICE_DISCONNECTED = "device:disconnected";
     public static final String DEVICE_CONNECTED = "device:connected";
-    public static final String DEVICES_AVAILABLE = "devices:available";
     public static final String DEVICE_ID_EXCHANGE = "deviceId";
     public static final String SYNC_DATA = "syncData";
 }

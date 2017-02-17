@@ -19,7 +19,6 @@ import sg.edu.smu.ecology.connector.Connector;
  * Main Ecology class. Represents a group of devices closely linked together.
  */
 public class Ecology {
-
     /**
      * Used for debugging.
      */
@@ -286,7 +285,6 @@ public class Ecology {
         message.setSource(myDeviceId);
         connector.sendMessage(message);
     }
-
 
     /**
      * Send a data sync message to the other devices of the ecology
