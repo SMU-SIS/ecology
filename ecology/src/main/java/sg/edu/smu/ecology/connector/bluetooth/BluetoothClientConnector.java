@@ -93,6 +93,8 @@ public class BluetoothClientConnector extends BluetoothConnector {
         message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
         // Send the client device Id to the server device
         sendConnectorMessage(message, getBluetoothSocketReadWriterList());
+
+        getReceiver().onConnected();
     }
 
     private Collection<BluetoothSocketReadWriter> getBluetoothSocketReadWriterList() {
@@ -109,6 +111,8 @@ public class BluetoothClientConnector extends BluetoothConnector {
         handleServerDisconnection();
         getDeviceIdsList().clear();
         clientToServerSocketReadWriter = null;
+
+        getReceiver().onDisconnected();
     }
 
     /**
