@@ -1,10 +1,8 @@
 package sg.edu.smu.ecology;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +23,15 @@ public class DataSync {
      * Routing ID for data sync messages
      */
     private final static int DATA_SYNC_MESSAGE_INDICATOR = 1;
+    /**
+     * Routing ID for initial data sync message request
+     */
+    private final static int INITIAL_DATA_SYNC_REQUEST = 0;
+    /**
+     * Routing ID for initial data sync message response
+     */
+    private final static int INITIAL_DATA_SYNC_RESPONSE = 1;
+
     /**
      * Notified when the data has changed.
      */
@@ -53,18 +60,6 @@ public class DataSync {
         this.connector = connector;
         this.dataChangeListener = dataChangeListener;
         this.isDataSyncReference = isDataSyncReference;
-    }
-
-    /**
-     * To request for the current sync data from the reference
-     */
-    private void requestDataSynchronization() {
-        if (!isDataSyncReference) {
-            EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
-                    INITIAL_SYNC_MESSAGE_INDICATOR));
-            message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
-            connector.onMessage(message);
-        }
     }
 
     /**
@@ -112,7 +107,7 @@ public class DataSync {
     }
 
     /**
-     * This method is called when the device is not connected to the data reference device
+     * This method is called when the device is connected to the data reference device
      */
     void onConnected() {
         requestDataSynchronization();
@@ -126,20 +121,64 @@ public class DataSync {
     }
 
     /**
+     * To request for the current sync data from the reference
+     */
+    private void requestDataSynchronization() {
+        if (!isDataSyncReference) {
+            EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(
+                    INITIAL_DATA_SYNC_REQUEST, INITIAL_SYNC_MESSAGE_INDICATOR));
+            message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
+            connector.onMessage(message);
+        }
+    }
+
+    /**
+     * To check if the data sync is synchronized with the data reference or not
+     *
+     * @return true if data sync is synchronized with the data reference
+     */
+    public boolean isSynchronized() {
+        return isSynchronized;
+    }
+
+    /**
+     * Clear the current sync data
+     */
+    void clear() {
+        // Clear the data.
+        for (Object key : dataSyncValues.keySet()) {
+            Object oldValue = dataSyncValues.get(key);
+            dataChangeListener.onDataUpdate(key, null, oldValue);
+        }
+        dataSyncValues.clear();
+    }
+
+    /**
      * When the initial data sync message is received
      *
      * @param msg the received message
      */
     private void onInitialDataSyncMessage(EcologyMessage msg) {
-        if (isDataSyncReference) {
-            EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
-                    INITIAL_SYNC_MESSAGE_INDICATOR));
-            message.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
-            message.setTargets(Collections.singletonList(msg.getSource()));
-            connector.onMessage(message);
-        } else {
+        Integer routingId = (Integer) msg.fetchArgument();
+
+        if (routingId == INITIAL_DATA_SYNC_REQUEST) {
+            sendInitialSyncData(msg.getSource());
+        } else if (routingId == INITIAL_DATA_SYNC_RESPONSE) {
             saveInitialSyncData((Map<?, ?>) msg.fetchArgument());
         }
+    }
+
+    /**
+     * Send the initial sync data when a request for the same is received
+     *
+     * @param deviceId the device id of the requester
+     */
+    private void sendInitialSyncData(String deviceId) {
+        EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
+                INITIAL_DATA_SYNC_RESPONSE, INITIAL_SYNC_MESSAGE_INDICATOR));
+        message.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
+        message.setTargets(Collections.singletonList(deviceId));
+        connector.onMessage(message);
     }
 
     /**
@@ -148,38 +187,26 @@ public class DataSync {
      * @param initialSyncData the initial sync data received from the reference
      */
     private void saveInitialSyncData(Map<?, ?> initialSyncData) {
-        // Check if initial sync data is empty or not
-        if (initialSyncData.size() > 0) {
-            for (Object key : initialSyncData.keySet()) {
-                Object newValue = initialSyncData.get(key);
-                // Check if the key in initial sync data is already present in data sync
-                if (dataSyncValues.containsKey(key)) {
-                    // Update the value since the key is already present
-                    Object oldValue = dataSyncValues.get(key);
-                    dataSyncValues.put(key, newValue);
-                    dataChangeListener.onDataUpdate(key, newValue, oldValue);
-                } else {
-                    // Add the new key and value
-                    dataSyncValues.put(key, newValue);
-                    dataChangeListener.onDataUpdate(key, newValue, null);
-                }
+        for (Object key : initialSyncData.keySet()) {
+            Object newValue = initialSyncData.get(key);
+            Object oldValue = null;
+
+            // Check if the key in initial sync data is already present in data sync
+            if (dataSyncValues.containsKey(key)) {
+                oldValue = dataSyncValues.get(key);
             }
-            // Remove the data corresponding to the keys that are not present in the initial data
-            // sync
-            Iterator<Object> iterator = dataSyncValues.keySet().iterator();
-            while (iterator.hasNext()) {
-                Object key = iterator.next();
-                if (!initialSyncData.containsKey(key)) {
-                    iterator.remove();
-                    dataChangeListener.onDataUpdate(key, null, null);
-                }
-            }
-        } else {
-            // Clear the current data sync when initial sync data is empty
-            List<Object> keys = new ArrayList<>(dataSyncValues.keySet());
-            dataSyncValues.clear();
-            for (Object key : keys) {
-                dataChangeListener.onDataUpdate(key, null, null);
+
+            dataSyncValues.put(key, newValue);
+            dataChangeListener.onDataUpdate(key, newValue, oldValue);
+        }
+        // Remove the data corresponding to the keys that are not present in the initial data
+        // sync
+        Iterator<Object> iterator = dataSyncValues.keySet().iterator();
+        while (iterator.hasNext()) {
+            Object key = iterator.next();
+            if (!initialSyncData.containsKey(key)) {
+                dataChangeListener.onDataUpdate(key, null, dataSyncValues.get(key));
+                iterator.remove();
             }
         }
         isSynchronized = true;
