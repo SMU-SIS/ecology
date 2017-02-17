@@ -71,6 +71,16 @@ public interface Connector {
          */
         public void onDeviceDisconnected(String deviceId);
 
+        /**
+         * Receive the ecology connection notification
+         */
+        public void onConnected();
+
+        /**
+         * Receive the ecology disconnection notification
+         */
+        public void onDisconnected();
+
     }
 
 }
