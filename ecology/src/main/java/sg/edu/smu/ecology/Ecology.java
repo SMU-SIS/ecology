@@ -145,14 +145,14 @@ public class Ecology {
 
         for (Map.Entry<String, Boolean> entry : newValue.entrySet()) {
             String entryKey = entry.getKey();
-            if (!oldValue.containsKey(entryKey) && !(entryKey).equals(myDeviceId)) {
+            if (!oldValue.containsKey(entryKey) && !(entryKey).equals(getMyDeviceId())) {
                 onDeviceConnected(entryKey, entry.getValue());
             }
         }
 
         for (Map.Entry<String, Boolean> entry : oldValue.entrySet()) {
             String entryKey = entry.getKey();
-            if (!newValue.containsKey(entryKey) && !(entryKey).equals(myDeviceId)) {
+            if (!newValue.containsKey(entryKey) && !(entryKey).equals(getMyDeviceId())) {
                 onDeviceDisconnected(entryKey, entry.getValue());
             }
         }
@@ -215,7 +215,7 @@ public class Ecology {
 
         if (isDataReference) {
             ecologyDataSync.setData("devices", new HashMap<Object, Object>() {{
-                put(myDeviceId, true);
+                put(getMyDeviceId(), true);
             }});
         }
     }
@@ -282,7 +282,7 @@ public class Ecology {
     void onRoomMessage(String roomName, EcologyMessage message) {
         message.addArgument(roomName);
         message.addArgument(ROOM_MESSAGE_ID);
-        message.setSource(myDeviceId);
+        message.setSource(getMyDeviceId());
         connector.sendMessage(message);
     }
 
@@ -293,7 +293,7 @@ public class Ecology {
      */
     private void onEcologyDataSyncMessage(EcologyMessage message) {
         message.addArgument(SYNC_DATA_MESSAGE_ID);
-        message.setSource(myDeviceId);
+        message.setSource(getMyDeviceId());
         connector.sendMessage(message);
     }
 
