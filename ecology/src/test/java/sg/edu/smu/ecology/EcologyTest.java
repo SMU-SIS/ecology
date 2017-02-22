@@ -17,7 +17,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import sg.edu.smu.ecology.connector.Connector;
@@ -46,11 +48,15 @@ public class EcologyTest {
     private Ecology.RoomFactory roomFactory;
     @Mock
     private Connector connector;
+    @Mock
+    private Ecology.DataSyncFactory dataSyncFactory;
+    @Mock
+    private DataSync ecologyDataSync;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ecology = new Ecology(roomFactory, connector, false);
+        ecology = new Ecology(roomFactory, connector, dataSyncFactory, false);
 
         // Prepare the mock
         PowerMockito.mockStatic(Log.class);
@@ -130,11 +136,13 @@ public class EcologyTest {
     @Test
     public void testCorrectRoomMessage() throws Exception {
         final String roomName = "room";
+        Integer roomMessageId = 1;
         // Test data
         final List<Object> data = new ArrayList<>();
         data.add(1);
         data.add("test");
         data.add(roomName);
+        data.add(roomMessageId);
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
@@ -179,11 +187,22 @@ public class EcologyTest {
     public void testNoRoomFoundReceiverMessage() {
         // Different room name
         String roomName = "room2";
+        Integer roomMessageId = 1;
         // Test data
-        List<Object> data = Arrays.<Object>asList(1, "test", roomName);
+        final List<Object> data = new ArrayList<>();
+        data.add(1);
+        data.add("test");
+        data.add(roomName);
+        data.add(roomMessageId);
 
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
 
         // To verify if add receiver was called only once
         verify(connector, times(1)).setReceiver(any(Connector.Receiver.class));
@@ -219,11 +238,20 @@ public class EcologyTest {
         Connector.Receiver receiver;
         receiver = receiverCaptor.getValue();
 
+        Integer roomMessageId = 1;
         // Test data - no room name is added
-        List<Object> data = Arrays.<Object>asList(1, 23);
+        final List<Object> data = new ArrayList<>();
+        data.add(1);
+        data.add(23);
+        data.add(roomMessageId);
 
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.fetchArgument()).thenReturn(23);
+        PowerMockito.doAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return data.remove(data.size() - 1);
+            }
+        }).when(message).fetchArgument();
 
         // Receiver receives the message
         receiver.onMessage(message);
@@ -265,9 +293,35 @@ public class EcologyTest {
         PowerMockito.when(roomFactory.createRoom("room1", ecology, false)).thenReturn(room1);
         room1 = ecology.getRoom("room1");
 
+        PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(ecologyDataSync);
+        ecologyDataSync = ecology.getEcologyDataSync();
+
+        // To capture the argument in the createDataSync method
+        ArgumentCaptor<DataSync.SyncDataChangeListener> syncDataChangeListenerCaptor =
+                ArgumentCaptor.forClass(DataSync.SyncDataChangeListener.class);
+        verify(dataSyncFactory).createDataSync(any(DataSync.Connector.class),
+                syncDataChangeListenerCaptor.capture(), any(Boolean.class));
+        DataSync.SyncDataChangeListener syncDataChangeListener = syncDataChangeListenerCaptor.getValue();
+
+        // Initial data - doesn't contain device id data since it's not connected
+        Map<Object, Object> data = new HashMap<Object, Object>() {{
+            put("Watch", true);
+        }};
+        PowerMockito.when(ecologyDataSync.getData("devices")).thenReturn(data);
+
         String deviceId = "Mobile";
         // Receiver receives the message that the device has been connected to the ecology
-        receiver.onDeviceConnected(deviceId, false);
+        receiver.onDeviceConnected(deviceId);
+
+        // New data - add the newly connected connected device id data
+        Map<Object, Object> newData = new HashMap<>(data);
+        newData.put(deviceId, false);
+
+        // Verify that new value is set in ecology data sync
+        verify(ecologyDataSync, times(1)).setData("devices", newData);
+
+        syncDataChangeListener.onDataUpdate("devices", newData, data);
 
         // To verify that all the rooms in the ecology receive the message
         verify(room, times(1)).onDeviceConnected(deviceId, false);
@@ -298,9 +352,38 @@ public class EcologyTest {
         PowerMockito.when(roomFactory.createRoom("room1", ecology, false)).thenReturn(room1);
         room1 = ecology.getRoom("room1");
 
-        String deviceId = "Mobile";
+        PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(ecologyDataSync);
+        ecologyDataSync = ecology.getEcologyDataSync();
+
+        // To capture the argument in the createDataSync method
+        ArgumentCaptor<DataSync.SyncDataChangeListener> syncDataChangeListenerCaptor =
+                ArgumentCaptor.forClass(DataSync.SyncDataChangeListener.class);
+        verify(dataSyncFactory).createDataSync(any(DataSync.Connector.class),
+                syncDataChangeListenerCaptor.capture(), any(Boolean.class));
+        DataSync.SyncDataChangeListener syncDataChangeListener = syncDataChangeListenerCaptor.getValue();
+
+        final String deviceId = "Mobile";
+
+        // Initial data - contains the device id data since we are assuming that it's already
+        // connected
+        Map<Object, Object> data = new HashMap<Object, Object>() {{
+            put("Watch", true);
+            put(deviceId, false);
+        }};
+        PowerMockito.when(ecologyDataSync.getData("devices")).thenReturn(data);
+
         // Receiver receives the message that the device has been disconnected from the ecology
-        receiver.onDeviceDisconnected(deviceId, false);
+        receiver.onDeviceDisconnected(deviceId);
+
+        // New data - remove the disconnected device id
+        Map<Object, Object> newData = new HashMap<>(data);
+        newData.remove(deviceId);
+
+        // Verify that new value is set in ecology data sync
+        verify(ecologyDataSync, times(1)).setData("devices", newData);
+
+        syncDataChangeListener.onDataUpdate("devices", newData, data);
 
         // To verify that all the rooms in the ecology receive the message
         verify(room, times(1)).onDeviceDisconnected(deviceId, false);
