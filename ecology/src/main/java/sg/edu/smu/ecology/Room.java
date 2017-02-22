@@ -50,8 +50,9 @@ public class Room {
     private Boolean isDataReference;
 
     /**
-     * @param name    the name of the room
-     * @param ecology the ecology this room is part of
+     * @param name            the name of the room
+     * @param ecology         the ecology this room is part of
+     * @param isDataReference true when the device is the data sync reference
      */
     public Room(String name, Ecology ecology, Boolean isDataReference) {
         this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory(), isDataReference);
@@ -64,6 +65,7 @@ public class Room {
      * @param ecology                 the ecology this room is part of
      * @param eventBroadcasterFactory to create event broadcaster that is part of this room
      * @param dataSyncFactory         to create data sync instance
+     * @param isDataReference         true when the device is the data sync reference
      */
     Room(String name, Ecology ecology, EventBroadcasterFactory eventBroadcasterFactory,
          DataSyncFactory dataSyncFactory, Boolean isDataReference) {
@@ -80,6 +82,7 @@ public class Room {
 
     /**
      * Get the ecology instance
+     *
      * @return the ecology instance
      */
     public Ecology getEcology() {
