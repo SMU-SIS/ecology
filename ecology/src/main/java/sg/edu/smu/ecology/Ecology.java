@@ -60,6 +60,11 @@ public class Ecology {
     private Boolean isDataReference;
 
     /**
+     * Used for creating data sync instance.
+     */
+    private DataSyncFactory dataSyncFactory;
+
+    /**
      * Data sync part of the ecology
      */
     private DataSync ecologyDataSync;
@@ -67,21 +72,25 @@ public class Ecology {
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
+     * @param isDataReference  true when the device is the data sync reference
      */
     public Ecology(Connector ecologyConnector, Boolean isDataReference) {
-        this(new RoomFactory(), ecologyConnector, isDataReference);
+        this(new RoomFactory(), ecologyConnector, new DataSyncFactory(), isDataReference);
     }
 
     /**
      * Special constructor only for testing
      *
-     * @param roomFactory to create rooms part of this ecology
-     * @param connector   the connector used to send messages to the other devices of the
-     *                    ecology.
+     * @param roomFactory     to create rooms part of this ecology
+     * @param connector       the connector used to send messages to the other devices of the
+     * @param dataSyncFactory to create data sync instance
+     * @param isDataReference true when the device is the data sync reference
      */
-    Ecology(RoomFactory roomFactory, final Connector connector, final Boolean isDataReference) {
+    Ecology(RoomFactory roomFactory, final Connector connector, DataSyncFactory dataSyncFactory,
+            Boolean isDataReference) {
         this.roomFactory = roomFactory;
         this.connector = connector;
+        this.dataSyncFactory = dataSyncFactory;
         this.isDataReference = isDataReference;
 
         this.connector.setReceiver(new Connector.Receiver() {
@@ -103,34 +112,15 @@ public class Ecology {
 
             @Override
             public void onConnected() {
-                ecologyDataSync.onConnected();
+                Ecology.this.getEcologyDataSync().onConnected();
             }
 
             @Override
             public void onDisconnected() {
-                ecologyDataSync.onDisconnected();
-                ecologyDataSync.clear();
+                Ecology.this.getEcologyDataSync().onDisconnected();
+                Ecology.this.getEcologyDataSync().clear();
             }
         });
-
-        // Create ecology data sync
-        ecologyDataSync = new DataSync(new DataSync.Connector() {
-            @Override
-            public void onMessage(EcologyMessage message) {
-                Log.i(TAG, "onMessage " + message.getArguments());
-                if (isDataReference) {
-                    onEcologyDataSyncMessage(message);
-                }
-            }
-        }, new DataSync.SyncDataChangeListener() {
-            @Override
-            public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
-                if (dataId.equals("devices")) {
-                    onDevicesListUpdate((Map<String, Boolean>) newValue,
-                            (Map<String, Boolean>) oldValue);
-                }
-            }
-        }, isDataReference);
     }
 
     /**
@@ -166,9 +156,10 @@ public class Ecology {
      */
     private void syncConnectedDeviceId(String newDeviceId, boolean isDataReference) {
         // Add the newly connected device id
-        Map<Object, Object> devicesMap = new HashMap<>((Map<?, ?>) ecologyDataSync.getData("devices"));
+        Map<Object, Object> devicesMap = new HashMap<>((Map<?, ?>) getEcologyDataSync().getData
+                ("devices"));
         devicesMap.put(newDeviceId, isDataReference);
-        ecologyDataSync.setData("devices", devicesMap);
+        getEcologyDataSync().setData("devices", devicesMap);
     }
 
     /**
@@ -177,9 +168,10 @@ public class Ecology {
      * @param deviceId the device id of the disconnected device
      */
     private void syncDisconnectedDeviceId(String deviceId) {
-        Map<Object, Object> devicesMap = new HashMap<>((Map<?, ?>) ecologyDataSync.getData("devices"));
+        Map<Object, Object> devicesMap = new HashMap<>((Map<?, ?>) getEcologyDataSync().getData
+                ("devices"));
         devicesMap.remove(deviceId);
-        ecologyDataSync.setData("devices", devicesMap);
+        getEcologyDataSync().setData("devices", devicesMap);
     }
 
     /**
@@ -214,7 +206,7 @@ public class Ecology {
         connector.connect(context, deviceId);
 
         if (isDataReference) {
-            ecologyDataSync.setData("devices", new HashMap<Object, Object>() {{
+            getEcologyDataSync().setData("devices", new HashMap<Object, Object>() {{
                 put(getMyDeviceId(), true);
             }});
         }
@@ -237,6 +229,32 @@ public class Ecology {
     }
 
     /**
+     * @return the data sync object.
+     */
+    DataSync getEcologyDataSync() {
+        if (ecologyDataSync == null) {
+            // Create ecology data sync
+            ecologyDataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
+                @Override
+                public void onMessage(EcologyMessage message) {
+                    if (isDataReference) {
+                        onEcologyDataSyncMessage(message);
+                    }
+                }
+            }, new DataSync.SyncDataChangeListener() {
+                @Override
+                public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
+                    if (dataId.equals("devices")) {
+                        onDevicesListUpdate((Map<String, Boolean>) newValue,
+                                (Map<String, Boolean>) oldValue);
+                    }
+                }
+            }, isDataReference);
+        }
+        return ecologyDataSync;
+    }
+
+    /**
      * Receive messages from the other devices of the ecology.
      *
      * @param message the message content
@@ -249,7 +267,7 @@ public class Ecology {
         if (messageId == ROOM_MESSAGE_ID) {
             forwardRoomMessage(message);
         } else if (messageId == SYNC_DATA_MESSAGE_ID) {
-            ecologyDataSync.onMessage(message);
+            getEcologyDataSync().onMessage(message);
         }
     }
 
@@ -301,8 +319,8 @@ public class Ecology {
      * @return the list of available devices in the ecology
      */
     public List<String> getAvailableDevices() {
-        if (ecologyDataSync.getData("devices") != null) {
-            return new ArrayList<>((Collection<? extends String>) ((Map<?, ?>) ecologyDataSync.getData
+        if (getEcologyDataSync().getData("devices") != null) {
+            return new ArrayList<>((Collection<? extends String>) ((Map<?, ?>) getEcologyDataSync().getData
                     ("devices")).keySet());
         } else {
             return Collections.emptyList();
@@ -327,6 +345,14 @@ public class Ecology {
     static class RoomFactory {
         public Room createRoom(String roomName, Ecology ecology, Boolean isDataReference) {
             return new Room(roomName, ecology, isDataReference);
+        }
+    }
+
+    static class DataSyncFactory {
+        DataSync createDataSync(DataSync.Connector connector,
+                                DataSync.SyncDataChangeListener dataSyncChangeListener,
+                                boolean dataSyncReference) {
+            return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
         }
     }
 }
