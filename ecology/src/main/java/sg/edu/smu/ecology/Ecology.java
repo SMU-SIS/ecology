@@ -309,7 +309,7 @@ public class Ecology {
      *
      * @param message the content of the message
      */
-    private void onEcologyDataSyncMessage(EcologyMessage message) {
+    void onEcologyDataSyncMessage(EcologyMessage message) {
         message.addArgument(SYNC_DATA_MESSAGE_ID);
         message.setSource(getMyDeviceId());
         connector.sendMessage(message);
@@ -320,8 +320,8 @@ public class Ecology {
      */
     public List<String> getAvailableDevices() {
         if (getEcologyDataSync().getData("devices") != null) {
-            return new ArrayList<>((Collection<? extends String>) ((Map<?, ?>) getEcologyDataSync().getData
-                    ("devices")).keySet());
+            return new ArrayList<>((Collection<? extends String>) ((Map<?, ?>) getEcologyDataSync().
+                    getData("devices")).keySet());
         } else {
             return Collections.emptyList();
         }
