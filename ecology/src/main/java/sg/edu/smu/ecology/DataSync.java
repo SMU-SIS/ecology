@@ -201,14 +201,17 @@ public class DataSync {
         }
         // Remove the data corresponding to the keys that are not present in the initial data
         // sync
-        Iterator<Object> iterator = dataSyncValues.keySet().iterator();
+        Iterator<Map.Entry<Object, Object>> iterator = dataSyncValues.entrySet().iterator();
         while (iterator.hasNext()) {
-            Object key = iterator.next();
-            if (!initialSyncData.containsKey(key)) {
-                dataChangeListener.onDataUpdate(key, null, dataSyncValues.get(key));
+            Map.Entry<Object, Object> entry = iterator.next();
+            if (!initialSyncData.containsKey(entry.getKey())) {
+                Object key = entry.getKey();
+                Object oldValue = dataSyncValues.get(key);
                 iterator.remove();
+                dataChangeListener.onDataUpdate(key, null, oldValue);
             }
         }
+
         isSynchronized = true;
     }
 
