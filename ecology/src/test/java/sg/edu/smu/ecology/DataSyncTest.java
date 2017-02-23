@@ -61,7 +61,7 @@ public class DataSyncTest {
 
         // Acts as a routing id to differentiate between initial sync message and other data sync
         // messages
-        Integer dataSyncMessageIndicator = 1;
+        Integer dataSyncMessageIndicator = 0;
 
         // To check if right value is passed
         assertEquals(messageArgument.getArguments(), Arrays.asList("color", "red",
@@ -78,7 +78,7 @@ public class DataSyncTest {
     // correctly
     @Test
     public void testOnDataSyncMessage() {
-        Integer dataSyncMessageIndicator = 1;
+        Integer dataSyncMessageIndicator = 0;
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.fetchArgument()).thenReturn(dataSyncMessageIndicator, "black",
                 "color");
@@ -96,13 +96,11 @@ public class DataSyncTest {
     // current data sync values to the requested device.
     @Test
     public void testOnInitialDataSyncMessageDataRef() {
-        Integer initDataSyncMessageIndicator = 0;
-        Integer initDataSyncRequest = 0;
-        Integer initDataSyncResponse = 1;
+        Integer initDataSyncRequest = 1;
+        Integer initDataSyncResponse = 2;
 
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncMessageIndicator,
-                initDataSyncRequest);
+        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncRequest);
         PowerMockito.when(message.getSource()).thenReturn("Watch");
 
         // The data reference device receives a initial sync data request
@@ -118,7 +116,7 @@ public class DataSyncTest {
         // Since the device is the data reference, it will send back the current sync data
         // To check if right value is passed
         assertEquals(messageArgument.getArguments(), Arrays.asList(Collections.emptyMap(),
-                initDataSyncResponse, initDataSyncMessageIndicator));
+                initDataSyncResponse));
         // Check if the target type is specific
         Assert.assertEquals(messageArgument.getTargetType().intValue(),
                 EcologyMessage.TARGET_TYPE_SPECIFIC);
@@ -129,13 +127,12 @@ public class DataSyncTest {
     // When a non data reference device receives a initial data sync request, it will save the data
     @Test
     public void testOnInitialDataSyncMessageNotDataRefEmptyData() {
-        Integer initDataSyncMessageIndicator = 0;
-        Integer initDataSyncResponse = 1;
+        Integer initDataSyncResponse = 2;
 
         // When an empty map is received
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncMessageIndicator,
-                initDataSyncResponse, Collections.emptyMap());
+        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncResponse,
+                Collections.emptyMap());
 
         dataSync2.setData("color", "black");
         dataSync2.setData("number", 4);
@@ -151,13 +148,12 @@ public class DataSyncTest {
     // When a non data reference device receives a initial data sync request, it will save the data
     @Test
     public void testOnInitialDataSyncMessageNotDataRefAllNewData() {
-        Integer initDataSyncMessageIndicator = 0;
-        Integer initDataSyncResponse = 1;
+        Integer initDataSyncResponse = 2;
 
         // When initial data is having a new key and data
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncMessageIndicator,
-                initDataSyncResponse, new HashMap<Object, Object>() {{
+        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncResponse,
+                new HashMap<Object, Object>() {{
                     put("activity", "walking");
                 }});
 
@@ -177,13 +173,12 @@ public class DataSyncTest {
     // When a non data reference device receives a initial data sync request, it will save the data
     @Test
     public void testOnInitialDataSyncMessageNotDataRefAllUpdateData() {
-        Integer initDataSyncMessageIndicator = 0;
-        Integer initDataSyncResponse = 1;
+        Integer initDataSyncResponse = 2;
 
         // When initial data is having a new key and data as well as old key and data
         EcologyMessage message = mock(EcologyMessage.class);
-        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncMessageIndicator,
-                initDataSyncResponse, new HashMap<Object, Object>() {{
+        PowerMockito.when(message.fetchArgument()).thenReturn(initDataSyncResponse,
+                new HashMap<Object, Object>() {{
                     put("activity", "walking");
                     put("number", 5);
                 }});
@@ -220,7 +215,7 @@ public class DataSyncTest {
         EcologyMessage messageArgument;
         messageArgument = messageCaptor.getValue();
 
-        Integer dataSyncMessageIndicator = 1;
+        Integer dataSyncMessageIndicator = 0;
 
         // To check if right value is passed
         assertEquals(messageArgument.getArguments(), Arrays.asList("color", "red",
@@ -257,7 +252,7 @@ public class DataSyncTest {
         EcologyMessage messageArgument;
         messageArgument = messageCaptor.getValue();
 
-        Integer dataSyncMessageIndicator = 1;
+        Integer dataSyncMessageIndicator = 0;
 
         // To check if right value is passed
         assertEquals(messageArgument.getArguments(), Arrays.asList("color", "red",
