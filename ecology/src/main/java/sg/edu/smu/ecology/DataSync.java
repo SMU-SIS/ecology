@@ -16,21 +16,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DataSync {
     private static final String TAG = DataSync.class.getSimpleName();
     /**
-     * Routing ID for initial data sync messages
-     */
-    private final static int INITIAL_SYNC_MESSAGE_INDICATOR = 0;
-    /**
      * Routing ID for data sync messages
      */
-    private final static int DATA_SYNC_MESSAGE_INDICATOR = 1;
+    private final static int DATA_SYNC_MESSAGE = 0;
     /**
      * Routing ID for initial data sync message request
      */
-    private final static int INITIAL_DATA_SYNC_REQUEST = 0;
+    private final static int INITIAL_DATA_SYNC_REQUEST = 1;
     /**
      * Routing ID for initial data sync message response
      */
-    private final static int INITIAL_DATA_SYNC_RESPONSE = 1;
+    private final static int INITIAL_DATA_SYNC_RESPONSE = 2;
 
     /**
      * Notified when the data has changed.
@@ -74,7 +70,7 @@ public class DataSync {
         // Check if old value is not same as the new value
         if (oldValue != value) {
             EcologyMessage message = new EcologyMessage(Arrays.asList(key, value,
-                    DATA_SYNC_MESSAGE_INDICATOR));
+                    DATA_SYNC_MESSAGE));
             message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
             connector.onMessage(message);
             dataChangeListener.onDataUpdate(key, value, oldValue);
@@ -99,10 +95,18 @@ public class DataSync {
     void onMessage(EcologyMessage message) {
         Integer messageIndicator = (Integer) message.fetchArgument();
 
-        if (messageIndicator == DATA_SYNC_MESSAGE_INDICATOR) {
-            onDataSyncMessage(message);
-        } else if (messageIndicator == INITIAL_SYNC_MESSAGE_INDICATOR) {
-            onInitialDataSyncMessage(message);
+        switch (messageIndicator) {
+            case DATA_SYNC_MESSAGE:
+                onDataSyncMessage(message);
+                break;
+
+            case INITIAL_DATA_SYNC_REQUEST:
+                sendInitialSyncData(message.getSource());
+                break;
+
+            case INITIAL_DATA_SYNC_RESPONSE:
+                saveInitialSyncData((Map<?, ?>) message.fetchArgument());
+                break;
         }
     }
 
@@ -125,8 +129,8 @@ public class DataSync {
      */
     private void requestDataSynchronization() {
         if (!isDataSyncReference) {
-            EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(
-                    INITIAL_DATA_SYNC_REQUEST, INITIAL_SYNC_MESSAGE_INDICATOR));
+            EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
+                    INITIAL_DATA_SYNC_REQUEST));
             message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
             connector.onMessage(message);
         }
@@ -154,28 +158,13 @@ public class DataSync {
     }
 
     /**
-     * When the initial data sync message is received
-     *
-     * @param msg the received message
-     */
-    private void onInitialDataSyncMessage(EcologyMessage msg) {
-        Integer routingId = (Integer) msg.fetchArgument();
-
-        if (routingId == INITIAL_DATA_SYNC_REQUEST) {
-            sendInitialSyncData(msg.getSource());
-        } else if (routingId == INITIAL_DATA_SYNC_RESPONSE) {
-            saveInitialSyncData((Map<?, ?>) msg.fetchArgument());
-        }
-    }
-
-    /**
      * Send the initial sync data when a request for the same is received
      *
      * @param deviceId the device id of the requester
      */
     private void sendInitialSyncData(String deviceId) {
         EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
-                INITIAL_DATA_SYNC_RESPONSE, INITIAL_SYNC_MESSAGE_INDICATOR));
+                INITIAL_DATA_SYNC_RESPONSE));
         message.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
         message.setTargets(Collections.singletonList(deviceId));
         connector.onMessage(message);
