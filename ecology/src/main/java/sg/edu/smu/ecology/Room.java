@@ -47,15 +47,15 @@ public class Room {
     /**
      * Whether this is the data reference or not
      */
-    private Boolean isDataReference;
+    private Boolean isReference;
 
     /**
-     * @param name            the name of the room
-     * @param ecology         the ecology this room is part of
-     * @param isDataReference true when the device is the data sync reference
+     * @param name        the name of the room
+     * @param ecology     the ecology this room is part of
+     * @param isReference true when the device is the data sync reference
      */
-    public Room(String name, Ecology ecology, Boolean isDataReference) {
-        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory(), isDataReference);
+    public Room(String name, Ecology ecology, Boolean isReference) {
+        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory(), isReference);
     }
 
     /**
@@ -65,10 +65,10 @@ public class Room {
      * @param ecology                 the ecology this room is part of
      * @param eventBroadcasterFactory to create event broadcaster that is part of this room
      * @param dataSyncFactory         to create data sync instance
-     * @param isDataReference         true when the device is the data sync reference
+     * @param isReference             true when the device is the data sync reference
      */
     Room(String name, Ecology ecology, EventBroadcasterFactory eventBroadcasterFactory,
-         DataSyncFactory dataSyncFactory, Boolean isDataReference) {
+         DataSyncFactory dataSyncFactory, Boolean isReference) {
         if (name == null || name.length() == 0 || name.equals(" ")) {
             throw new IllegalArgumentException();
         }
@@ -77,7 +77,7 @@ public class Room {
         this.ecology = ecology;
         this.eventBroadcasterFactory = eventBroadcasterFactory;
         this.dataSyncFactory = dataSyncFactory;
-        this.isDataReference = isDataReference;
+        this.isReference = isReference;
     }
 
     /**
@@ -120,7 +120,7 @@ public class Room {
                     getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
-            }, isDataReference);
+            }, isReference);
         }
         return dataSync;
     }
@@ -167,13 +167,13 @@ public class Room {
     /**
      * Called when a device is connected
      *
-     * @param deviceId        the id of the device that got connected
-     * @param isDataReference if the device is the data reference or not
+     * @param deviceId    the id of the device that got connected
+     * @param isReference if the device is the data reference or not
      */
-    void onDeviceConnected(String deviceId, Boolean isDataReference) {
+    void onDeviceConnected(String deviceId, Boolean isReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
-        if (isDataReference) {
+        if (isReference) {
             dataSync.onConnected();
         }
     }
@@ -181,13 +181,13 @@ public class Room {
     /**
      * Called when a device is disconnected
      *
-     * @param deviceId        the id of the device that got disconnected
-     * @param isDataReference if the device is the data reference or not
+     * @param deviceId    the id of the device that got disconnected
+     * @param isReference if the device is the data reference or not
      */
-    void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
+    void onDeviceDisconnected(String deviceId, Boolean isReference) {
         getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
-        if (isDataReference) {
+        if (isReference) {
             dataSync.onDisconnected();
         }
     }

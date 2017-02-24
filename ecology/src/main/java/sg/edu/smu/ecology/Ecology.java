@@ -55,9 +55,9 @@ public class Ecology {
     private String myDeviceId;
 
     /**
-     * Whether this is the data reference or not
+     * Whether this device is the reference or not
      */
-    private Boolean isDataReference;
+    private Boolean isReference;
 
     /**
      * Used for creating data sync instance.
@@ -72,26 +72,26 @@ public class Ecology {
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
-     * @param isDataReference  true when the device is the data sync reference
+     * @param isReference      true when the device is the data sync reference
      */
-    public Ecology(Connector ecologyConnector, Boolean isDataReference) {
-        this(new RoomFactory(), ecologyConnector, new DataSyncFactory(), isDataReference);
+    public Ecology(Connector ecologyConnector, Boolean isReference) {
+        this(ecologyConnector, isReference, new RoomFactory(), new DataSyncFactory());
     }
 
     /**
      * Special constructor only for testing
      *
+     * @param connector       the connector used to send messages to the other devices of the ecology
+     * @param isReference     true when the device is the data sync reference
      * @param roomFactory     to create rooms part of this ecology
-     * @param connector       the connector used to send messages to the other devices of the
      * @param dataSyncFactory to create data sync instance
-     * @param isDataReference true when the device is the data sync reference
      */
-    Ecology(RoomFactory roomFactory, final Connector connector, DataSyncFactory dataSyncFactory,
-            Boolean isDataReference) {
-        this.roomFactory = roomFactory;
+    Ecology(final Connector connector, Boolean isReference, RoomFactory roomFactory,
+            DataSyncFactory dataSyncFactory) {
         this.connector = connector;
+        this.isReference = isReference;
+        this.roomFactory = roomFactory;
         this.dataSyncFactory = dataSyncFactory;
-        this.isDataReference = isDataReference;
 
         this.connector.setReceiver(new Connector.Receiver() {
 
@@ -152,13 +152,13 @@ public class Ecology {
      * Sync the device id of the newly connected device in the ecology data sync
      *
      * @param newDeviceId     the device id of the newly connected device
-     * @param isDataReference whether the device is the data reference
+     * @param isReference whether the device is the data reference
      */
-    private void syncConnectedDeviceId(String newDeviceId, boolean isDataReference) {
+    private void syncConnectedDeviceId(String newDeviceId, boolean isReference) {
         // Add the newly connected device id
         Map<Object, Object> devicesMap = new HashMap<>((Map<?, ?>) getEcologyDataSync().getData
                 ("devices"));
-        devicesMap.put(newDeviceId, isDataReference);
+        devicesMap.put(newDeviceId, isReference);
         getEcologyDataSync().setData("devices", devicesMap);
     }
 
@@ -178,11 +178,11 @@ public class Ecology {
      * Called when a device is connected
      *
      * @param deviceId        the id of the device that got connected
-     * @param isDataReference if the device is the data reference or not
+     * @param isReference if the device is the data reference or not
      */
-    private void onDeviceConnected(String deviceId, Boolean isDataReference) {
+    private void onDeviceConnected(String deviceId, Boolean isReference) {
         for (Room room : rooms.values()) {
-            room.onDeviceConnected(deviceId, isDataReference);
+            room.onDeviceConnected(deviceId, isReference);
         }
     }
 
@@ -190,11 +190,11 @@ public class Ecology {
      * Called when a device is disconnected.
      *
      * @param deviceId        the id of the device that got disconnected
-     * @param isDataReference if the device is the data reference or not
+     * @param isReference if the device is the data reference or not
      */
-    private void onDeviceDisconnected(String deviceId, Boolean isDataReference) {
+    private void onDeviceDisconnected(String deviceId, Boolean isReference) {
         for (Room room : rooms.values()) {
-            room.onDeviceDisconnected(deviceId, isDataReference);
+            room.onDeviceDisconnected(deviceId, isReference);
         }
     }
 
@@ -205,7 +205,7 @@ public class Ecology {
         myDeviceId = deviceId;
         connector.connect(context, deviceId);
 
-        if (isDataReference) {
+        if (isReference) {
             getEcologyDataSync().setData("devices", new HashMap<Object, Object>() {{
                 put(getMyDeviceId(), true);
             }});
@@ -237,7 +237,7 @@ public class Ecology {
             ecologyDataSync = dataSyncFactory.createDataSync(new DataSync.Connector() {
                 @Override
                 public void onMessage(EcologyMessage message) {
-                    if (isDataReference) {
+                    if (isReference) {
                         onEcologyDataSyncMessage(message);
                     }
                 }
@@ -249,7 +249,7 @@ public class Ecology {
                                 (Map<String, Boolean>) oldValue);
                     }
                 }
-            }, isDataReference);
+            }, isReference);
         }
         return ecologyDataSync;
     }
@@ -336,15 +336,15 @@ public class Ecology {
     public Room getRoom(String roomName) {
         Room room = rooms.get(roomName);
         if (room == null) {
-            room = roomFactory.createRoom(roomName, this, isDataReference);
+            room = roomFactory.createRoom(roomName, this, isReference);
             rooms.put(roomName, room);
         }
         return room;
     }
 
     static class RoomFactory {
-        public Room createRoom(String roomName, Ecology ecology, Boolean isDataReference) {
-            return new Room(roomName, ecology, isDataReference);
+        public Room createRoom(String roomName, Ecology ecology, Boolean isReference) {
+            return new Room(roomName, ecology, isReference);
         }
     }
 
