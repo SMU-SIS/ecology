@@ -58,7 +58,7 @@ public class EcologyTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ecology = new Ecology(roomFactory, connector, dataSyncFactory, false);
+        ecology = new Ecology(connector, false, roomFactory, dataSyncFactory);
 
         // Prepare the mock
         PowerMockito.mockStatic(Log.class);
