@@ -72,14 +72,6 @@ public class BluetoothServerConnector extends BluetoothConnector {
         Object obj = msg.obj;
 
         updateClientsList((BluetoothSocketReadWriter) obj, msg.arg1);
-
-        // Pass the server device Id to the connected client device.
-        sendMessageToClient(Arrays.<Object>asList(true, getDeviceId(),
-                Settings.DEVICE_ID_EXCHANGE), Collections.singletonList
-                (clientConnectionThreadsList.get(msg.arg1)));
-
-        // To notify the new client about the already connected client devices in the ecology
-        sendConnectedClientsIds(msg.arg1, clientConnectionThreadsList.get(msg.arg1));
     }
 
     /**
@@ -133,16 +125,9 @@ public class BluetoothServerConnector extends BluetoothConnector {
         Object disconnectedObj = msg.obj;
 
         // A client device has been disconnected
-        getReceiver().onDeviceDisconnected(getDeviceIdsList().get(msg.arg1), false);
+        getReceiver().onDeviceDisconnected(getDeviceIdsList().get(msg.arg1));
 
         updateClientsList((BluetoothSocketReadWriter) disconnectedObj, msg.arg1);
-
-        EcologyMessage message = new EcologyMessage(Arrays.<Object>asList(false,
-                getDeviceIdsList().get(msg.arg1), Settings.DEVICE_DISCONNECTED));
-        message.setSource(getDeviceId());
-        message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
-        // To notify other connected client devices in the ecology
-        sendConnectorMessage(message, getBluetoothSocketReadWriterList());
 
         // Update the connected devices list
         getDeviceIdsList().remove(msg.arg1);
@@ -164,13 +149,10 @@ public class BluetoothServerConnector extends BluetoothConnector {
     public void onConnectorMessage(Message msg, EcologyMessage messageData) {
         String eventTypeReceived = (String) messageData.fetchArgument();
         String deviceIdReceived = (String) messageData.fetchArgument();
-        Boolean dataReference = (Boolean) messageData.fetchArgument();
-
-        forwardMessage((byte[]) msg.obj, msg.arg1);
 
         if (eventTypeReceived.equals(Settings.DEVICE_ID_EXCHANGE)) {
             getDeviceIdsList().put(msg.arg1, deviceIdReceived);
-            getReceiver().onDeviceConnected(deviceIdReceived, dataReference);
+            getReceiver().onDeviceConnected(deviceIdReceived);
         }
     }
 

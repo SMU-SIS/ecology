@@ -61,17 +61,25 @@ public interface Connector {
          * Receive the device connection notifications
          *
          * @param deviceId the id of the device that got connected
-         * @param isDataReference if the device is the data reference or not
          */
-        public void onDeviceConnected(String deviceId, Boolean isDataReference);
+        public void onDeviceConnected(String deviceId);
 
         /**
          * Receive the device disconnection notifications
          *
          * @param deviceId the id of the device that got disconnected
-         * @param isDataReference if the device is the data reference or not
          */
-        public void onDeviceDisconnected(String deviceId, Boolean isDataReference);
+        public void onDeviceDisconnected(String deviceId);
+
+        /**
+         * Receive the ecology connection notification
+         */
+        public void onConnected();
+
+        /**
+         * Receive the ecology disconnection notification
+         */
+        public void onDisconnected();
 
     }
 

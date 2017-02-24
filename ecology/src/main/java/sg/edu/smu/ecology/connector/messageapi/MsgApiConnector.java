@@ -188,7 +188,7 @@ public class MsgApiConnector implements Connector, GoogleApiClient.ConnectionCal
 
                         if (nodeId.size() > 0) {
                             onConnectorConnected = true;
-                            receiver.onDeviceConnected(nodeId.get(0), false);
+                            receiver.onDeviceConnected(nodeId.get(0));
                         }
                     }
                 });
