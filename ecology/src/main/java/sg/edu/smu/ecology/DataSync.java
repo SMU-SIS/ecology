@@ -44,7 +44,7 @@ public class DataSync {
     /**
      * Whether this is the sync data reference or not
      */
-    private boolean isDataSyncReference;
+    private boolean isReference;
 
     /**
      * Whether data is currently synchronized with the data reference or not.
@@ -52,10 +52,10 @@ public class DataSync {
     private boolean isSynchronized = false;
 
     DataSync(Connector connector, SyncDataChangeListener dataChangeListener,
-             boolean isDataSyncReference) {
+             boolean isReference) {
         this.connector = connector;
         this.dataChangeListener = dataChangeListener;
-        this.isDataSyncReference = isDataSyncReference;
+        this.isReference = isReference;
     }
 
     /**
@@ -128,7 +128,7 @@ public class DataSync {
      * To request for the current sync data from the reference
      */
     private void requestDataSynchronization() {
-        if (!isDataSyncReference) {
+        if (!isReference) {
             EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
                     DATA_SYNC_REQUEST));
             message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
