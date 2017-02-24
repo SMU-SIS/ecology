@@ -20,13 +20,13 @@ public class DataSync {
      */
     private final static int DATA_SYNC_MESSAGE = 0;
     /**
-     * Routing ID for initial data sync message request
+     * Routing ID for data sync message request
      */
-    private final static int INITIAL_DATA_SYNC_REQUEST = 1;
+    private final static int DATA_SYNC_REQUEST = 1;
     /**
-     * Routing ID for initial data sync message response
+     * Routing ID for data sync message response
      */
-    private final static int INITIAL_DATA_SYNC_RESPONSE = 2;
+    private final static int DATA_SYNC_RESPONSE = 2;
 
     /**
      * Notified when the data has changed.
@@ -100,12 +100,12 @@ public class DataSync {
                 onDataSyncMessage(message);
                 break;
 
-            case INITIAL_DATA_SYNC_REQUEST:
-                sendInitialSyncData(message.getSource());
+            case DATA_SYNC_REQUEST:
+                sendRefSyncData(message.getSource());
                 break;
 
-            case INITIAL_DATA_SYNC_RESPONSE:
-                saveInitialSyncData((Map<?, ?>) message.fetchArgument());
+            case DATA_SYNC_RESPONSE:
+                saveRefSyncData((Map<?, ?>) message.fetchArgument());
                 break;
         }
     }
@@ -130,7 +130,7 @@ public class DataSync {
     private void requestDataSynchronization() {
         if (!isDataSyncReference) {
             EcologyMessage message = new EcologyMessage(Collections.<Object>singletonList(
-                    INITIAL_DATA_SYNC_REQUEST));
+                    DATA_SYNC_REQUEST));
             message.setTargetType(EcologyMessage.TARGET_TYPE_SERVER);
             connector.onMessage(message);
         }
@@ -158,26 +158,26 @@ public class DataSync {
     }
 
     /**
-     * Send the initial sync data when a request for the same is received
+     * Send the current reference sync data when a request for the same is received
      *
      * @param deviceId the device id of the requester
      */
-    private void sendInitialSyncData(String deviceId) {
+    private void sendRefSyncData(String deviceId) {
         EcologyMessage message = new EcologyMessage(Arrays.asList(dataSyncValues,
-                INITIAL_DATA_SYNC_RESPONSE));
+                DATA_SYNC_RESPONSE));
         message.setTargetType(EcologyMessage.TARGET_TYPE_SPECIFIC);
         message.setTargets(Collections.singletonList(deviceId));
         connector.onMessage(message);
     }
 
     /**
-     * To save the initial sync data received from the reference.
+     * To save the current reference sync data received from the reference.
      *
-     * @param initialSyncData the initial sync data received from the reference
+     * @param refSyncData the reference sync data received from the reference
      */
-    private void saveInitialSyncData(Map<?, ?> initialSyncData) {
-        for (Object key : initialSyncData.keySet()) {
-            Object newValue = initialSyncData.get(key);
+    private void saveRefSyncData(Map<?, ?> refSyncData) {
+        for (Object key : refSyncData.keySet()) {
+            Object newValue = refSyncData.get(key);
             Object oldValue = null;
 
             // Check if the key in initial sync data is already present in data sync
@@ -193,7 +193,7 @@ public class DataSync {
         Iterator<Map.Entry<Object, Object>> iterator = dataSyncValues.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Object, Object> entry = iterator.next();
-            if (!initialSyncData.containsKey(entry.getKey())) {
+            if (!refSyncData.containsKey(entry.getKey())) {
                 Object key = entry.getKey();
                 Object oldValue = dataSyncValues.get(key);
                 iterator.remove();
