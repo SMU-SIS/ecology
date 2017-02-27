@@ -199,6 +199,7 @@ public class Room {
     void onDeviceDisconnected(String deviceId, Boolean isReference) {
         eventBroadcasterManager.postLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
+
         if (isReference) {
             dataSync.onDisconnected();
         }

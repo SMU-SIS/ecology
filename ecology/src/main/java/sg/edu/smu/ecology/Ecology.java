@@ -161,7 +161,7 @@ public class Ecology {
     /**
      * Sync the device id of the newly connected device in the ecology data sync
      *
-     * @param newDeviceId     the device id of the newly connected device
+     * @param newDeviceId the device id of the newly connected device
      * @param isReference whether the device is the data reference
      */
     private void syncConnectedDeviceId(String newDeviceId, boolean isReference) {
@@ -187,7 +187,7 @@ public class Ecology {
     /**
      * Called when a device is connected
      *
-     * @param deviceId        the id of the device that got connected
+     * @param deviceId    the id of the device that got connected
      * @param isReference if the device is the data reference or not
      */
     private void onDeviceConnected(String deviceId, Boolean isReference) {
@@ -199,7 +199,7 @@ public class Ecology {
     /**
      * Called when a device is disconnected.
      *
-     * @param deviceId        the id of the device that got disconnected
+     * @param deviceId    the id of the device that got disconnected
      * @param isReference if the device is the data reference or not
      */
     private void onDeviceDisconnected(String deviceId, Boolean isReference) {
