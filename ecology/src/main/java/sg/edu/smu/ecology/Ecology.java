@@ -3,8 +3,7 @@ package sg.edu.smu.ecology;
 
 import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -129,8 +128,9 @@ public class Ecology {
             }
         });
 
-        ecologyLooper = new EcologyLooper();
+        ecologyLooper = new EcologyLooper("EcologyLooperThread");
         ecologyLooper.start();
+        ecologyLooper.prepareHandler();
     }
 
     /**
@@ -228,7 +228,7 @@ public class Ecology {
      */
     void disconnect() {
         connector.disconnect();
-        ecologyLooper.getHandler().getLooper().quit();
+        ecologyLooper.quit();
     }
 
     /**
@@ -272,7 +272,7 @@ public class Ecology {
      * @param message the message content
      */
     private void onConnectorMessage(final EcologyMessage message) {
-        getHandler().post(new Runnable() {
+        ecologyLooper.postTask(new Runnable() {
             @Override
             public void run() {
                 handleMessage(message);
@@ -411,21 +411,28 @@ public class Ecology {
     /**
      * The looper associated with the ecology
      */
-    private class EcologyLooper extends Thread {
+    private class EcologyLooper extends HandlerThread {
         private Handler handler;
 
-        @Override
-        public void run() {
-            Looper.prepare();
+        EcologyLooper(String name) {
+            super(name);
+        }
 
-            handler = new Handler(Looper.myLooper()) {
-                @Override
-                public void handleMessage(Message msg) {
+        /**
+         * Prepare the ecology looper handler
+         */
+        void prepareHandler() {
+            // Create a handler to handle the message queue
+            handler = new Handler(getLooper());
+        }
 
-                }
-            };
-
-            Looper.loop();
+        /**
+         * Add a runnable to the message queue of this thread
+         *
+         * @param task the runnable that will be executed
+         */
+        void postTask(Runnable task) {
+            handler.post(task);
         }
 
         /**
