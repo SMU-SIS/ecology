@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.content.Context;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -49,6 +51,8 @@ public class Room {
      */
     private Boolean isReference;
 
+    private EventBroadcasterManager eventBroadcasterManager;
+
     /**
      * @param name        the name of the room
      * @param ecology     the ecology this room is part of
@@ -78,6 +82,8 @@ public class Room {
         this.eventBroadcasterFactory = eventBroadcasterFactory;
         this.dataSyncFactory = dataSyncFactory;
         this.isReference = isReference;
+
+        eventBroadcasterManager = new EventBroadcasterManager(this);
     }
 
     /**
@@ -90,18 +96,23 @@ public class Room {
     }
 
     /**
+     * @param context the context associated with the event broadcaster
      * @return the event broadcaster associated with the room.
      */
-    public EventBroadcaster getEventBroadcaster() {
-        if (eventBroadcaster == null) {
-            eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(new EventBroadcaster.Connector() {
-                @Override
-                public void onEventBroadcasterMessage(EcologyMessage message) {
-                    Room.this.onEventBroadcasterMessage(message);
-                }
-            });
+    public EventBroadcaster getEventBroadcaster(Context context) {
+        if (eventBroadcasterManager.getEventBroadcaster(context) == null) {
+            EventBroadcaster eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(
+                    new EventBroadcaster.Connector() {
+                        @Override
+                        public void onEventBroadcasterMessage(EcologyMessage message) {
+                            eventBroadcasterManager.sendMessage(message);
+                        }
+                    }
+            );
+            eventBroadcasterManager.addEventBroadcaster(context, eventBroadcaster);
         }
-        return eventBroadcaster;
+
+        return eventBroadcasterManager.getEventBroadcaster(context);
     }
 
     /**
@@ -117,7 +128,7 @@ public class Room {
             }, new DataSync.SyncDataChangeListener() {
                 @Override
                 public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
-                    getEventBroadcaster().publishLocalEvent(Settings.SYNC_DATA,
+                    eventBroadcasterManager.postLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
             }, isReference);
@@ -138,7 +149,7 @@ public class Room {
         if (messageId == SYNC_DATA_MESSAGE_ID) {
             dataSync.onMessage(message);
         } else if (messageId == EVENT_MESSAGE_ID) {
-            getEventBroadcaster().onRoomMessage(message);
+            eventBroadcasterManager.forwardMessage(message);
         }
     }
 
@@ -148,7 +159,7 @@ public class Room {
      *
      * @param message the message
      */
-    private void onEventBroadcasterMessage(EcologyMessage message) {
+    void onEventBroadcasterMessage(EcologyMessage message) {
         message.addArgument(EVENT_MESSAGE_ID);
         ecology.onRoomMessage(name, message);
     }
@@ -171,8 +182,9 @@ public class Room {
      * @param isReference if the device is the data reference or not
      */
     void onDeviceConnected(String deviceId, Boolean isReference) {
-        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_CONNECTED,
+        eventBroadcasterManager.postLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
+
         if (isReference) {
             dataSync.onConnected();
         }
@@ -185,7 +197,7 @@ public class Room {
      * @param isReference if the device is the data reference or not
      */
     void onDeviceDisconnected(String deviceId, Boolean isReference) {
-        getEventBroadcaster().publishLocalEvent(Settings.DEVICE_DISCONNECTED,
+        eventBroadcasterManager.postLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
         if (isReference) {
             dataSync.onDisconnected();
