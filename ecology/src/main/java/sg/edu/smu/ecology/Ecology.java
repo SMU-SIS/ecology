@@ -2,6 +2,9 @@ package sg.edu.smu.ecology;
 
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -69,6 +72,10 @@ public class Ecology {
      */
     private DataSync ecologyDataSync;
 
+    private EcologyLooper ecologyLooper;
+
+    private Handler connectorHandler;
+
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
      *                         ecology.
@@ -121,6 +128,9 @@ public class Ecology {
                 Ecology.this.getEcologyDataSync().clear();
             }
         });
+
+        ecologyLooper = new EcologyLooper();
+        ecologyLooper.start();
     }
 
     /**
@@ -203,6 +213,7 @@ public class Ecology {
      */
     void connect(Context context, String deviceId) {
         myDeviceId = deviceId;
+        connectorHandler = new Handler(context.getMainLooper());
         connector.connect(context, deviceId);
 
         if (isReference) {
@@ -217,6 +228,7 @@ public class Ecology {
      */
     void disconnect() {
         connector.disconnect();
+        ecologyLooper.getHandler().getLooper().quit();
     }
 
     /**
@@ -259,16 +271,13 @@ public class Ecology {
      *
      * @param message the message content
      */
-    private void onConnectorMessage(EcologyMessage message) {
-        Integer messageId = (Integer) message.fetchArgument();
-
-        // Check if the received message is an ecology sync data message or a message destined for a
-        // room and route them accordingly.
-        if (messageId == ROOM_MESSAGE_ID) {
-            forwardRoomMessage(message);
-        } else if (messageId == SYNC_DATA_MESSAGE_ID) {
-            getEcologyDataSync().onMessage(message);
-        }
+    private void onConnectorMessage(final EcologyMessage message) {
+        getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                handleMessage(message);
+            }
+        });
     }
 
     /**
@@ -301,7 +310,7 @@ public class Ecology {
         message.addArgument(roomName);
         message.addArgument(ROOM_MESSAGE_ID);
         message.setSource(getMyDeviceId());
-        connector.sendMessage(message);
+        sendConnectorMessage(message);
     }
 
     /**
@@ -312,7 +321,21 @@ public class Ecology {
     void onEcologyDataSyncMessage(EcologyMessage message) {
         message.addArgument(SYNC_DATA_MESSAGE_ID);
         message.setSource(getMyDeviceId());
-        connector.sendMessage(message);
+        sendConnectorMessage(message);
+    }
+
+    /**
+     * Send the message after moving it into the connector's context looper
+     *
+     * @param message the content of the message
+     */
+    private void sendConnectorMessage(final EcologyMessage message) {
+        connectorHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                connector.sendMessage(message);
+            }
+        });
     }
 
     /**
@@ -353,6 +376,65 @@ public class Ecology {
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
                                 boolean dataSyncReference) {
             return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
+        }
+    }
+
+    /**
+     * Handle the messages in the ecology looper
+     *
+     * @param msg the message in th ecology looper
+     */
+    private void handleMessage(EcologyMessage msg) {
+        // Check the message type and route them accordingly.
+        switch ((Integer) msg.fetchArgument()) {
+            // A message destined for a room
+            case ROOM_MESSAGE_ID:
+                forwardRoomMessage(msg);
+                break;
+
+            // A message destined for ecology data sync
+            case SYNC_DATA_MESSAGE_ID:
+                getEcologyDataSync().onMessage(msg);
+                break;
+        }
+    }
+
+    /**
+     * Get the handler associated with the ecology looper
+     *
+     * @return the handler instance
+     */
+    Handler getHandler() {
+        return ecologyLooper.getHandler();
+    }
+
+    /**
+     * The looper associated with the ecology
+     */
+    private class EcologyLooper extends Thread {
+        private Handler handler;
+
+        @Override
+        public void run() {
+            Looper.prepare();
+
+            handler = new Handler(Looper.myLooper()) {
+                @Override
+                public void handleMessage(Message msg) {
+
+                }
+            };
+
+            Looper.loop();
+        }
+
+        /**
+         * Get the handler associated with the ecology looper
+         *
+         * @return the handler associated with the ecology looper
+         */
+        Handler getHandler() {
+            return handler;
         }
     }
 }
