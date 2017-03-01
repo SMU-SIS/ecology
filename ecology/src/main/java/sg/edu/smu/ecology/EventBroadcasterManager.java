@@ -15,17 +15,15 @@ class EventBroadcasterManager {
     private static final String TAG = EventBroadcasterManager.class.getSimpleName();
     private Map<Context, EventBroadcaster> eventBroadcastersMap = new HashMap<>();
     private Map<Context, Handler> handlersMap = new HashMap<>();
-    private Handler ecologyLooperHandler;
     private Room room;
 
     EventBroadcasterManager(Room room) {
         this.room = room;
-        ecologyLooperHandler = room.getEcology().getHandler();
     }
 
     void addEventBroadcaster(Context context, EventBroadcaster eventBroadcaster) {
         eventBroadcastersMap.put(context, eventBroadcaster);
-        addHandler(context);
+        addHandler(context, new Handler(context.getMainLooper()));
     }
 
     EventBroadcaster getEventBroadcaster(Context context) {
@@ -33,12 +31,21 @@ class EventBroadcasterManager {
     }
 
     /**
+     * Get the ecology looper handler
+     *
+     * @return the ecology looper handler
+     */
+    private Handler getEcologyLooperHandler() {
+        return room.getEcology().getHandler();
+    }
+
+    /**
      * Add a handler for a particular context
      *
      * @param context the context
      */
-    private void addHandler(Context context) {
-        handlersMap.put(context, new Handler(context.getMainLooper()));
+    void addHandler(Context context, Handler handler) {
+        handlersMap.put(context, handler);
     }
 
     /**
@@ -57,7 +64,7 @@ class EventBroadcasterManager {
      * @param msg the message to be sent
      */
     void sendMessage(final EcologyMessage msg) {
-        ecologyLooperHandler.post(new Runnable() {
+        getEcologyLooperHandler().post(new Runnable() {
             @Override
             public void run() {
                 room.onEventBroadcasterMessage(msg);
@@ -80,6 +87,7 @@ class EventBroadcasterManager {
                 }
             }, entry.getKey());
         }
+
     }
 
     /**
