@@ -1,5 +1,6 @@
 package sg.edu.smu.ecology;
 
+import android.os.Handler;
 import android.util.Log;
 
 import org.junit.After;
@@ -53,12 +54,20 @@ public class EcologyTest {
     @Mock
     private Ecology.DataSyncFactory dataSyncFactory;
     @Mock
+    private Ecology.EcologyLooperFactory ecologyLooperFactory;
+    @Mock
     private DataSync ecologyDataSync;
+    @Mock
+    private EcologyLooper ecologyLooper;
+    @Mock
+    private Handler connectorHandler;
+    @Mock
+    private Handler ecologyLooperHandler;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        ecology = new Ecology(connector, false, roomFactory, dataSyncFactory);
+        ecology = new Ecology(connector, false, roomFactory, dataSyncFactory, ecologyLooperFactory);
 
         // Prepare the mock
         PowerMockito.mockStatic(Log.class);
@@ -99,6 +108,15 @@ public class EcologyTest {
 
         PowerMockito.when(message.getArguments()).thenReturn(data);
 
+        when(connectorHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
+        ecology.setConnectorHandler(connectorHandler);
         ecology.onRoomMessage(roomName, message);
 
         // To capture the argument in the sendMessage method
@@ -144,6 +162,15 @@ public class EcologyTest {
 
         PowerMockito.when(message.getArguments()).thenReturn(data);
 
+        when(connectorHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
+        ecology.setConnectorHandler(connectorHandler);
         ecology.onEcologyDataSyncMessage(message);
 
         // To capture the argument in the sendMessage method
@@ -223,6 +250,16 @@ public class EcologyTest {
         PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
+        when(ecologyLooperFactory.createEcologyLooper(any(String.class))).thenReturn(ecologyLooper);
+        PowerMockito.when(ecologyLooper.getHandler()).thenReturn(ecologyLooperHandler);
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         // Receiver gets the message
         receiver.onMessage(message);
 
@@ -275,6 +312,16 @@ public class EcologyTest {
         PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
 
+        when(ecologyLooperFactory.createEcologyLooper(any(String.class))).thenReturn(ecologyLooper);
+        PowerMockito.when(ecologyLooper.getHandler()).thenReturn(ecologyLooperHandler);
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         // Receiver gets the message destined for room 2
         receiver.onMessage(message);
 
@@ -310,6 +357,16 @@ public class EcologyTest {
                 return data.remove(data.size() - 1);
             }
         }).when(message).fetchArgument();
+
+        when(ecologyLooperFactory.createEcologyLooper(any(String.class))).thenReturn(ecologyLooper);
+        PowerMockito.when(ecologyLooper.getHandler()).thenReturn(ecologyLooperHandler);
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
 
         // Receiver receives the message
         receiver.onMessage(message);
@@ -359,6 +416,16 @@ public class EcologyTest {
         // To get the mock room
         PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
         room = ecology.getRoom("room");
+
+        when(ecologyLooperFactory.createEcologyLooper(any(String.class))).thenReturn(ecologyLooper);
+        PowerMockito.when(ecologyLooper.getHandler()).thenReturn(ecologyLooperHandler);
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
 
         // Receiver receives the message
         receiver.onMessage(message);
