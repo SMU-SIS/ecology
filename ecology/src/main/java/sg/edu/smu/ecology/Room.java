@@ -37,9 +37,9 @@ public class Room {
     private String name;
 
     /**
-     * The event broadcaster associated with the room.
+     * Used for creating event broadcaster manager instance.
      */
-    private EventBroadcaster eventBroadcaster;
+    private EventBroadcasterManagerFactory eventBroadcasterManagerFactory;
 
     /**
      * The data sync instance
@@ -59,7 +59,8 @@ public class Room {
      * @param isReference true when the device is the data sync reference
      */
     public Room(String name, Ecology ecology, Boolean isReference) {
-        this(name, ecology, new EventBroadcasterFactory(), new DataSyncFactory(), isReference);
+        this(name, ecology, isReference, new EventBroadcasterFactory(), new DataSyncFactory(),
+                new EventBroadcasterManagerFactory());
     }
 
     /**
@@ -71,19 +72,18 @@ public class Room {
      * @param dataSyncFactory         to create data sync instance
      * @param isReference             true when the device is the data sync reference
      */
-    Room(String name, Ecology ecology, EventBroadcasterFactory eventBroadcasterFactory,
-         DataSyncFactory dataSyncFactory, Boolean isReference) {
+    Room(String name, Ecology ecology, Boolean isReference, EventBroadcasterFactory eventBroadcasterFactory,
+         DataSyncFactory dataSyncFactory, EventBroadcasterManagerFactory eventBroadcasterManagerFactory) {
         if (name == null || name.length() == 0 || name.equals(" ")) {
             throw new IllegalArgumentException();
         }
 
         this.name = name;
         this.ecology = ecology;
+        this.isReference = isReference;
         this.eventBroadcasterFactory = eventBroadcasterFactory;
         this.dataSyncFactory = dataSyncFactory;
-        this.isReference = isReference;
-
-        eventBroadcasterManager = new EventBroadcasterManager(this);
+        this.eventBroadcasterManagerFactory = eventBroadcasterManagerFactory;
     }
 
     /**
@@ -100,19 +100,27 @@ public class Room {
      * @return the event broadcaster associated with the room.
      */
     public EventBroadcaster getEventBroadcaster(Context context) {
-        if (eventBroadcasterManager.getEventBroadcaster(context) == null) {
+        if (getEventBroadcasterManager().getEventBroadcaster(context) == null) {
             EventBroadcaster eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(
                     new EventBroadcaster.Connector() {
                         @Override
                         public void onEventBroadcasterMessage(EcologyMessage message) {
-                            eventBroadcasterManager.sendMessage(message);
+                            getEventBroadcasterManager().sendMessage(message);
                         }
                     }
             );
-            eventBroadcasterManager.addEventBroadcaster(context, eventBroadcaster);
+            getEventBroadcasterManager().addEventBroadcaster(context, eventBroadcaster);
         }
 
-        return eventBroadcasterManager.getEventBroadcaster(context);
+        return getEventBroadcasterManager().getEventBroadcaster(context);
+    }
+
+    EventBroadcasterManager getEventBroadcasterManager() {
+        if (eventBroadcasterManager == null) {
+            eventBroadcasterManager = eventBroadcasterManagerFactory.createEventBroadcasterManager(this);
+        }
+
+        return eventBroadcasterManager;
     }
 
     /**
@@ -128,7 +136,7 @@ public class Room {
             }, new DataSync.SyncDataChangeListener() {
                 @Override
                 public void onDataUpdate(Object dataId, Object newValue, Object oldValue) {
-                    eventBroadcasterManager.postLocalEvent(Settings.SYNC_DATA,
+                    getEventBroadcasterManager().postLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
             }, isReference);
@@ -149,7 +157,7 @@ public class Room {
         if (messageId == SYNC_DATA_MESSAGE_ID) {
             dataSync.onMessage(message);
         } else if (messageId == EVENT_MESSAGE_ID) {
-            eventBroadcasterManager.forwardMessage(message);
+            getEventBroadcasterManager().forwardMessage(message);
         }
     }
 
@@ -182,7 +190,7 @@ public class Room {
      * @param isReference if the device is the data reference or not
      */
     void onDeviceConnected(String deviceId, Boolean isReference) {
-        eventBroadcasterManager.postLocalEvent(Settings.DEVICE_CONNECTED,
+        getEventBroadcasterManager().postLocalEvent(Settings.DEVICE_CONNECTED,
                 Collections.<Object>singletonList(deviceId));
 
         if (isReference) {
@@ -197,7 +205,7 @@ public class Room {
      * @param isReference if the device is the data reference or not
      */
     void onDeviceDisconnected(String deviceId, Boolean isReference) {
-        eventBroadcasterManager.postLocalEvent(Settings.DEVICE_DISCONNECTED,
+        getEventBroadcasterManager().postLocalEvent(Settings.DEVICE_DISCONNECTED,
                 Collections.<Object>singletonList(deviceId));
 
         if (isReference) {
@@ -216,6 +224,12 @@ public class Room {
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
                                 boolean dataSyncReference) {
             return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
+        }
+    }
+
+    static class EventBroadcasterManagerFactory {
+        EventBroadcasterManager createEventBroadcasterManager(Room room) {
+            return new EventBroadcasterManager(room);
         }
     }
 }
