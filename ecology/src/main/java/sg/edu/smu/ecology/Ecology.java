@@ -3,7 +3,6 @@ package sg.edu.smu.ecology;
 
 import android.content.Context;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -67,6 +66,11 @@ public class Ecology {
     private DataSyncFactory dataSyncFactory;
 
     /**
+     * Used for creating Ecology Looper instance.
+     */
+    private EcologyLooperFactory ecologyLooperFactory;
+
+    /**
      * Data sync part of the ecology
      */
     private DataSync ecologyDataSync;
@@ -81,23 +85,26 @@ public class Ecology {
      * @param isReference      true when the device is the data sync reference
      */
     public Ecology(Connector ecologyConnector, Boolean isReference) {
-        this(ecologyConnector, isReference, new RoomFactory(), new DataSyncFactory());
+        this(ecologyConnector, isReference, new RoomFactory(), new DataSyncFactory(),
+                new EcologyLooperFactory());
     }
 
     /**
      * Special constructor only for testing
      *
-     * @param connector       the connector used to send messages to the other devices of the ecology
-     * @param isReference     true when the device is the data sync reference
-     * @param roomFactory     to create rooms part of this ecology
-     * @param dataSyncFactory to create data sync instance
+     * @param connector            the connector used to send messages to the other devices of the ecology
+     * @param isReference          true when the device is the data sync reference
+     * @param roomFactory          to create rooms part of this ecology
+     * @param dataSyncFactory      to create data sync instance
+     * @param ecologyLooperFactory to create ecology looper instance
      */
     Ecology(final Connector connector, Boolean isReference, RoomFactory roomFactory,
-            DataSyncFactory dataSyncFactory) {
+            DataSyncFactory dataSyncFactory, EcologyLooperFactory ecologyLooperFactory) {
         this.connector = connector;
         this.isReference = isReference;
         this.roomFactory = roomFactory;
         this.dataSyncFactory = dataSyncFactory;
+        this.ecologyLooperFactory = ecologyLooperFactory;
 
         this.connector.setReceiver(new Connector.Receiver() {
 
@@ -127,10 +134,6 @@ public class Ecology {
                 Ecology.this.getEcologyDataSync().clear();
             }
         });
-
-        ecologyLooper = new EcologyLooper("EcologyLooperThread");
-        ecologyLooper.start();
-        ecologyLooper.prepareHandler();
     }
 
     /**
@@ -213,8 +216,8 @@ public class Ecology {
      */
     void connect(Context context, String deviceId) {
         myDeviceId = deviceId;
-        connectorHandler = new Handler(context.getMainLooper());
         connector.connect(context, deviceId);
+        setConnectorHandler(new Handler(context.getMainLooper()));
 
         if (isReference) {
             getEcologyDataSync().setData("devices", new HashMap<Object, Object>() {{
@@ -228,7 +231,7 @@ public class Ecology {
      */
     void disconnect() {
         connector.disconnect();
-        ecologyLooper.quit();
+        getEcologyLooper().quit();
     }
 
     /**
@@ -238,6 +241,23 @@ public class Ecology {
      */
     public String getMyDeviceId() {
         return myDeviceId;
+    }
+
+    private EcologyLooper getEcologyLooper() {
+        if (ecologyLooper == null) {
+            ecologyLooper = ecologyLooperFactory.createEcologyLooper("EcologyLooperThread");
+            ecologyLooper.start();
+            ecologyLooper.prepareHandler();
+        }
+        return ecologyLooper;
+    }
+
+    private Handler getConnectorHandler() {
+        return connectorHandler;
+    }
+
+    void setConnectorHandler(Handler handler) {
+        connectorHandler = handler;
     }
 
     /**
@@ -272,7 +292,7 @@ public class Ecology {
      * @param message the message content
      */
     private void onConnectorMessage(final EcologyMessage message) {
-        ecologyLooper.postTask(new Runnable() {
+        getEcologyLooper().getHandler().post(new Runnable() {
             @Override
             public void run() {
                 handleMessage(message);
@@ -330,7 +350,7 @@ public class Ecology {
      * @param message the content of the message
      */
     private void sendConnectorMessage(final EcologyMessage message) {
-        connectorHandler.post(new Runnable() {
+        getConnectorHandler().post(new Runnable() {
             @Override
             public void run() {
                 connector.sendMessage(message);
@@ -379,6 +399,12 @@ public class Ecology {
         }
     }
 
+    static class EcologyLooperFactory {
+        public EcologyLooper createEcologyLooper(String name) {
+            return new EcologyLooper(name);
+        }
+    }
+
     /**
      * Handle the messages in the ecology looper
      *
@@ -405,43 +431,6 @@ public class Ecology {
      * @return the handler instance
      */
     Handler getHandler() {
-        return ecologyLooper.getHandler();
-    }
-
-    /**
-     * The looper associated with the ecology
-     */
-    private class EcologyLooper extends HandlerThread {
-        private Handler handler;
-
-        EcologyLooper(String name) {
-            super(name);
-        }
-
-        /**
-         * Prepare the ecology looper handler
-         */
-        void prepareHandler() {
-            // Create a handler to handle the message queue
-            handler = new Handler(getLooper());
-        }
-
-        /**
-         * Add a runnable to the message queue of this thread
-         *
-         * @param task the runnable that will be executed
-         */
-        void postTask(Runnable task) {
-            handler.post(task);
-        }
-
-        /**
-         * Get the handler associated with the ecology looper
-         *
-         * @return the handler associated with the ecology looper
-         */
-        Handler getHandler() {
-            return handler;
-        }
+        return getEcologyLooper().getHandler();
     }
 }
