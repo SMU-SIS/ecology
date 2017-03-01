@@ -386,7 +386,7 @@ public class Ecology {
     }
 
     static class RoomFactory {
-        public Room createRoom(String roomName, Ecology ecology, Boolean isReference) {
+        Room createRoom(String roomName, Ecology ecology, Boolean isReference) {
             return new Room(roomName, ecology, isReference);
         }
     }
@@ -400,7 +400,7 @@ public class Ecology {
     }
 
     static class EcologyLooperFactory {
-        public EcologyLooper createEcologyLooper(String name) {
+        EcologyLooper createEcologyLooper(String name) {
             return new EcologyLooper(name);
         }
     }
