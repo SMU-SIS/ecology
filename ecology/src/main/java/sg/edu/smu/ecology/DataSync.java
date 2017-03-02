@@ -46,16 +46,19 @@ public class DataSync {
      */
     private boolean isReference;
 
+    private Ecology ecology;
+
     /**
      * Whether data is currently synchronized with the data reference or not.
      */
     private boolean isSynchronized = false;
 
-    DataSync(Connector connector, SyncDataChangeListener dataChangeListener,
-             boolean isReference) {
+    DataSync(Connector connector, SyncDataChangeListener dataChangeListener, boolean isReference,
+             Ecology ecology) {
         this.connector = connector;
         this.dataChangeListener = dataChangeListener;
         this.isReference = isReference;
+        this.ecology = ecology;
     }
 
     /**
@@ -64,16 +67,21 @@ public class DataSync {
      * @param key   the key paired to the sync data
      * @param value the new data
      */
-    public void setData(Object key, Object value) {
-        Object oldValue = dataSyncValues.get(key);
+    public void setData(final Object key, final Object value) {
+        final Object oldValue = dataSyncValues.get(key);
         dataSyncValues.put(key, value);
         // Check if old value is not same as the new value
         if (oldValue != value) {
-            EcologyMessage message = new EcologyMessage(Arrays.asList(key, value,
-                    DATA_SYNC_MESSAGE));
-            message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
-            connector.onMessage(message);
-            dataChangeListener.onDataUpdate(key, value, oldValue);
+            ecology.getHandler().post(new Runnable() {
+                @Override
+                public void run() {
+                    EcologyMessage message = new EcologyMessage(Arrays.asList(key, value,
+                            DATA_SYNC_MESSAGE));
+                    message.setTargetType(EcologyMessage.TARGET_TYPE_BROADCAST);
+                    connector.onMessage(message);
+                    dataChangeListener.onDataUpdate(key, value, oldValue);
+                }
+            });
         }
     }
 
@@ -141,7 +149,7 @@ public class DataSync {
      *
      * @return true if data sync is synchronized with the data reference
      */
-    public boolean isSynchronized() {
+    boolean isSynchronized() {
         return isSynchronized;
     }
 
