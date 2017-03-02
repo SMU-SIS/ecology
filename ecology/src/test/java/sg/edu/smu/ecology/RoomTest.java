@@ -36,8 +36,6 @@ public class RoomTest {
     @Mock
     private Ecology ecology;
     @Mock
-    private Room.EventBroadcasterFactory eventBroadcasterFactory;
-    @Mock
     private Room.DataSyncFactory dataSyncFactory;
     @Mock
     private Room.EventBroadcasterManagerFactory eBMFactory;
@@ -54,7 +52,7 @@ public class RoomTest {
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        room = new Room(roomName, ecology, false, eventBroadcasterFactory, dataSyncFactory, eBMFactory);
+        room = new Room(roomName, ecology, false, dataSyncFactory, eBMFactory);
     }
 
     @After
@@ -71,7 +69,8 @@ public class RoomTest {
 
         // To get the mock data sync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class), any(Ecology.class))
+        ).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // Test data - contains event message routing id
@@ -114,7 +113,7 @@ public class RoomTest {
 
         // To get the mock data sync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class), any(Ecology.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // Test data - contains data sync message routing id
@@ -156,21 +155,6 @@ public class RoomTest {
         data.add(10);
         data.add("test");
 
-        PowerMockito.when(eBMFactory.createEventBroadcasterManager(any(Room.class))).thenReturn(
-                eventBroadcasterManager);
-        eventBroadcasterManager = room.getEventBroadcasterManager();
-
-        // To get the mock eventBroadcaster
-        PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster
-                (any(EventBroadcaster.Connector.class))).thenReturn(eventBroadcaster);
-        eventBroadcaster = room.getEventBroadcaster(context);
-
-        // To capture the argument in the createEventBroadcaster method
-        ArgumentCaptor<EventBroadcaster.Connector> connectorCaptor =
-                ArgumentCaptor.forClass(EventBroadcaster.Connector.class);
-        verify(eventBroadcasterFactory).createEventBroadcaster(connectorCaptor.capture());
-        EventBroadcaster.Connector connector = connectorCaptor.getValue();
-
         EcologyMessage message = mock(EcologyMessage.class);
         PowerMockito.when(message.getArguments()).thenReturn(data);
         PowerMockito.doAnswer(new Answer<Object>() {
@@ -182,20 +166,25 @@ public class RoomTest {
             }
         }).when(message).addArgument(1);
 
-        connector.onEventBroadcasterMessage(message);
+        room.onEventBroadcasterMessage(message);
 
         // To capture the argument in the onRoomMessage method
         ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
-        verify(eventBroadcasterManager, times(1)).sendMessage(messageCaptor.capture());
+        ArgumentCaptor<String> roomNameCaptor = ArgumentCaptor.forClass(String.class);
+
+        verify(ecology, times(1)).onRoomMessage(roomNameCaptor.capture(), messageCaptor.capture());
         // Create a local mock ecology message
         EcologyMessage messageArgument;
         messageArgument = messageCaptor.getValue();
+        String roomNameValue = roomNameCaptor.getValue();
 
-        // Add event message id at the end
-        List<Object> ecologyData = Arrays.<Object>asList(10, "test");
+        // Add data sync message id at the end
+        List<Object> ecologyData = Arrays.<Object>asList(10, "test", 1);
 
         // To verify that ecology receives the correct message from room
         assertEquals(messageArgument.getArguments(), ecologyData);
+        // To verify that correct room name is passed to the ecology
+        assertEquals(roomNameValue, roomName);
     }
 
     // To verify if ecology receives the data sync message from Room
@@ -208,14 +197,14 @@ public class RoomTest {
 
         // To get the mock DataSync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class), any(Ecology.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // To capture the argument in the createDataSync method
         ArgumentCaptor<DataSync.Connector> connectorCaptor =
                 ArgumentCaptor.forClass(DataSync.Connector.class);
         verify(dataSyncFactory).createDataSync(connectorCaptor.capture(),
-                any(DataSync.SyncDataChangeListener.class), any(Boolean.class));
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class), any(Ecology.class));
         DataSync.Connector dataSyncConnector = connectorCaptor.getValue();
 
         EcologyMessage message = mock(EcologyMessage.class);
@@ -255,14 +244,14 @@ public class RoomTest {
     public void testOnSyncDataUpdate() {
         // To get the mock DataSync
         PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
-                any(DataSync.SyncDataChangeListener.class), any(Boolean.class))).thenReturn(dataSync);
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class), any(Ecology.class))).thenReturn(dataSync);
         dataSync = room.getDataSyncObject();
 
         // To capture the argument in the createDataSync method
         ArgumentCaptor<DataSync.SyncDataChangeListener> syncDataChangeListenerCaptor =
                 ArgumentCaptor.forClass(DataSync.SyncDataChangeListener.class);
         verify(dataSyncFactory).createDataSync(any(DataSync.Connector.class),
-                syncDataChangeListenerCaptor.capture(), any(Boolean.class));
+                syncDataChangeListenerCaptor.capture(), any(Boolean.class), any(Ecology.class));
         DataSync.SyncDataChangeListener syncDataChangeListener = syncDataChangeListenerCaptor.getValue();
 
         PowerMockito.when(eBMFactory.createEventBroadcasterManager(any(Room.class))).thenReturn(
