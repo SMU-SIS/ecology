@@ -13,20 +13,37 @@ import java.util.Map;
 
 class EventBroadcasterManager {
     private static final String TAG = EventBroadcasterManager.class.getSimpleName();
+    private final EventBroadcasterFactory eventBroadcasterFactory;
     private Map<Context, EventBroadcaster> eventBroadcastersMap = new HashMap<>();
     private Map<Context, Handler> handlersMap = new HashMap<>();
     private Room room;
 
     EventBroadcasterManager(Room room) {
+        this(room, new EventBroadcasterFactory());
+    }
+
+    EventBroadcasterManager(Room room, EventBroadcasterFactory eventBroadcasterFactory) {
         this.room = room;
+        this.eventBroadcasterFactory = eventBroadcasterFactory;
     }
 
     void addEventBroadcaster(Context context, EventBroadcaster eventBroadcaster) {
-        eventBroadcastersMap.put(context, eventBroadcaster);
+        getEventBroadcastersMap().put(context, eventBroadcaster);
         addHandler(context, new Handler(context.getMainLooper()));
     }
 
     EventBroadcaster getEventBroadcaster(Context context) {
+        if (getEventBroadcastersMap().get(context) == null) {
+            EventBroadcaster eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(
+                    new EventBroadcaster.Connector() {
+                        @Override
+                        public void onEventBroadcasterMessage(EcologyMessage message) {
+                            sendMessage(message);
+                        }
+                    }
+            );
+            addEventBroadcaster(context, eventBroadcaster);
+        }
         return eventBroadcastersMap.get(context);
     }
 
@@ -63,7 +80,7 @@ class EventBroadcasterManager {
      *
      * @param msg the message to be sent
      */
-    void sendMessage(final EcologyMessage msg) {
+    private void sendMessage(final EcologyMessage msg) {
         getEcologyLooperHandler().post(new Runnable() {
             @Override
             public void run() {
@@ -120,5 +137,11 @@ class EventBroadcasterManager {
 
     private Map<Context, EventBroadcaster> getEventBroadcastersMap() {
         return eventBroadcastersMap;
+    }
+
+    static class EventBroadcasterFactory {
+        EventBroadcaster createEventBroadcaster(EventBroadcaster.Connector connector) {
+            return new EventBroadcaster(connector);
+        }
     }
 }
