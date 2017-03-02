@@ -22,11 +22,6 @@ public class Room {
     private Ecology ecology;
 
     /**
-     * Used for creating event broadcaster associated with the room.
-     */
-    private EventBroadcasterFactory eventBroadcasterFactory;
-
-    /**
      * Used for creating data sync instance.
      */
     private DataSyncFactory dataSyncFactory;
@@ -59,21 +54,20 @@ public class Room {
      * @param isReference true when the device is the data sync reference
      */
     public Room(String name, Ecology ecology, Boolean isReference) {
-        this(name, ecology, isReference, new EventBroadcasterFactory(), new DataSyncFactory(),
+        this(name, ecology, isReference, new DataSyncFactory(),
                 new EventBroadcasterManagerFactory());
     }
 
     /**
      * Special constructor only for testing
      *
-     * @param name                    the name of the room
-     * @param ecology                 the ecology this room is part of
-     * @param eventBroadcasterFactory to create event broadcaster that is part of this room
-     * @param dataSyncFactory         to create data sync instance
-     * @param isReference             true when the device is the data sync reference
+     * @param name            the name of the room
+     * @param ecology         the ecology this room is part of
+     * @param dataSyncFactory to create data sync instance
+     * @param isReference     true when the device is the data sync reference
      */
-    Room(String name, Ecology ecology, Boolean isReference, EventBroadcasterFactory eventBroadcasterFactory,
-         DataSyncFactory dataSyncFactory, EventBroadcasterManagerFactory eventBroadcasterManagerFactory) {
+    Room(String name, Ecology ecology, Boolean isReference, DataSyncFactory dataSyncFactory,
+         EventBroadcasterManagerFactory eventBroadcasterManagerFactory) {
         if (name == null || name.length() == 0 || name.equals(" ")) {
             throw new IllegalArgumentException();
         }
@@ -81,7 +75,6 @@ public class Room {
         this.name = name;
         this.ecology = ecology;
         this.isReference = isReference;
-        this.eventBroadcasterFactory = eventBroadcasterFactory;
         this.dataSyncFactory = dataSyncFactory;
         this.eventBroadcasterManagerFactory = eventBroadcasterManagerFactory;
     }
@@ -100,18 +93,6 @@ public class Room {
      * @return the event broadcaster associated with the room.
      */
     public EventBroadcaster getEventBroadcaster(Context context) {
-        if (getEventBroadcasterManager().getEventBroadcaster(context) == null) {
-            EventBroadcaster eventBroadcaster = eventBroadcasterFactory.createEventBroadcaster(
-                    new EventBroadcaster.Connector() {
-                        @Override
-                        public void onEventBroadcasterMessage(EcologyMessage message) {
-                            getEventBroadcasterManager().sendMessage(message);
-                        }
-                    }
-            );
-            getEventBroadcasterManager().addEventBroadcaster(context, eventBroadcaster);
-        }
-
         return getEventBroadcasterManager().getEventBroadcaster(context);
     }
 
@@ -139,7 +120,7 @@ public class Room {
                     getEventBroadcasterManager().postLocalEvent(Settings.SYNC_DATA,
                             Arrays.asList(dataId, newValue, oldValue));
                 }
-            }, isReference);
+            }, isReference, getEcology());
         }
         return dataSync;
     }
@@ -213,17 +194,11 @@ public class Room {
         }
     }
 
-    static class EventBroadcasterFactory {
-        EventBroadcaster createEventBroadcaster(EventBroadcaster.Connector connector) {
-            return new EventBroadcaster(connector);
-        }
-    }
-
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
-                                boolean dataSyncReference) {
-            return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
+                                boolean dataSyncReference, Ecology ecology) {
+            return new DataSync(connector, dataSyncChangeListener, dataSyncReference, ecology);
         }
     }
 
