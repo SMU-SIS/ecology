@@ -256,6 +256,10 @@ public class Ecology {
         return connectorHandler;
     }
 
+    /**
+     * To set the connector handler. This is mainly used for unit testing
+     * @param handler the connector handler
+     */
     void setConnectorHandler(Handler handler) {
         connectorHandler = handler;
     }
@@ -281,7 +285,7 @@ public class Ecology {
                                 (Map<String, Boolean>) oldValue);
                     }
                 }
-            }, isReference);
+            }, isReference, this);
         }
         return ecologyDataSync;
     }
@@ -394,8 +398,8 @@ public class Ecology {
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
-                                boolean dataSyncReference) {
-            return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
+                                boolean dataSyncReference, Ecology ecology) {
+            return new DataSync(connector, dataSyncChangeListener, dataSyncReference, ecology);
         }
     }
 
