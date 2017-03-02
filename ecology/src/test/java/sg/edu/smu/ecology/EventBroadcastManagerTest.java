@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -38,12 +41,14 @@ public class EventBroadcastManagerTest {
     private EventBroadcaster eventBroadcaster1, eventBroadcaster2;
     @Mock
     private Handler ecologyLooperHandler;
+    @Mock
+    private EventBroadcasterManager.EventBroadcasterFactory eventBroadcasterFactory;
 
     @Before
     public void setUp() throws Exception {
 
         MockitoAnnotations.initMocks(this);
-        eventBroadcasterManager = new EventBroadcasterManager(room);
+        eventBroadcasterManager = new EventBroadcasterManager(room, eventBroadcasterFactory);
     }
 
     @After
@@ -119,7 +124,18 @@ public class EventBroadcastManagerTest {
             }
         });
 
-        eventBroadcasterManager.sendMessage(message);
+        PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster(any(EventBroadcaster.
+                Connector.class))).thenReturn(eventBroadcaster1);
+        eventBroadcasterManager.getEventBroadcaster(context1);
+
+        // To capture the argument in the createDataSync method
+        ArgumentCaptor<EventBroadcaster.Connector> connectorCaptor =
+                ArgumentCaptor.forClass(EventBroadcaster.Connector.class);
+        verify(eventBroadcasterFactory).createEventBroadcaster(connectorCaptor.capture());
+        EventBroadcaster.Connector eventBroadcasterConnector = connectorCaptor.getValue();
+
+        // When a message is received from event broadcaster
+        eventBroadcasterConnector.onEventBroadcasterMessage(message);
 
         // To verify that correct data is passed to the room
         verify(room, times(1)).onEventBroadcasterMessage(message);
@@ -158,5 +174,17 @@ public class EventBroadcastManagerTest {
 
         verify(eventBroadcaster1, times(1)).publishLocalEvent("Tap", Arrays.<Object>asList(1, "djsd"));
         verify(eventBroadcaster2, times(1)).publishLocalEvent("Tap", Arrays.<Object>asList(1, "djsd"));
+    }
+
+    // To verify that right event broadcaster is returned
+    @Test
+    public void testGetEventBroadcaster() {
+        eventBroadcasterManager.addEventBroadcaster(context1, eventBroadcaster1);
+        eventBroadcasterManager.addEventBroadcaster(context2, eventBroadcaster2);
+
+        assertEquals(eventBroadcaster1, eventBroadcasterManager.getEventBroadcaster(context1));
+        assertNotEquals(eventBroadcaster1, eventBroadcasterManager.getEventBroadcaster(context2));
+        assertEquals(eventBroadcaster2, eventBroadcasterManager.getEventBroadcaster(context2));
+        assertNotEquals(eventBroadcaster2, eventBroadcasterManager.getEventBroadcaster(context1));
     }
 }
