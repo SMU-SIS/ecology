@@ -90,7 +90,7 @@ public class Room {
 
     /**
      * @param context the context associated with the event broadcaster
-     * @return the event broadcaster associated with the room.
+     * @return the event broadcaster associated with the room and context.
      */
     public EventBroadcaster getEventBroadcaster(Context context) {
         return getEventBroadcasterManager().getEventBroadcaster(context);
@@ -136,7 +136,7 @@ public class Room {
         // Check if the received message is a sync data message or an event broadcaster event and
         // route them accordingly.
         if (messageId == SYNC_DATA_MESSAGE_ID) {
-            dataSync.onMessage(message);
+            getDataSyncObject().onMessage(message);
         } else if (messageId == EVENT_MESSAGE_ID) {
             getEventBroadcasterManager().forwardMessage(message);
         }
@@ -175,7 +175,7 @@ public class Room {
                 Collections.<Object>singletonList(deviceId));
 
         if (isReference) {
-            dataSync.onConnected();
+            getDataSyncObject().onConnected();
         }
     }
 
@@ -190,7 +190,7 @@ public class Room {
                 Collections.<Object>singletonList(deviceId));
 
         if (isReference) {
-            dataSync.onDisconnected();
+            getDataSyncObject().onDisconnected();
         }
     }
 

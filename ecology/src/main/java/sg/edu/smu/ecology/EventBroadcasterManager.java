@@ -11,9 +11,18 @@ import java.util.Map;
  * Created by anurooppv on 24/2/2017.
  */
 
+/**
+ * This class is responsible for the creation of event broadcasters and also manage the loopers
+ */
 class EventBroadcasterManager {
     private static final String TAG = EventBroadcasterManager.class.getSimpleName();
+    /**
+     * Used to create event broadcaster instances
+     */
     private final EventBroadcasterFactory eventBroadcasterFactory;
+    /**
+     * Map to store event broadcasters and it's associated contexts
+     */
     private Map<Context, EventBroadcaster> eventBroadcastersMap = new HashMap<>();
     private Map<Context, Handler> handlersMap = new HashMap<>();
     private Room room;
@@ -22,6 +31,12 @@ class EventBroadcasterManager {
         this(room, new EventBroadcasterFactory());
     }
 
+    /**
+     * Special constructor used for testing
+     *
+     * @param room                    the room that created this instance
+     * @param eventBroadcasterFactory to create event broadcaster instances
+     */
     EventBroadcasterManager(Room room, EventBroadcasterFactory eventBroadcasterFactory) {
         this.room = room;
         this.eventBroadcasterFactory = eventBroadcasterFactory;
