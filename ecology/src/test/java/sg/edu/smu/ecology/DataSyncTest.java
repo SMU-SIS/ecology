@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.os.Handler;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -7,7 +9,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.util.Arrays;
@@ -20,6 +24,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by anurooppv on 20/12/2016.
@@ -31,13 +36,17 @@ public class DataSyncTest {
     private DataSync.Connector connector;
     @Mock
     private DataSync.SyncDataChangeListener syncDataChangeListener;
+    @Mock
+    private Ecology ecology;
+    @Mock
+    private Handler ecologyLooperHandler;
 
     private DataSync dataSync1, dataSync2;
 
     @Before
     public void setUp() throws Exception {
-        dataSync1 = new DataSync(connector, syncDataChangeListener, true);
-        dataSync2 = new DataSync(connector, syncDataChangeListener, false);
+        dataSync1 = new DataSync(connector, syncDataChangeListener, true, ecology);
+        dataSync2 = new DataSync(connector, syncDataChangeListener, false, ecology);
     }
 
     @After
@@ -50,6 +59,16 @@ public class DataSyncTest {
     // invoked correctly and also if sync data has been saved correctly
     @Test
     public void testSetData() {
+        PowerMockito.when(ecology.getHandler()).thenReturn(ecologyLooperHandler);
+        // Mocking ecology looper Handler to invoke a Runnable
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         dataSync1.setData("color", "red");
 
         // To capture the argument in the onMessage method
@@ -127,6 +146,16 @@ public class DataSyncTest {
     // When a non data reference device receives a initial data sync request, it will save the data
     @Test
     public void testOnInitialDataSyncMessageNotDataRefEmptyData() {
+        PowerMockito.when(ecology.getHandler()).thenReturn(ecologyLooperHandler);
+        // Mocking ecology looper Handler to invoke a Runnable
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         Integer initDataSyncResponse = 2;
 
         // When an empty map is received
@@ -148,6 +177,16 @@ public class DataSyncTest {
     // When a non data reference device receives a initial data sync request, it will save the data
     @Test
     public void testOnInitialDataSyncMessageNotDataRefAllNewData() {
+        PowerMockito.when(ecology.getHandler()).thenReturn(ecologyLooperHandler);
+        // Mocking ecology looper Handler to invoke a Runnable
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         Integer initDataSyncResponse = 2;
 
         // When initial data is having a new key and data
@@ -183,6 +222,16 @@ public class DataSyncTest {
                     put("number", 5);
                 }});
 
+        PowerMockito.when(ecology.getHandler()).thenReturn(ecologyLooperHandler);
+        // Mocking ecology looper Handler to invoke a Runnable
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         dataSync2.setData("color", "black");
         dataSync2.setData("number", 4);
 
@@ -205,6 +254,16 @@ public class DataSyncTest {
     // To verify that when a sync data value is over written, new value will be returned when queried
     @Test
     public void testOverwriteSyncData() {
+        PowerMockito.when(ecology.getHandler()).thenReturn(ecologyLooperHandler);
+        // Mocking ecology looper Handler to invoke a Runnable
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         dataSync1.setData("color", "red");
         assertEquals(dataSync1.getData("color"), "red");
 
@@ -242,6 +301,16 @@ public class DataSyncTest {
     // To verify if message or event is not sent when the user sets the same data as before
     @Test
     public void testWhenSameSyncDataSet() {
+        PowerMockito.when(ecology.getHandler()).thenReturn(ecologyLooperHandler);
+        // Mocking ecology looper Handler to invoke a Runnable
+        when(ecologyLooperHandler.post(any(Runnable.class))).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgumentAt(0, Runnable.class).run();
+                return null;
+            }
+        });
+
         dataSync1.setData("color", "red");
         assertEquals(dataSync1.getData("color"), "red");
 
