@@ -1,5 +1,6 @@
 package sg.edu.smu.ecology;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 
@@ -112,12 +113,17 @@ class EventBroadcasterManager {
     void forwardMessage(final EcologyMessage msg) {
         for (final Map.Entry<Context, EventBroadcaster> entry :
                 getEventBroadcastersMap().entrySet()) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    entry.getValue().onRoomMessage(new EcologyMessage(msg.getArguments()));
-                }
-            }, entry.getKey());
+            Context context = entry.getKey();
+            // Check for current foreground activity
+            if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
+                    (Activity) context) {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        entry.getValue().onRoomMessage(new EcologyMessage(msg.getArguments()));
+                    }
+                }, context);
+            }
         }
 
     }
@@ -131,12 +137,17 @@ class EventBroadcasterManager {
     void postLocalEvent(final String eventType, final List<Object> data) {
         for (final Map.Entry<Context, EventBroadcaster> entry :
                 getEventBroadcastersMap().entrySet()) {
-            post(new Runnable() {
-                @Override
-                public void run() {
-                    entry.getValue().publishLocalEvent(eventType, data);
-                }
-            }, entry.getKey());
+            Context context = entry.getKey();
+            // Check for current foreground activity
+            if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
+                    (Activity) context) {
+                post(new Runnable() {
+                    @Override
+                    public void run() {
+                        entry.getValue().publishLocalEvent(eventType, data);
+                    }
+                }, context);
+            }
         }
     }
 
