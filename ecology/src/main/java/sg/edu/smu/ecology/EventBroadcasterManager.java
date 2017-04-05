@@ -113,19 +113,13 @@ class EventBroadcasterManager {
     void forwardMessage(final EcologyMessage msg) {
         for (final Map.Entry<Context, EventBroadcaster> entry :
                 getEventBroadcastersMap().entrySet()) {
-            Context context = entry.getKey();
-            // Check for current foreground activity
-            if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
-                    (Activity) context) {
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        entry.getValue().onRoomMessage(new EcologyMessage(msg.getArguments()));
-                    }
-                }, context);
-            }
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    entry.getValue().onRoomMessage(new EcologyMessage(msg.getArguments()));
+                }
+            }, entry.getKey());
         }
-
     }
 
     /**
@@ -137,17 +131,12 @@ class EventBroadcasterManager {
     void postLocalEvent(final String eventType, final List<Object> data) {
         for (final Map.Entry<Context, EventBroadcaster> entry :
                 getEventBroadcastersMap().entrySet()) {
-            Context context = entry.getKey();
-            // Check for current foreground activity
-            if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
-                    (Activity) context) {
-                post(new Runnable() {
-                    @Override
-                    public void run() {
-                        entry.getValue().publishLocalEvent(eventType, data);
-                    }
-                }, context);
-            }
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    entry.getValue().publishLocalEvent(eventType, data);
+                }
+            }, entry.getKey());
         }
     }
 
@@ -158,7 +147,11 @@ class EventBroadcasterManager {
      * @param context the context
      */
     private void post(Runnable task, Context context) {
-        getHandler(context).post(task);
+        // Check for current foreground activity
+        if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
+                (Activity) context) {
+            getHandler(context).post(task);
+        }
     }
 
     private Map<Context, EventBroadcaster> getEventBroadcastersMap() {
