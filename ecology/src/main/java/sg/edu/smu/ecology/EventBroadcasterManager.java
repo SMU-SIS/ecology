@@ -119,7 +119,6 @@ class EventBroadcasterManager {
                 }
             }, entry.getKey());
         }
-
     }
 
     /**

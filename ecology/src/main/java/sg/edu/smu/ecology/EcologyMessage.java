@@ -11,13 +11,13 @@ import java.util.List;
  * This class is used to save the message data to be sent to other connected devices in the ecology
  */
 public class EcologyMessage {
-    private static final String TAG = EcologyMessage.class.getSimpleName();
     /**
      * The values that target type can have
      */
     public static final int TARGET_TYPE_SERVER = 0;
     public static final int TARGET_TYPE_SPECIFIC = 1;
     public static final int TARGET_TYPE_BROADCAST = 2;
+    private static final String TAG = EcologyMessage.class.getSimpleName();
     /**
      * The content of the message
      */
