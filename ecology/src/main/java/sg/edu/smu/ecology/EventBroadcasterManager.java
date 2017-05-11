@@ -147,9 +147,14 @@ class EventBroadcasterManager {
      * @param context the context
      */
     private void post(Runnable task, Context context) {
-        // Check for current foreground activity
-        if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
-                (Activity) context) {
+        // Check the context type before forwarding the received message
+        if (context instanceof Activity) {
+            // Check for current foreground activity
+            if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
+                    (Activity) context) {
+                getHandler(context).post(task);
+            }
+        } else {
             getHandler(context).post(task);
         }
     }
