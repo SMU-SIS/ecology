@@ -43,6 +43,13 @@ public class EcologyMessage {
     }
 
     /**
+     * Copy constructor
+     */
+    public EcologyMessage(EcologyMessage ecologyMessage) {
+        this(ecologyMessage.getArguments());
+    }
+
+    /**
      * Add a data to the message data
      *
      * @param data the data to be added
