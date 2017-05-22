@@ -46,7 +46,9 @@ class ActivityLifecycleTracker implements Application.ActivityLifecycleCallbacks
 
     @Override
     public void onActivityPaused(Activity activity) {
-
+        if (currentForegroundActivity == activity) {
+            currentForegroundActivity = null;
+        }
     }
 
     @Override
