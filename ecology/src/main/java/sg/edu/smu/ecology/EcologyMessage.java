@@ -47,6 +47,9 @@ public class EcologyMessage {
      */
     public EcologyMessage(EcologyMessage ecologyMessage) {
         this(ecologyMessage.getArguments());
+        setSource(ecologyMessage.getSource());
+        setTargetType(ecologyMessage.getTargetType());
+        setTargets(ecologyMessage.getTargets());
     }
 
     /**
