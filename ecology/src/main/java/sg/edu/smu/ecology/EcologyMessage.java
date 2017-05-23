@@ -125,7 +125,7 @@ public class EcologyMessage {
      * @param targets the list of target devices
      */
     public void setTargets(List<String> targets) {
-        this.targets = targets;
+        this.targets = new ArrayList<>(targets);
     }
 
     /**
