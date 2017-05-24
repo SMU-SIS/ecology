@@ -57,7 +57,7 @@ public class EventBroadcastManagerTest {
     }
 
     @Test
-    public void testForwardMsg() {
+    public void testForwardMsgToEventBroadcasters() {
         final List<Object> data = new ArrayList<>();
         data.add(10);
         data.add("test");
@@ -95,9 +95,23 @@ public class EventBroadcastManagerTest {
 
         eventBroadcasterManager.forwardMessage(message);
 
+        // To capture the argument passed to the event broadcasters
+        ArgumentCaptor<EcologyMessage> messageCaptor1 =
+                ArgumentCaptor.forClass(EcologyMessage.class);
+        ArgumentCaptor<EcologyMessage> messageCaptor2 =
+                ArgumentCaptor.forClass(EcologyMessage.class);
+
+        // To verify that all the event broadcasters receive the room message
+        verify(eventBroadcaster1, times(1)).onRoomMessage(messageCaptor1.capture());
+        verify(eventBroadcaster2, times(1)).onRoomMessage(messageCaptor2.capture());
+
+        // Get the argument value
+        EcologyMessage message1 = messageCaptor1.getValue();
+        EcologyMessage message2 = messageCaptor2.getValue();
+
         // To verify that the correct message is forwarded to the event broadcasters
-        verify(eventBroadcaster1, times(1)).onRoomMessage(message);
-        verify(eventBroadcaster2, times(1)).onRoomMessage(message);
+        assertEquals(message.getArguments(), message1.getArguments());
+        assertEquals(message.getArguments(), message2.getArguments());
     }
 
     @Test

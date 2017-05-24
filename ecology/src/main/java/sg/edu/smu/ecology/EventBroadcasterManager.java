@@ -116,7 +116,7 @@ class EventBroadcasterManager {
             post(new Runnable() {
                 @Override
                 public void run() {
-                    entry.getValue().onRoomMessage(new EcologyMessage(msg.getArguments()));
+                    entry.getValue().onRoomMessage(new EcologyMessage(msg));
                 }
             }, entry.getKey());
         }
