@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology;
 
 
+import android.app.Application;
 import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
@@ -78,6 +79,13 @@ public class Ecology {
     private EcologyLooper ecologyLooper;
 
     private Handler connectorHandler;
+
+    /**
+     * The application currently in use
+     */
+    private Application application;
+
+    private ActivityLifecycleTracker activityLifecycleTracker;
 
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
@@ -214,10 +222,16 @@ public class Ecology {
     /**
      * Connect to the ecology.
      */
-    void connect(Context context, String deviceId) {
+    void connect(Context context, String deviceId, Application application) {
         myDeviceId = deviceId;
         connector.connect(context, deviceId);
+        this.application = application;
+
         setConnectorHandler(new Handler(context.getMainLooper()));
+
+        // Register for activity lifecyle tracking
+        activityLifecycleTracker = new ActivityLifecycleTracker();
+        application.registerActivityLifecycleCallbacks(activityLifecycleTracker);
 
         if (isReference) {
             getEcologyDataSync().setData("devices", new HashMap<Object, Object>() {{
@@ -231,6 +245,8 @@ public class Ecology {
      */
     void disconnect() {
         connector.disconnect();
+        // Unregister from activity lifecycle tracking
+        application.unregisterActivityLifecycleCallbacks(activityLifecycleTracker);
         getEcologyLooper().quit();
     }
 
@@ -256,8 +272,13 @@ public class Ecology {
         return connectorHandler;
     }
 
+    ActivityLifecycleTracker getActivityLifecycleTracker() {
+        return activityLifecycleTracker;
+    }
+
     /**
      * To set the connector handler. This is mainly used for unit testing
+     *
      * @param handler the connector handler
      */
     void setConnectorHandler(Handler handler) {
