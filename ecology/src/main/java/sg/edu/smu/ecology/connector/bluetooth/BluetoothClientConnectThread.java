@@ -8,9 +8,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
@@ -87,12 +89,14 @@ class BluetoothClientConnectThread extends Thread {
                         // Close the socket
                         try {
                             if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
+                                closeFileDescriptor(bluetoothSocket);
                                 bluetoothSocket.close();
                             }
                         } catch (IOException e2) {
                             Log.e(TAG, "unable to close() socket during connection failure", e2);
                         }
                     } else {
+                        closeFileDescriptor(bluetoothSocket);
                         Log.i(TAG, "Connection attempt " + (numberOfAttempts + 1) + " failed");
                         if (uuidToTry.toString().contentEquals(uuidsList.get(uuidsList.size() - 1).
                                 toString())) {
@@ -141,11 +145,32 @@ class BluetoothClientConnectThread extends Thread {
             }
         } else {
             try {
+                closeFileDescriptor(bluetoothSocket);
                 bluetoothSocket.close();
                 bluetoothSocket = null;
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * Close the file descriptor
+     *
+     * @param socket the socket in use
+     */
+    private synchronized void closeFileDescriptor(BluetoothSocket socket) {
+        try {
+            Field field = BluetoothSocket.class.getDeclaredField("mPfd");
+            field.setAccessible(true);
+            ParcelFileDescriptor mPfd = (ParcelFileDescriptor) field.get(socket);
+            if (mPfd == null) {
+                return;
+            }
+
+            mPfd.close();
+        } catch (Exception e) {
+            Log.w(TAG, "LocalSocket could not be cleanly closed.");
         }
     }
 }

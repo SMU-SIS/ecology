@@ -11,13 +11,13 @@ import java.util.List;
  * This class is used to save the message data to be sent to other connected devices in the ecology
  */
 public class EcologyMessage {
-    private static final String TAG = EcologyMessage.class.getSimpleName();
     /**
      * The values that target type can have
      */
     public static final int TARGET_TYPE_SERVER = 0;
     public static final int TARGET_TYPE_SPECIFIC = 1;
     public static final int TARGET_TYPE_BROADCAST = 2;
+    private static final String TAG = EcologyMessage.class.getSimpleName();
     /**
      * The content of the message
      */
@@ -40,6 +40,16 @@ public class EcologyMessage {
 
     public EcologyMessage(List<Object> data) {
         addArguments(data);
+    }
+
+    /**
+     * Copy constructor
+     */
+    public EcologyMessage(EcologyMessage ecologyMessage) {
+        this(ecologyMessage.getArguments());
+        setSource(ecologyMessage.getSource());
+        setTargetType(ecologyMessage.getTargetType());
+        setTargets(ecologyMessage.getTargets());
     }
 
     /**
@@ -115,7 +125,7 @@ public class EcologyMessage {
      * @param targets the list of target devices
      */
     public void setTargets(List<String> targets) {
-        this.targets = targets;
+        this.targets = new ArrayList<>(targets);
     }
 
     /**

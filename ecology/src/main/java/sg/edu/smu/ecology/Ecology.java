@@ -1,7 +1,9 @@
 package sg.edu.smu.ecology;
 
 
+import android.app.Application;
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -65,9 +67,25 @@ public class Ecology {
     private DataSyncFactory dataSyncFactory;
 
     /**
+     * Used for creating Ecology Looper instance.
+     */
+    private EcologyLooperFactory ecologyLooperFactory;
+
+    /**
      * Data sync part of the ecology
      */
     private DataSync ecologyDataSync;
+
+    private EcologyLooper ecologyLooper;
+
+    private Handler connectorHandler;
+
+    /**
+     * The application currently in use
+     */
+    private Application application;
+
+    private ActivityLifecycleTracker activityLifecycleTracker;
 
     /**
      * @param ecologyConnector the connector used to send messages to the other devices of the
@@ -75,23 +93,26 @@ public class Ecology {
      * @param isReference      true when the device is the data sync reference
      */
     public Ecology(Connector ecologyConnector, Boolean isReference) {
-        this(ecologyConnector, isReference, new RoomFactory(), new DataSyncFactory());
+        this(ecologyConnector, isReference, new RoomFactory(), new DataSyncFactory(),
+                new EcologyLooperFactory());
     }
 
     /**
      * Special constructor only for testing
      *
-     * @param connector       the connector used to send messages to the other devices of the ecology
-     * @param isReference     true when the device is the data sync reference
-     * @param roomFactory     to create rooms part of this ecology
-     * @param dataSyncFactory to create data sync instance
+     * @param connector            the connector used to send messages to the other devices of the ecology
+     * @param isReference          true when the device is the data sync reference
+     * @param roomFactory          to create rooms part of this ecology
+     * @param dataSyncFactory      to create data sync instance
+     * @param ecologyLooperFactory to create ecology looper instance
      */
     Ecology(final Connector connector, Boolean isReference, RoomFactory roomFactory,
-            DataSyncFactory dataSyncFactory) {
+            DataSyncFactory dataSyncFactory, EcologyLooperFactory ecologyLooperFactory) {
         this.connector = connector;
         this.isReference = isReference;
         this.roomFactory = roomFactory;
         this.dataSyncFactory = dataSyncFactory;
+        this.ecologyLooperFactory = ecologyLooperFactory;
 
         this.connector.setReceiver(new Connector.Receiver() {
 
@@ -151,7 +172,7 @@ public class Ecology {
     /**
      * Sync the device id of the newly connected device in the ecology data sync
      *
-     * @param newDeviceId     the device id of the newly connected device
+     * @param newDeviceId the device id of the newly connected device
      * @param isReference whether the device is the data reference
      */
     private void syncConnectedDeviceId(String newDeviceId, boolean isReference) {
@@ -177,7 +198,7 @@ public class Ecology {
     /**
      * Called when a device is connected
      *
-     * @param deviceId        the id of the device that got connected
+     * @param deviceId    the id of the device that got connected
      * @param isReference if the device is the data reference or not
      */
     private void onDeviceConnected(String deviceId, Boolean isReference) {
@@ -189,7 +210,7 @@ public class Ecology {
     /**
      * Called when a device is disconnected.
      *
-     * @param deviceId        the id of the device that got disconnected
+     * @param deviceId    the id of the device that got disconnected
      * @param isReference if the device is the data reference or not
      */
     private void onDeviceDisconnected(String deviceId, Boolean isReference) {
@@ -201,9 +222,16 @@ public class Ecology {
     /**
      * Connect to the ecology.
      */
-    void connect(Context context, String deviceId) {
+    void connect(Context context, String deviceId, Application application) {
         myDeviceId = deviceId;
         connector.connect(context, deviceId);
+        this.application = application;
+
+        setConnectorHandler(new Handler(context.getMainLooper()));
+
+        // Register for activity lifecyle tracking
+        activityLifecycleTracker = new ActivityLifecycleTracker();
+        application.registerActivityLifecycleCallbacks(activityLifecycleTracker);
 
         if (isReference) {
             getEcologyDataSync().setData("devices", new HashMap<Object, Object>() {{
@@ -217,6 +245,9 @@ public class Ecology {
      */
     void disconnect() {
         connector.disconnect();
+        // Unregister from activity lifecycle tracking
+        application.unregisterActivityLifecycleCallbacks(activityLifecycleTracker);
+        getEcologyLooper().quit();
     }
 
     /**
@@ -226,6 +257,32 @@ public class Ecology {
      */
     public String getMyDeviceId() {
         return myDeviceId;
+    }
+
+    private EcologyLooper getEcologyLooper() {
+        if (ecologyLooper == null) {
+            ecologyLooper = ecologyLooperFactory.createEcologyLooper("EcologyLooperThread");
+            ecologyLooper.start();
+            ecologyLooper.prepareHandler();
+        }
+        return ecologyLooper;
+    }
+
+    private Handler getConnectorHandler() {
+        return connectorHandler;
+    }
+
+    ActivityLifecycleTracker getActivityLifecycleTracker() {
+        return activityLifecycleTracker;
+    }
+
+    /**
+     * To set the connector handler. This is mainly used for unit testing
+     *
+     * @param handler the connector handler
+     */
+    void setConnectorHandler(Handler handler) {
+        connectorHandler = handler;
     }
 
     /**
@@ -249,7 +306,7 @@ public class Ecology {
                                 (Map<String, Boolean>) oldValue);
                     }
                 }
-            }, isReference);
+            }, isReference, this);
         }
         return ecologyDataSync;
     }
@@ -259,16 +316,13 @@ public class Ecology {
      *
      * @param message the message content
      */
-    private void onConnectorMessage(EcologyMessage message) {
-        Integer messageId = (Integer) message.fetchArgument();
-
-        // Check if the received message is an ecology sync data message or a message destined for a
-        // room and route them accordingly.
-        if (messageId == ROOM_MESSAGE_ID) {
-            forwardRoomMessage(message);
-        } else if (messageId == SYNC_DATA_MESSAGE_ID) {
-            getEcologyDataSync().onMessage(message);
-        }
+    private void onConnectorMessage(final EcologyMessage message) {
+        getEcologyLooper().getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                handleMessage(message);
+            }
+        });
     }
 
     /**
@@ -301,7 +355,7 @@ public class Ecology {
         message.addArgument(roomName);
         message.addArgument(ROOM_MESSAGE_ID);
         message.setSource(getMyDeviceId());
-        connector.sendMessage(message);
+        sendConnectorMessage(message);
     }
 
     /**
@@ -312,7 +366,21 @@ public class Ecology {
     void onEcologyDataSyncMessage(EcologyMessage message) {
         message.addArgument(SYNC_DATA_MESSAGE_ID);
         message.setSource(getMyDeviceId());
-        connector.sendMessage(message);
+        sendConnectorMessage(message);
+    }
+
+    /**
+     * Send the message after moving it into the connector's context looper
+     *
+     * @param message the content of the message
+     */
+    private void sendConnectorMessage(final EcologyMessage message) {
+        getConnectorHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                connector.sendMessage(message);
+            }
+        });
     }
 
     /**
@@ -343,7 +411,7 @@ public class Ecology {
     }
 
     static class RoomFactory {
-        public Room createRoom(String roomName, Ecology ecology, Boolean isReference) {
+        Room createRoom(String roomName, Ecology ecology, Boolean isReference) {
             return new Room(roomName, ecology, isReference);
         }
     }
@@ -351,8 +419,43 @@ public class Ecology {
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
-                                boolean dataSyncReference) {
-            return new DataSync(connector, dataSyncChangeListener, dataSyncReference);
+                                boolean dataSyncReference, Ecology ecology) {
+            return new DataSync(connector, dataSyncChangeListener, dataSyncReference, ecology);
         }
+    }
+
+    static class EcologyLooperFactory {
+        EcologyLooper createEcologyLooper(String name) {
+            return new EcologyLooper(name);
+        }
+    }
+
+    /**
+     * Handle the messages in the ecology looper
+     *
+     * @param msg the message in th ecology looper
+     */
+    private void handleMessage(EcologyMessage msg) {
+        // Check the message type and route them accordingly.
+        switch ((Integer) msg.fetchArgument()) {
+            // A message destined for a room
+            case ROOM_MESSAGE_ID:
+                forwardRoomMessage(msg);
+                break;
+
+            // A message destined for ecology data sync
+            case SYNC_DATA_MESSAGE_ID:
+                getEcologyDataSync().onMessage(msg);
+                break;
+        }
+    }
+
+    /**
+     * Get the handler associated with the ecology looper
+     *
+     * @return the handler instance
+     */
+    Handler getHandler() {
+        return getEcologyLooper().getHandler();
     }
 }
