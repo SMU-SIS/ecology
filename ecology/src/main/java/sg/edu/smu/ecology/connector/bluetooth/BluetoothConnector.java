@@ -39,6 +39,8 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     static final int MESSAGE_RECEIVED = 0x400 + 1;
     static final int SOCKET_CONNECTED = 0x400 + 2;
     static final int SOCKET_CLOSE = 0x400 + 3;
+    static final int DEVICE_READY = 0x400 + 4;
+
     // Seven randomly-generated UUIDs. These must match on both server and client.
     private static final List<UUID> uuidsList = Arrays.asList(
             UUID.fromString("b7746a40-c758-4868-aa19-7ac6b3475dfc"),
@@ -183,6 +185,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
                 onConnectorConnected = false;
                 Log.d(TAG, "Socket Close");
                 onDeviceDisconnected(msg);
+                break;
+
+            case DEVICE_READY:
+                getReceiver().onConnected();
                 break;
         }
         return true;

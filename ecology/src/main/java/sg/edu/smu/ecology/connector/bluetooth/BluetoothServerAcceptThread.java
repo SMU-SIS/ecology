@@ -64,6 +64,7 @@ class BluetoothServerAcceptThread extends Thread {
             for (UUID uuid : uuidsList) {
                 Log.i(TAG, "Server Listen " + index++);
                 serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, uuid);
+                handler.obtainMessage(BluetoothConnector.DEVICE_READY);
                 socket = serverSocket.accept();
                 if (socket != null) {
                     serverSocket.close();
