@@ -134,6 +134,7 @@ public class Ecology {
             @Override
             public void onConnected() {
                 Ecology.this.getEcologyDataSync().onConnected();
+                Ecology.this.onEcologyConnected();
             }
 
             @Override
@@ -216,6 +217,17 @@ public class Ecology {
     private void onDeviceDisconnected(String deviceId, Boolean isReference) {
         for (Room room : rooms.values()) {
             room.onDeviceDisconnected(deviceId, isReference);
+        }
+    }
+
+    /**
+     * Called when device is connected to ecology. If the device is the reference, then it means
+     * it's ready for accepting connections and if it is a non-reference device, then it means it's
+     * connected to the reference.
+     */
+    private void onEcologyConnected() {
+        for (Room room : rooms.values()) {
+            room.onEcologyConnected();
         }
     }
 
