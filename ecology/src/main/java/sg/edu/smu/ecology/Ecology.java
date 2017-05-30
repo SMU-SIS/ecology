@@ -123,12 +123,12 @@ public class Ecology {
 
             @Override
             public void onDeviceConnected(String deviceId) {
-                syncConnectedDeviceId(deviceId, false);
+                Ecology.this.syncConnectedDeviceId(deviceId, false);
             }
 
             @Override
             public void onDeviceDisconnected(String deviceId) {
-                syncDisconnectedDeviceId(deviceId);
+                Ecology.this.syncDisconnectedDeviceId(deviceId);
             }
 
             @Override
