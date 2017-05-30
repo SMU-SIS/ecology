@@ -194,6 +194,16 @@ public class Room {
         }
     }
 
+    /**
+     * Called when device is connected to ecology. If the device is the reference, then it means
+     * it's ready for accepting connections and if it is a non-reference device, then it means it's
+     * connected to the reference.
+     */
+    void onEcologyConnected() {
+        getEventBroadcasterManager().postLocalEvent(Settings.ECOLOGY_CONNECTED,
+                Collections.emptyList());
+    }
+
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
