@@ -8,4 +8,5 @@ public class Settings {
     public static final String DEVICE_CONNECTED = "device:connected";
     public static final String DEVICE_ID_EXCHANGE = "deviceId";
     public static final String SYNC_DATA = "syncData";
+    public static final String ECOLOGY_CONNECTED = "ecology:connected";
 }
