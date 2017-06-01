@@ -1,6 +1,5 @@
 package sg.edu.smu.ecology;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Handler;
 
@@ -56,7 +55,8 @@ class EventBroadcasterManager {
                         public void onEventBroadcasterMessage(EcologyMessage message) {
                             sendMessage(message);
                         }
-                    }
+                    },
+                    context, room.getEcology().getActivityLifecycleTracker()
             );
             addEventBroadcaster(context, eventBroadcaster);
         }
@@ -147,16 +147,7 @@ class EventBroadcasterManager {
      * @param context the context
      */
     private void post(Runnable task, Context context) {
-        // Check the context type before forwarding the received message
-        if (context instanceof Activity) {
-            // Check for current foreground activity
-            if (room.getEcology().getActivityLifecycleTracker().getCurrentForegroundActivity() ==
-                    (Activity) context) {
-                getHandler(context).post(task);
-            }
-        } else {
-            getHandler(context).post(task);
-        }
+        getHandler(context).post(task);
     }
 
     private Map<Context, EventBroadcaster> getEventBroadcastersMap() {
@@ -164,8 +155,9 @@ class EventBroadcasterManager {
     }
 
     static class EventBroadcasterFactory {
-        EventBroadcaster createEventBroadcaster(EventBroadcaster.Connector connector) {
-            return new EventBroadcaster(connector);
+        EventBroadcaster createEventBroadcaster(EventBroadcaster.Connector connector,
+                                                Context context, ActivityLifecycleTracker tracker) {
+            return new EventBroadcaster(connector, context, tracker);
         }
     }
 }
