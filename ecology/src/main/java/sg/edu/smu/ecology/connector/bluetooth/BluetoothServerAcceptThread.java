@@ -38,6 +38,10 @@ class BluetoothServerAcceptThread extends Thread {
     private int clientId = 0;
     private SparseArray<UUID> clientUuidList = new SparseArray<>();
     private boolean restartUuidsListening = false;
+    /**
+     * Indicates if the server is ready for accepting connections or not
+     */
+    private boolean serverReady;
 
     BluetoothServerAcceptThread(BluetoothAdapter bluetoothAdapter, List<UUID> uuidsList,
                                 Handler handler) {
@@ -48,7 +52,7 @@ class BluetoothServerAcceptThread extends Thread {
 
     @Override
     public void run() {
-        Log.i(TAG, "run method ");
+        serverReady = false;
         listenForConnectionRequests(uuidsList);
     }
 
@@ -64,7 +68,10 @@ class BluetoothServerAcceptThread extends Thread {
             for (UUID uuid : uuidsList) {
                 Log.i(TAG, "Server Listen " + index++);
                 serverSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, uuid);
-                handler.obtainMessage(BluetoothConnector.DEVICE_READY);
+                if(!serverReady) {
+                    handler.obtainMessage(BluetoothConnector.DEVICE_READY).sendToTarget();
+                    serverReady = true;
+                }
                 socket = serverSocket.accept();
                 if (socket != null) {
                     serverSocket.close();
