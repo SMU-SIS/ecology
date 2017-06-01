@@ -15,17 +15,48 @@ import java.util.Map;
 public class EventBroadcaster {
 
     private final static String TAG = EventBroadcaster.class.getSimpleName();
+
+    /**
+     * This class represents an entry of the given event type. Each entry includes an event
+     * receiver of the event and a boolean value denoting if this event is a background event or
+     * not. An event type can have multiple entries.
+     */
+    private class EventBroadcasterEntry {
+        private final EventReceiver eventReceiver;
+        private final boolean backgroundEvent;
+
+        EventBroadcasterEntry(EventReceiver eventReceiver, boolean backgroundEvent) {
+            this.eventReceiver = eventReceiver;
+            this.backgroundEvent = backgroundEvent;
+        }
+
+        EventReceiver getEventReceiver() {
+            return eventReceiver;
+        }
+
+        boolean isBackgroundEvent() {
+            return backgroundEvent;
+        }
+    }
+
     /**
      * The recipient for event broadcaster messages.
      */
     private final Connector connector;
-    private Map<String, List<EventReceiver>> eventReceivers = new HashMap<>();
+    /**
+     * The context of this event broadcaster
+     */
+    private Context context;
+    private ActivityLifecycleTracker activityLifecycleTracker;
+    private Map<String, List<EventBroadcasterEntry>> eventReceivers = new HashMap<>();
 
     /**
      * @param connector the recipient for event broadcaster messages.
      */
-    public EventBroadcaster(Connector connector) {
+    public EventBroadcaster(Connector connector, Context context, ActivityLifecycleTracker tracker) {
         this.connector = connector;
+        this.context = context;
+        activityLifecycleTracker = tracker;
     }
 
     /**
