@@ -56,7 +56,7 @@ class EventBroadcasterManager {
                             sendMessage(message);
                         }
                     },
-                    context, room.getEcology().getActivityLifecycleTracker()
+                    context, room.getEcology()
             );
             addEventBroadcaster(context, eventBroadcaster);
         }
@@ -156,8 +156,8 @@ class EventBroadcasterManager {
 
     static class EventBroadcasterFactory {
         EventBroadcaster createEventBroadcaster(EventBroadcaster.Connector connector,
-                                                Context context, ActivityLifecycleTracker tracker) {
-            return new EventBroadcaster(connector, context, tracker);
+                                                Context context, Ecology ecology) {
+            return new EventBroadcaster(connector, context, ecology);
         }
     }
 }

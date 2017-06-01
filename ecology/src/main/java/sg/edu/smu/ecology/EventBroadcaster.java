@@ -56,10 +56,10 @@ public class EventBroadcaster {
     /**
      * @param connector the recipient for event broadcaster messages.
      */
-    public EventBroadcaster(Connector connector, Context context, ActivityLifecycleTracker tracker) {
+    public EventBroadcaster(Connector connector, Context context, Ecology ecology) {
         this.connector = connector;
         this.context = context;
-        activityLifecycleTracker = tracker;
+        activityLifecycleTracker = ecology.getActivityLifecycleTracker();
     }
 
     /**
