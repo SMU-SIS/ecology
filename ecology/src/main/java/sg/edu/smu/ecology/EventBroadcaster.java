@@ -96,22 +96,16 @@ public class EventBroadcaster {
 
         // Forward the event to the receivers.
         for (EventBroadcasterEntry eventBroadcasterEntry : thisEventBroadcasterEntry) {
-            // Check if the event is required in the background or not
-            if (eventBroadcasterEntry.isBackgroundEvent()) {
-                // Passed as a background event
-                eventBroadcasterEntry.getEventReceiver().handleEvent(eventType, receivedMessage);
-            } else {
-                // Check the context type before forwarding the received message
-                if (context instanceof Activity) {
-                    // Check for current foreground activity
-                    if (activityLifecycleTracker.getCurrentForegroundActivity() ==
-                            (Activity) context) {
-                        eventBroadcasterEntry.getEventReceiver().handleEvent(eventType, receivedMessage);
-                    }
-                } else {
+            // Check if the event is a background event or not and also the context instance of
+            // the event broadcaster. If it's not a background event and it's context is an
+            // instance of activity, then forward the event only to the current foreground activity.
+            if (!eventBroadcasterEntry.isBackgroundEvent() && context instanceof Activity) {
+                if (activityLifecycleTracker.getCurrentForegroundActivity() ==
+                        (Activity) context) {
                     eventBroadcasterEntry.getEventReceiver().handleEvent(eventType, receivedMessage);
                 }
-
+            } else {
+                eventBroadcasterEntry.getEventReceiver().handleEvent(eventType, receivedMessage);
             }
         }
     }
