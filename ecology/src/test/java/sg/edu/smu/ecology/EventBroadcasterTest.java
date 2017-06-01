@@ -1,5 +1,7 @@
 package sg.edu.smu.ecology;
 
+import android.content.Context;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,12 +33,16 @@ public class EventBroadcasterTest {
     private EventReceiver eventReceiver1, eventReceiver2;
     @Mock
     EventBroadcaster.Connector connector;
+    @Mock
+    Ecology ecology;
+    @Mock
+    Context context;
     private EventBroadcaster eventBroadcaster;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-        eventBroadcaster = new EventBroadcaster(connector);
+        eventBroadcaster = new EventBroadcaster(connector, context, ecology);
     }
 
     @After
