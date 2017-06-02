@@ -303,4 +303,18 @@ public class RoomTest {
         verify(eventBroadcasterManager, times(1)).postLocalEvent(deviceDisconnected,
                 Collections.<Object>singletonList(deviceId));
     }
+
+    // Check if a local event is published when the room receives ecology connected message
+    @Test
+    public void testOnEcologyConnectedMessage() {
+        PowerMockito.when(eBMFactory.createEventBroadcasterManager(any(Room.class))).thenReturn(
+                eventBroadcasterManager);
+        eventBroadcasterManager = room.getEventBroadcasterManager();
+
+        room.onEcologyConnected();
+        String ecologyConnected = "ecology:connected";
+        // Verify that a local event is published with correct data
+        verify(eventBroadcasterManager, times(1)).postLocalEvent(ecologyConnected,
+                Collections.<Object>emptyList());
+    }
 }
