@@ -575,4 +575,35 @@ public class EcologyTest {
         verify(room, times(1)).onDeviceDisconnected(deviceId, false);
         verify(room1, times(1)).onDeviceDisconnected(deviceId, false);
     }
+
+    // This test is to verify that all rooms in the ecology receives ecology connected message
+    @Test
+    public void testEcologyConnected() {
+        // To capture the argument in the setReceiver method
+        ArgumentCaptor<Connector.Receiver> receiverCaptor = ArgumentCaptor.forClass(Connector.Receiver.class);
+        verify(connector).setReceiver(receiverCaptor.capture());
+        // Create a local mock receiver
+        Connector.Receiver receiver;
+        receiver = receiverCaptor.getValue();
+
+        PowerMockito.when(dataSyncFactory.createDataSync(any(DataSync.Connector.class),
+                any(DataSync.SyncDataChangeListener.class), any(Boolean.class), any(Ecology.class)))
+                .thenReturn(ecologyDataSync);
+
+        // To get the mock room
+        PowerMockito.when(roomFactory.createRoom("room", ecology, false)).thenReturn(room);
+        room = ecology.getRoom("room");
+
+        // One more room is added to the ecology
+        Room room1 = mock(Room.class);
+        PowerMockito.when(roomFactory.createRoom("room1", ecology, false)).thenReturn(room1);
+        room1 = ecology.getRoom("room1");
+
+        // Receiver's onConnected method is invoked
+        receiver.onConnected();
+
+        // To verify that all the rooms in the ecology receive the message
+        verify(room, times(1)).onEcologyConnected();
+        verify(room1, times(1)).onEcologyConnected();
+    }
 }
