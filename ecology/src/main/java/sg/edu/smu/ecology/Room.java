@@ -195,9 +195,7 @@ public class Room {
     }
 
     /**
-     * Called when device is connected to ecology. If the device is the reference, then it means
-     * it's ready for accepting connections and if it is a non-reference device, then it means it's
-     * connected to the reference.
+     * Called when this device is connected to the ecology.
      */
     void onEcologyConnected() {
         getEventBroadcasterManager().postLocalEvent(Settings.ECOLOGY_CONNECTED,
