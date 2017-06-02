@@ -16,7 +16,6 @@ import java.util.Map;
  * Event broadcaster are used to publish and received events to and from anywhere in the ecology.
  */
 public class EventBroadcaster {
-
     private final static String TAG = EventBroadcaster.class.getSimpleName();
 
     /**
@@ -105,6 +104,8 @@ public class EventBroadcaster {
                     eventBroadcasterEntry.getEventReceiver().handleEvent(eventType, receivedMessage);
                 }
             } else {
+                // This means either the event is a background event or the event broadcaster
+                // context is not an activity context.
                 eventBroadcasterEntry.getEventReceiver().handleEvent(eventType, receivedMessage);
             }
         }
@@ -117,6 +118,7 @@ public class EventBroadcaster {
      * @param eventReceiver the receiver to subscribed.
      */
     public void subscribe(String eventType, EventReceiver eventReceiver) {
+        // The default value for background event is false
         subscribe(eventType, eventReceiver, false);
     }
 
