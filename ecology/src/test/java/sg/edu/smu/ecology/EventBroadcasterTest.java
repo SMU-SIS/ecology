@@ -1,5 +1,6 @@
 package sg.edu.smu.ecology;
 
+import android.app.Activity;
 import android.content.Context;
 
 import org.junit.After;
@@ -37,6 +38,10 @@ public class EventBroadcasterTest {
     Ecology ecology;
     @Mock
     Context context;
+    @Mock
+    Activity activityContext1, activityContext2;
+    @Mock
+    ActivityLifecycleTracker activityLifecycleTracker;
     private EventBroadcaster eventBroadcaster;
 
     @Before
@@ -289,4 +294,153 @@ public class EventBroadcasterTest {
         eventBroadcaster.onRoomMessage(message);
     }
 
+    // This test checks if an activity in the background receives the subscribed event if it has not
+    // subscribed it as a background event
+    @Test
+    public void testBackgroundActivityWithNoBackgroundEvent() {
+        PowerMockito.when(ecology.getActivityLifecycleTracker()).
+                thenReturn(activityLifecycleTracker);
+
+        // The current foreground activity is not the event broadcaster context activity. Hence only
+        // the background events should be received
+        PowerMockito.when(activityLifecycleTracker.getCurrentForegroundActivity()).
+                thenReturn(activityContext2);
+
+        // Event broadcaster with an activity context
+        EventBroadcaster eventBroadcaster1 = new EventBroadcaster(connector, activityContext1,
+                ecology);
+
+        // Add an event receiver for the event "bgTest1". This is not a background event
+        eventBroadcaster1.subscribe("bgTest1", eventReceiver1, false);
+
+        // Add an event receiver for the event "bgTest2". This is also not a background event
+        eventBroadcaster1.subscribe("bgTest2", eventReceiver2);
+
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, 23);
+
+        eventBroadcaster1.publish("bgTest1", data);
+        // To capture the argument in the onEventBroadcasterMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that the right data reaches the room.
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "bgTest1"));
+
+        eventBroadcaster1.publish("bgTest2", data);
+        // To capture the argument in the onEventBroadcasterMessage method
+        messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(2)).onEventBroadcasterMessage(messageCaptor.capture());
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that the right data reaches the room.
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "bgTest2"));
+
+        // Verify that the event was not received by the local receivers.
+        verify(eventReceiver1, never()).handleEvent("bgTest1", data);
+        verify(eventReceiver2, never()).handleEvent("bgTest2", data);
+    }
+
+    // This test checks if an activity in the background receives the subscribed event if it has
+    // subscribed it as a background event
+    @Test
+    public void testBackgroundActivityWithBackgroundEvent() {
+        PowerMockito.when(ecology.getActivityLifecycleTracker()).
+                thenReturn(activityLifecycleTracker);
+
+        // The current foreground activity is not the event broadcaster context activity. Hence only
+        // the background events should be received
+        PowerMockito.when(activityLifecycleTracker.getCurrentForegroundActivity()).
+                thenReturn(activityContext2);
+
+        // Event broadcaster with an activity context
+        EventBroadcaster eventBroadcaster1 = new EventBroadcaster(connector, activityContext1,
+                ecology);
+
+        // Add an event receiver for the event "bgTest1". This is not a background event
+        eventBroadcaster1.subscribe("bgTest1", eventReceiver1, false);
+
+        // Add an event receiver for the event "bgTest2". This is a background event
+        eventBroadcaster1.subscribe("bgTest2", eventReceiver2, true);
+
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, 23);
+
+        eventBroadcaster1.publish("bgTest1", data);
+        // To capture the argument in the onEventBroadcasterMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that the right data reaches the room.
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "bgTest1"));
+
+        eventBroadcaster1.publish("bgTest2", data);
+        // To capture the argument in the onEventBroadcasterMessage method
+        messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(2)).onEventBroadcasterMessage(messageCaptor.capture());
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that the right data reaches the room.
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "bgTest2"));
+
+        // Verify that only bgTest2 was received since it's a background event
+        verify(eventReceiver1, never()).handleEvent("bgTest1", data);
+        verify(eventReceiver2, times(1)).handleEvent("bgTest2", data);
+    }
+
+    // This test checks if an activity in the foreground receives the subscribed event if it has not
+    // subscribed it as a background event
+    @Test
+    public void testForegroundActivityWithNoBackgroundEvent() {
+        PowerMockito.when(ecology.getActivityLifecycleTracker()).
+                thenReturn(activityLifecycleTracker);
+
+        // The current foreground activity is same as the event broadcaster context activity.
+        // Hence the the event should be received
+        PowerMockito.when(activityLifecycleTracker.getCurrentForegroundActivity()).
+                thenReturn(activityContext1);
+
+        // Event broadcaster with an activity context
+        EventBroadcaster eventBroadcaster1 = new EventBroadcaster(connector, activityContext1,
+                ecology);
+
+        // Add an event receiver for the event "bgTest1". This is not a background event
+        eventBroadcaster1.subscribe("bgTest1", eventReceiver1, false);
+
+        // Add an event receiver for the event "bgTest2". This is also not a background event
+        eventBroadcaster1.subscribe("bgTest2", eventReceiver2);
+
+        // Test data
+        List<Object> data = Arrays.<Object>asList(1, 23);
+
+        eventBroadcaster1.publish("bgTest1", data);
+        // To capture the argument in the onEventBroadcasterMessage method
+        ArgumentCaptor<EcologyMessage> messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(1)).onEventBroadcasterMessage(messageCaptor.capture());
+        // Create a local mock ecology message
+        EcologyMessage messageArgument;
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that the right data reaches the room.
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "bgTest1"));
+
+        eventBroadcaster1.publish("bgTest2", data);
+        // To capture the argument in the onEventBroadcasterMessage method
+        messageCaptor = ArgumentCaptor.forClass(EcologyMessage.class);
+        verify(connector, times(2)).onEventBroadcasterMessage(messageCaptor.capture());
+        messageArgument = messageCaptor.getValue();
+
+        // Verify that the right data reaches the room.
+        assertEquals(messageArgument.getArguments(), Arrays.asList(1, 23, "bgTest2"));
+
+        // Verify that the event was received by the local receivers.
+        verify(eventReceiver1, times(1)).handleEvent("bgTest1", data);
+        verify(eventReceiver2, times(1)).handleEvent("bgTest2", data);
+    }
 }
