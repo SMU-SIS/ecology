@@ -139,13 +139,14 @@ public class EventBroadcastManagerTest {
         });
 
         PowerMockito.when(eventBroadcasterFactory.createEventBroadcaster(any(EventBroadcaster.
-                Connector.class))).thenReturn(eventBroadcaster1);
+                Connector.class), any(Context.class), any(Ecology.class))).thenReturn(eventBroadcaster1);
         eventBroadcasterManager.getEventBroadcaster(context1);
 
         // To capture the argument in the createDataSync method
         ArgumentCaptor<EventBroadcaster.Connector> connectorCaptor =
                 ArgumentCaptor.forClass(EventBroadcaster.Connector.class);
-        verify(eventBroadcasterFactory).createEventBroadcaster(connectorCaptor.capture());
+        verify(eventBroadcasterFactory).createEventBroadcaster(connectorCaptor.capture(),
+                any(Context.class), any(Ecology.class));
         EventBroadcaster.Connector eventBroadcasterConnector = connectorCaptor.getValue();
 
         // When a message is received from event broadcaster
