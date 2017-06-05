@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public class DataEncoder {
 
-    private static CharsetEncoder cse = Charset.forName("UTF-8").newEncoder();
+    private static CharsetEncoder charsetEncoder = Charset.forName("UTF-8").newEncoder();
 
     //Write datamessage into iobuffer.
     public void encodeMessage(MessageData messageData, IoBuffer buffer)
@@ -90,7 +90,7 @@ public class DataEncoder {
     private void write(String s, IoBuffer buffer)
             throws CharacterCodingException {
         int initialBufferLength = buffer.position();
-        buffer.putString(s, cse);
+        buffer.putString(s, charsetEncoder);
         buffer.put((byte) 0);
         padBuffer((buffer.position() - initialBufferLength), buffer);
     }

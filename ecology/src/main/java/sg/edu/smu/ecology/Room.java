@@ -194,6 +194,14 @@ public class Room {
         }
     }
 
+    /**
+     * Called when this device is connected to the ecology.
+     */
+    void onEcologyConnected() {
+        getEventBroadcasterManager().postLocalEvent(Settings.ECOLOGY_CONNECTED,
+                Collections.emptyList());
+    }
+
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,
