@@ -85,8 +85,8 @@ public class EventBroadcaster {
     // Forward an event to the receivers.
     private void passEventToReceivers(String eventType, List<Object> data) {
         // Fetch the list of event broadcaster entries for this particular event type.
-        List<EventBroadcasterEntry> thisEventBroadcasterEntry = eventReceivers.get(eventType);
-        if (thisEventBroadcasterEntry == null) {
+        List<EventBroadcasterEntry> thisEventBroadcasterEntries = eventReceivers.get(eventType);
+        if (thisEventBroadcasterEntries == null) {
             return;
         }
 
@@ -94,7 +94,7 @@ public class EventBroadcaster {
         List<Object> receivedMessage = Collections.unmodifiableList(data);
 
         // Forward the event to the receivers.
-        for (EventBroadcasterEntry eventBroadcasterEntry : thisEventBroadcasterEntry) {
+        for (EventBroadcasterEntry eventBroadcasterEntry : thisEventBroadcasterEntries) {
             // Check if the event is a background event or not and also the context instance of
             // the event broadcaster. If it's not a background event and it's context is an
             // instance of activity, then forward the event only to the current foreground activity.
@@ -130,14 +130,14 @@ public class EventBroadcaster {
      * @param backgroundEvent if the event is a background event or not
      */
     public void subscribe(String eventType, EventReceiver eventReceiver, boolean backgroundEvent) {
-        List<EventBroadcasterEntry> thisEventBroadcasterEntry = eventReceivers.get(eventType);
+        List<EventBroadcasterEntry> thisEventBroadcasterEntries = eventReceivers.get(eventType);
 
         // If no event broadcaster entry has been registered for this event yet, create a list.
-        if (thisEventBroadcasterEntry == null) {
-            thisEventBroadcasterEntry = new ArrayList<>();
-            eventReceivers.put(eventType, thisEventBroadcasterEntry);
+        if (thisEventBroadcasterEntries == null) {
+            thisEventBroadcasterEntries = new ArrayList<>();
+            eventReceivers.put(eventType, thisEventBroadcasterEntries);
         }
-        thisEventBroadcasterEntry.add(new EventBroadcasterEntry(eventReceiver, backgroundEvent));
+        thisEventBroadcasterEntries.add(new EventBroadcasterEntry(eventReceiver, backgroundEvent));
     }
 
     /**
@@ -147,17 +147,17 @@ public class EventBroadcaster {
      * @param eventReceiver the receiver to unsubscribed
      */
     public void unsubscribe(String eventType, EventReceiver eventReceiver) {
-        List<EventBroadcasterEntry> thisEventBroadcasterEntry = eventReceivers.get(eventType);
+        List<EventBroadcasterEntry> thisEventBroadcasterEntries = eventReceivers.get(eventType);
 
-        if (thisEventBroadcasterEntry != null) {
-            for (EventBroadcasterEntry eventBroadcasterEntry : thisEventBroadcasterEntry) {
+        if (thisEventBroadcasterEntries != null) {
+            for (EventBroadcasterEntry eventBroadcasterEntry : thisEventBroadcasterEntries) {
                 if (eventBroadcasterEntry.getEventReceiver() == eventReceiver) {
-                    thisEventBroadcasterEntry.remove(eventBroadcasterEntry);
+                    thisEventBroadcasterEntries.remove(eventBroadcasterEntry);
                 }
             }
 
             // If no event broadcaster entry exists for this particular event type, remove the list.
-            if (thisEventBroadcasterEntry.isEmpty()) {
+            if (thisEventBroadcasterEntries.isEmpty()) {
                 eventReceivers.remove(eventType);
             }
         }
