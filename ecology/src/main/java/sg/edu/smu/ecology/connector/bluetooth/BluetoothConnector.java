@@ -138,8 +138,10 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         // To enable bluetooth if not already enabled.
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult((Activity) context, enableBtIntent,
-                    REQUEST_ENABLE_BT, null);
+            if(context instanceof Activity) {
+                startActivityForResult((Activity) context, enableBtIntent,
+                        REQUEST_ENABLE_BT, null);
+            }
         } else {
             // Bluetooth is already enabled on the device
             addPairedDevices();
