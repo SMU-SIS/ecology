@@ -7,22 +7,23 @@ import sg.edu.smu.ecology.connector.Connector;
 
 /**
  * Created by anurooppv on 1/8/2016.
- * This class is used to get Ecology instance required to connect and send messages to other devices
+ * This class is used to create the Ecology instance required to get connected. Once connected,
+ * this class can be used to retrieve the created ecology instance. Ecology is created only once
+ * per application.
  * <p>
  */
 public class EcologyCreator {
-
     private static final String TAG = EcologyCreator.class.getSimpleName();
     private static Ecology ecology;
 
     /**
-     * Initial connection to the ecology - returns the ecology instance
+     * Connect to the ecology. 
      *
-     * @param connector the connector that connects to the ecology
-     * @param context   the context of the application
-     * @param deviceId  the id of the device
-     * @param isDataReference whether it is the data reference or not
-     * @param application the application currently in use
+     * @param connector       the connector that connects to the ecology
+     * @param context         the context of the application/activity
+     * @param deviceId        the id of this device
+     * @param isDataReference whether this device should be the data reference or not
+     * @param application     the application currently in use
      * @return the ecology instance
      */
     public static Ecology connect(Connector connector, Context context, String deviceId,
@@ -39,12 +40,18 @@ public class EcologyCreator {
         return ecology;
     }
 
-    // Returns the ecology instance once the ecology is connected
+    /**
+     * Get the ecology instance to which the device is currently connected to.
+     *
+     * @return the ecology instance
+     */
     public static Ecology getEcology() {
         return ecology;
     }
 
-    // Disconnects from the ecology
+    /**
+     * Disconnect from the ecology
+     */
     public static void disconnect() {
         ecology.disconnect();
         ecology = null;
@@ -55,5 +62,4 @@ public class EcologyCreator {
             super(message);
         }
     }
-
 }
