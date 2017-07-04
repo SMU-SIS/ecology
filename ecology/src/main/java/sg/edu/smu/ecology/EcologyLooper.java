@@ -8,9 +8,10 @@ import android.os.Handler;
 import android.os.HandlerThread;
 
 /**
- * The looper associated with the ecology
+ * The looper associated with the ecology.
  */
 class EcologyLooper extends HandlerThread {
+    private static final String TAG = EcologyLooper.class.getSimpleName();
     private Handler handler;
 
     EcologyLooper(String name) {

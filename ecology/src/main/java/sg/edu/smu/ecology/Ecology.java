@@ -18,7 +18,8 @@ import sg.edu.smu.ecology.connector.Connector;
 /**
  * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
  * <p>
- * Main Ecology class. Represents a group of devices closely linked together.
+ * Main Ecology class. Represents a group of devices closely linked together. The connected devices
+ * can synchronize data across them, subscribe to events, send events
  */
 public class Ecology {
     /**
@@ -263,7 +264,7 @@ public class Ecology {
     }
 
     /**
-     * Get the device id of the device
+     * Get the device id of this device
      *
      * @return the device id
      */
@@ -271,6 +272,11 @@ public class Ecology {
         return myDeviceId;
     }
 
+    /**
+     * Get the looper associated with the ecology
+     *
+     * @return the ecology looper
+     */
     private EcologyLooper getEcologyLooper() {
         if (ecologyLooper == null) {
             ecologyLooper = ecologyLooperFactory.createEcologyLooper("EcologyLooperThread");
@@ -280,10 +286,20 @@ public class Ecology {
         return ecologyLooper;
     }
 
+    /**
+     * Get the connector handler instance.
+     *
+     * @return the connector handler instance.
+     */
     private Handler getConnectorHandler() {
         return connectorHandler;
     }
 
+    /**
+     * Get the activity lifecycle tracker instance.
+     *
+     * @return the activity lifecycle tracker instance.
+     */
     ActivityLifecycleTracker getActivityLifecycleTracker() {
         return activityLifecycleTracker;
     }
@@ -396,7 +412,9 @@ public class Ecology {
     }
 
     /**
-     * @return the list of available devices in the ecology
+     * Get the list of available devices in the ecology.
+     *
+     * @return the list of device ids of the available devices in the ecology
      */
     public List<String> getAvailableDevices() {
         if (getEcologyDataSync().getData("devices") != null) {
@@ -411,7 +429,7 @@ public class Ecology {
      * Get a room. The room will be created if needed.
      *
      * @param roomName the name of the room
-     * @return the room
+     * @return the room instance
      */
     public Room getRoom(String roomName) {
         Room room = rooms.get(roomName);

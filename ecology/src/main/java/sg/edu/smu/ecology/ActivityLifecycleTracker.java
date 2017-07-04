@@ -10,7 +10,7 @@ import android.os.Bundle;
 
 /**
  * This class tracks the activity life cycles and hence ecology can query to know the current states
- * of the activities
+ * of the activities in the current application.
  */
 class ActivityLifecycleTracker implements Application.ActivityLifecycleCallbacks {
     private static final String TAG = ActivityLifecycleTracker.class.getSimpleName();
@@ -23,7 +23,7 @@ class ActivityLifecycleTracker implements Application.ActivityLifecycleCallbacks
     /**
      * Get the activity that is currently in the foreground
      *
-     * @return the foreground activity
+     * @return the current foreground activity
      */
     Activity getCurrentForegroundActivity() {
         return currentForegroundActivity;

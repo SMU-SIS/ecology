@@ -7,9 +7,9 @@ import sg.edu.smu.ecology.connector.Connector;
 
 /**
  * Created by anurooppv on 1/8/2016.
- * This class is used to create the Ecology instance required to get connected. Once connected,
- * this class can be used to retrieve the created ecology instance. Ecology is created only once
- * per application.
+ * This class is used to create the Ecology instance. The device can be connected to the Ecology to
+ * send events and sync data across other connected devices in the ecology. This class also helps to
+ * disconnect from the ecology when required.
  * <p>
  */
 public class EcologyCreator {
@@ -41,8 +41,8 @@ public class EcologyCreator {
     }
 
     /**
-     * Get the ecology instance to which the device is currently connected to.
-     *
+     * Get the ecology instance. The ecology is created only once per application. Hence this method
+     * is used to get the already created ecology instance.
      * @return the ecology instance
      */
     public static Ecology getEcology() {
@@ -50,7 +50,8 @@ public class EcologyCreator {
     }
 
     /**
-     * Disconnect from the ecology
+     * Disconnect from ecology. This disconnects this device from ecology and hence from the devices
+     * it was connected to.
      */
     public static void disconnect() {
         ecology.disconnect();
