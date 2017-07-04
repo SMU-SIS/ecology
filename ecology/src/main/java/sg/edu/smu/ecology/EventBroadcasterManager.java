@@ -12,7 +12,8 @@ import java.util.Map;
  */
 
 /**
- * This class is responsible for the creation of event broadcasters and also manage the loopers
+ * This class is responsible for the creation of event broadcasters and also manage their associated
+ * contexts.
  */
 class EventBroadcasterManager {
     private static final String TAG = EventBroadcasterManager.class.getSimpleName();
