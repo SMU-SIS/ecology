@@ -10,7 +10,7 @@ Entry point to Ecology is through a Connector. Currently, this library has one c
 
 ### Bluetooth Connector
 
-This inbuilt connector follows a client-server model. One device in the Ecology must act as the server and rest of the devices will act as clients. Server device can use the Bluetooth Server Connector to connect to the ecology while the client devices can use the Bluetooth Client Connector for the connection.
+This inbuilt connector follows a client-server model. One device in the Ecology must act as the server and rest of the devices will act as clients. Server device can use the Bluetooth Server Connector to connect to the ecology while the client devices can use the Bluetooth Client Connector for the connection. **To use this connector, the client devices must be already paired with the server device via Bluetooth.**
 
 ### Ecology Connection
 
@@ -18,7 +18,7 @@ Below is how a server device establishes a connection:
 
 `Ecology ecology = EcologyCreator.connect(new BluetoothServerConnector(), this, "Phone", true, getApplication());`
 
-A client device can establish a connection as show below:
+A client device can establish a connection as shown below:
 
 `Ecology ecology = EcologyCreator.connect(new BluetoothClientConnector(), this, "Watch", false, getApplication());`
 
