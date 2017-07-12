@@ -67,6 +67,32 @@ public interface EventReceiver {
 
 ### Usage Of Event Broadcaster
 
+These methods are thread safe and can be called from any thread. These method do not establish any connection across the devices. The connections are managed by the ecology.
+
+- #### Event Subscription
+
+To suscribe to an event of the type "eventType", one must call the subscribe method with the event type (a String) and an EventReceiver instance as arguments.
+
+```java
+eventBroadcaster.suscribe("eventType", eventReceiver)
+```
+Once an event type is subscribed, each time one of the event of this type is published (see [Publishing An Event](#publishing-an-event)), the handleEvent method of the event receiver is called with the event type and event data as arguments.
+
+- #### Event Un-Subscription
+
+If an event receiver is unsubscribed to an event type, it won't receive the events of this type anymore.
+
+```java
+eventBroadcaster.unsubscribe("eventType", eventReceiver)
+```
+
+- #### Publishing An Event
+
+When an event is published, it will be distributed to all the event receivers(local as well as remote) that has subscribed to this event type.
+
+```java
+eventBroadcaster.publish("eventType", data);
+```
 
 ## Code Samples
 
