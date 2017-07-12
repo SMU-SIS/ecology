@@ -4,7 +4,7 @@
 
 Ecology is an open source Android library used to catalyze the community of developers working in the field of multi-device app development. Using Ecology, developers can easily connect multiple devices to each other, send & listen to events locally as well as from other connected devices and also sync data across the connected devices.
 
-## Setup
+## Usage
 
 Entry point to Ecology is through a Connector. Currently, this library has one connector - Bluetooth Connector. Any custom connector can be created and used to establish a connection with Ecology.
 
@@ -94,7 +94,7 @@ When an event is published, it will be distributed to all the event receivers(lo
 eventBroadcaster.publish("eventType", data);
 ```
 
-## Code Samples
+## Classes Description
 
 ## Dependencies
 
