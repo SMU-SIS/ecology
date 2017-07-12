@@ -2,7 +2,7 @@
 
 ## Synopsis
 
-Ecology is an open source Android library used to catalyze the community of developers working in the field of multi-device app development. Using Ecology, developers can easily connect multiple devices to each other, send & listen to events locally as well as from other connected devices and also sync data across the connected devices.
+Ecology is an open source Android library used to catalyze the community of developers working in the field of multi-device app development. Using Ecology, developers can easily connect multiple devices to each other, [send & listen to events](#event-broadcaster) locally as well as from other connected devices and also [sync](#data-sync) data across the connected devices.
 
 ## Usage
 
@@ -92,6 +92,30 @@ When an event is published, it will be distributed to all the event receivers(lo
 
 ```java
 eventBroadcaster.publish("eventType", data);
+```
+### Data Sync
+
+Data sync can be used to sync data across the connected devices in the ecology. The server device is always the reference for data synchronization. Below is the way to get the data sync instance:
+
+```java
+DataSync datasync = room.getDataSyncObject();
+```
+
+### Usage Of Data Sync
+
+- #### Set Data
+
+This method can be used to set any data to be synchronized. Data is in the form of a key-value pair. The key and value can be of any Object type.
+
+```java
+dataSync.setData(key, value);
+```
+- #### Get Data
+
+This method can be used to get the value corresponding to a key. 
+
+```java
+dataSync.getData(key);
 ```
 
 ## Classes Description
