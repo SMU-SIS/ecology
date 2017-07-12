@@ -6,7 +6,7 @@ Ecology is an open source Android library used to catalyze the community of deve
 
 ## Usage
 
-Entry point to Ecology is through a Connector. Currently, this library has one connector - Bluetooth Connector. Any custom connector can be created and used to establish a connection with Ecology.
+Entry point to Ecology is through a Connector. Currently, this library has one connector - Bluetooth Connector. Any new connector can be created and used to establish a connection with Ecology.
 
 ### Bluetooth Connector
 
