@@ -10,6 +10,8 @@ Ecology is an open source Android library used to catalyze the community of deve
 
 ## Dependencies
 
+- [Apache MINA Core](https://mvnrepository.com/artifact/org.apache.mina/mina-core/3.0.0-M2)
+
 ## Installation
 
 ## Documentation
