@@ -93,6 +93,31 @@ When an event is published, it will be distributed to all the event receivers(lo
 ```java
 eventBroadcaster.publish("eventType", data);
 ```
+- #### Listening To In-Built Events
+
+There are few in-built events in the ecology which can be subscribed to get extra information. Following are the events:
+
+  1. #### device:connected
+     This event occurs when a new device gets connected to the device. If subscribed, an event will be received whenever a new device is
+     connected to this device. The received event data will contain the device id of the connected device.
+     ```java
+     eventBroadcaster.subscribe("device:connected", eventReceiver);
+     ```
+     
+  2. #### device:disconnected
+     This event occurs when a new device gets disconnected from the device. If subscribed, an event will be received whenever a device
+     gets disconnected from this device. The received event data will contain the device id of the disconnected device.
+     ```java
+     eventBroadcaster.subscribe("device:disconnected", eventReceiver);
+     ```
+
+  3. #### syncData
+     This event occurs whenever a data is set for [synchronization](#data-sync). If subscribed, an event will be received each time a 
+     data is set for synchronization. The received event data will contain the key, new value and old value.
+     ```java
+     eventBroadcaster.subscribe("syncData", eventReceiver);
+     ```
+  
 ### Data Sync
 
 Data sync can be used to sync data across the connected devices in the ecology. The server device is always the reference for data synchronization. Below is the way to get the data sync instance:
