@@ -142,6 +142,14 @@ This method can be used to get the value corresponding to a key.
 ```java
 dataSync.getData(key);
 ```
+### Ecology Disconnection
+
+The disconnect method in EcologyCreator class can be called to disconnect the device from the ecology.
+
+```java
+// Disconnect from the ecology
+EcologyCreator.disconnect();
+```
 
 ## Classes Description
 
