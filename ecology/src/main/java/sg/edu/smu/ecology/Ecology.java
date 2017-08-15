@@ -141,6 +141,7 @@ public class Ecology {
             public void onDisconnected() {
                 Ecology.this.getEcologyDataSync().onDisconnected();
                 Ecology.this.getEcologyDataSync().clear();
+                Ecology.this.onEcologyDisconnected();
             }
         });
     }
@@ -228,6 +229,16 @@ public class Ecology {
     private void onEcologyConnected() {
         for (Room room : rooms.values()) {
             room.onEcologyConnected();
+        }
+    }
+
+    /**
+     * Called when a client device gets disconnected from the reference or server device. This also
+     * means that the device has been disconnected from ecology.
+     */
+    private void onEcologyDisconnected() {
+        for (Room room : rooms.values()) {
+            room.onEcologyDisconnected();
         }
     }
 
