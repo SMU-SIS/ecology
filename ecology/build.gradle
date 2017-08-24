@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "25.0.3"
 
     dexOptions {
@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
@@ -50,6 +50,12 @@ task createJar(type: Copy) {
     into('libs/')
     include('classes.jar')
     rename('classes.jar', 'ecology.jar')
+}
+
+android {
+    lintOptions {
+        abortOnError false
+    }
 }
 
 createJar.dependsOn(deleteJar, build)
