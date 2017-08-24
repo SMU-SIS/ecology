@@ -97,21 +97,33 @@ eventBroadcaster.publish("eventType", data);
 
 There are few in-built events in the ecology which can be subscribed to get extra information. Following are the events:
 
-  1. #### device:connected
+  1. #### ecology:connected
+     For a server device, this event occurs when the device is ready to accept connections. For a client device, this event occurs when      it gets connected to the server device.
+     ```java
+     eventBroadcaster.subscribe("ecology:connected", eventReceiver);
+     ```
+     
+  2. #### ecology:disconnected
+     This event occurs only for a client device. This event is triggered when the device gets disconnected from the server device.
+     ```java
+     eventBroadcaster.subscribe("ecology:disconnected", eventReceiver);
+     ```
+     
+  3. #### device:connected
      This event occurs when a new device gets connected to the device. If subscribed, an event will be received whenever a new device is
      connected to this device. The received event data will contain the device id of the connected device.
      ```java
      eventBroadcaster.subscribe("device:connected", eventReceiver);
      ```
      
-  2. #### device:disconnected
+  4. #### device:disconnected
      This event occurs when a new device gets disconnected from the device. If subscribed, an event will be received whenever a device
      gets disconnected from this device. The received event data will contain the device id of the disconnected device.
      ```java
      eventBroadcaster.subscribe("device:disconnected", eventReceiver);
      ```
 
-  3. #### syncData
+  5. #### syncData
      This event occurs whenever a data is set for [synchronization](#data-sync). If subscribed, an event will be received each time a 
      data is set for synchronization. The received event data will contain the key, new value and old value.
      ```java
