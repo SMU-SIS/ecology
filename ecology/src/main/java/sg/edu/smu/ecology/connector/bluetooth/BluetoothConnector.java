@@ -303,7 +303,9 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
         if (pairedDevices.size() > 0) {
             // Loop through paired devices
             for (BluetoothDevice device : pairedDevices) {
-                pairedDevicesList.add(device);
+                if (!pairedDevicesList.contains(device)) {
+                    pairedDevicesList.add(device);
+                }
             }
         }
         Log.i(TAG, "paired devices " + pairedDevicesList.toString());
@@ -368,4 +370,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     public abstract void onDeviceDisconnected(Message msg);
 
     public abstract void onConnectorMessage(Message msg, EcologyMessage messageData);
+
+    public abstract void onBluetoothOff();
 }

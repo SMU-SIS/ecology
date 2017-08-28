@@ -122,7 +122,7 @@ class BluetoothSocketReadWriter extends Thread {
      */
     void onInterrupt() {
         // To indicate that the device is disconnected from ecology
-        if (bluetoothSocket.isConnected()) {
+        if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
             Log.i(TAG, "interrupted");
             try {
                 outputStream.writeInt(END_OF_FILE);
