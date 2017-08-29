@@ -1,6 +1,7 @@
 package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -33,22 +34,29 @@ class BluetoothBroadcastManager extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
-        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                    BluetoothAdapter.ERROR);
-            switch (state) {
-                case BluetoothAdapter.STATE_OFF:
-                    break;
-                case BluetoothAdapter.STATE_TURNING_OFF:
-                    bluetoothConnector.onBluetoothOff();
-                    break;
-                case BluetoothAdapter.STATE_ON:
-                    bluetoothConnector.addPairedDevices();
-                    bluetoothConnector.setupBluetoothConnection();
-                    break;
-                case BluetoothAdapter.STATE_TURNING_ON:
-                    break;
-            }
+        switch (action) {
+            case BluetoothAdapter.ACTION_STATE_CHANGED:
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                        BluetoothAdapter.ERROR);
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        bluetoothConnector.onBluetoothOff();
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        bluetoothConnector.addPairedDevices();
+                        bluetoothConnector.setupBluetoothConnection();
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        break;
+                }
+                break;
+            case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                bluetoothConnector.onBluetoothOff();
+                bluetoothConnector.addPairedDevices();
+                bluetoothConnector.setupBluetoothConnection();
+                break;
         }
     }
 }

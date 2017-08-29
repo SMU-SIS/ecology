@@ -317,6 +317,7 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     private void addIntentActionsToFilter() {
         // add the intents that the broadcast receiver should check for
         intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        intentFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
     }
 
     /**
