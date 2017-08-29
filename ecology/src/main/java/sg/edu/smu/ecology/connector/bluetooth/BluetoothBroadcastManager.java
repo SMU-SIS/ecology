@@ -16,6 +16,8 @@ import android.content.Intent;
 class BluetoothBroadcastManager extends BroadcastReceiver {
     private static final String TAG = BluetoothBroadcastManager.class.getSimpleName();
     private BluetoothConnector bluetoothConnector;
+    // Whether the bluetooth is enabled or not
+    private Boolean bluetoothEnabled = true;
 
     /**
      * @param bluetoothConnector the connector associated with the receiver
@@ -43,19 +45,26 @@ class BluetoothBroadcastManager extends BroadcastReceiver {
                         break;
                     case BluetoothAdapter.STATE_TURNING_OFF:
                         bluetoothConnector.onBluetoothOff();
+                        bluetoothEnabled = false;
                         break;
                     case BluetoothAdapter.STATE_ON:
                         bluetoothConnector.addPairedDevices();
                         bluetoothConnector.setupBluetoothConnection();
+                        bluetoothEnabled = true;
                         break;
                     case BluetoothAdapter.STATE_TURNING_ON:
                         break;
                 }
                 break;
             case BluetoothDevice.ACTION_ACL_DISCONNECTED:
-                bluetoothConnector.onBluetoothOff();
-                bluetoothConnector.addPairedDevices();
-                bluetoothConnector.setupBluetoothConnection();
+                // Disconnection can be either because the bluetooth was turned off or the other
+                // device went out of range. So check if bluetooth is enabled before trying to
+                // establish a connection.
+                if (bluetoothEnabled) {
+                    bluetoothConnector.onBluetoothOff();
+                    bluetoothConnector.addPairedDevices();
+                    bluetoothConnector.setupBluetoothConnection();
+                }
                 break;
         }
     }
