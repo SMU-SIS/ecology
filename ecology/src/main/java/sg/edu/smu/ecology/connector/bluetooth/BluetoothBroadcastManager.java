@@ -58,12 +58,11 @@ class BluetoothBroadcastManager extends BroadcastReceiver {
                 break;
             case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                 // Disconnection can be either because the bluetooth was turned off or the other
-                // device went out of range. So check if bluetooth is enabled before trying to
-                // establish a connection.
+                // device went out of range. Ecology already handles disconnection if bluetooth is
+                // manually turned off. So this is for handling disconnections due to devices going
+                // out of range.
                 if (bluetoothEnabled) {
-                    bluetoothConnector.onBluetoothOff();
-                    bluetoothConnector.addPairedDevices();
-                    bluetoothConnector.setupBluetoothConnection();
+                    bluetoothConnector.onBluetoothOutOfRange();
                 }
                 break;
         }

@@ -172,6 +172,10 @@ public class BluetoothServerConnector extends BluetoothConnector {
         getDeviceIdsList().clear();
     }
 
+    @Override
+    public void onBluetoothOutOfRange() {
+    }
+
     /**
      * This method updates the list accordingly when a client gets connected or disconnected.
      *

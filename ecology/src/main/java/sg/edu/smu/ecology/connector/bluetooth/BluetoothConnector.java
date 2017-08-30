@@ -373,4 +373,6 @@ abstract class BluetoothConnector implements Connector, Handler.Callback {
     public abstract void onConnectorMessage(Message msg, EcologyMessage messageData);
 
     public abstract void onBluetoothOff();
+
+    public abstract void onBluetoothOutOfRange();
 }
