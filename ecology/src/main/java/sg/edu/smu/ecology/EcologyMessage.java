@@ -8,11 +8,14 @@ import java.util.List;
  */
 
 /**
- * This class is used to save the message data to be sent to other connected devices in the ecology
+ * This class represents the message that is sent across the connected devices in the ecology.
  */
 public class EcologyMessage {
     /**
-     * The values that target type can have
+     * The values that target type can have. {@link #TARGET_TYPE_SERVER} is used when the target is
+     * just the server, {@link #TARGET_TYPE_SPECIFIC} is used when the target is a specific device
+     * and {@link #TARGET_TYPE_BROADCAST} when the message has to be broad casted and will be
+     * received by all the connected devices in the ecology.
      */
     public static final int TARGET_TYPE_SERVER = 0;
     public static final int TARGET_TYPE_SPECIFIC = 1;
@@ -34,7 +37,8 @@ public class EcologyMessage {
     private List<String> targets = new ArrayList<>();
 
     /**
-     * To indicate the target type
+     * To indicate the target type. This can be {@link #TARGET_TYPE_SERVER} or
+     * {@link #TARGET_TYPE_SPECIFIC} or {@link #TARGET_TYPE_BROADCAST}.
      */
     private Integer targetType;
 
@@ -144,7 +148,8 @@ public class EcologyMessage {
     /**
      * Set the target type for the message
      *
-     * @param targetType the target type for this message
+     * @param targetType the target type for this message. This can be {@link #TARGET_TYPE_SERVER}
+     *                   or {@link #TARGET_TYPE_SPECIFIC} or {@link #TARGET_TYPE_BROADCAST}.
      */
     public void setTargetType(Integer targetType) {
         this.targetType = targetType;

@@ -49,9 +49,11 @@ public class Room {
     private EventBroadcasterManager eventBroadcasterManager;
 
     /**
+     * Creates a new room part of the ecology.
+     *
      * @param name        the name of the room
      * @param ecology     the ecology this room is part of
-     * @param isReference true when the device is the data sync reference
+     * @param isReference true when this device is the data sync reference
      */
     public Room(String name, Ecology ecology, Boolean isReference) {
         this(name, ecology, isReference, new DataSyncFactory(),
@@ -89,6 +91,9 @@ public class Room {
     }
 
     /**
+     * Get the event broadcaster associated with this room for a given context. Event broadcaster
+     * is used to subscribe and unsubscribe ecology events as well as to publish events.
+     *
      * @param context the context associated with the event broadcaster
      * @return the event broadcaster associated with the room and context.
      */
@@ -96,6 +101,11 @@ public class Room {
         return getEventBroadcasterManager().getEventBroadcaster(context);
     }
 
+    /**
+     * Get the event broadcaster manager instance required to get the event broadcaster instances
+     *
+     * @return the event broadcaster manager object
+     */
     EventBroadcasterManager getEventBroadcasterManager() {
         if (eventBroadcasterManager == null) {
             eventBroadcasterManager = eventBroadcasterManagerFactory.createEventBroadcasterManager(this);
@@ -105,6 +115,9 @@ public class Room {
     }
 
     /**
+     * Get a data sync object required to sync data across connected devices part of the ecology.
+     * If the object was already created, this will return the already created instance.
+     *
      * @return the data sync object.
      */
     public DataSync getDataSyncObject() {

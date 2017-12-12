@@ -13,7 +13,8 @@ import java.util.Map;
 /**
  * Created by Anuroop PATTENA VANIYAR (anurooppv@smu.edu.sg) on 1/6/2016.
  * <p/>
- * Event broadcaster are used to publish and received events to and from anywhere in the ecology.
+ * Event broadcaster is used to publish as well as receive events from the connected devices in the
+ * ecology.
  */
 public class EventBroadcaster {
     private final static String TAG = EventBroadcaster.class.getSimpleName();
@@ -82,7 +83,11 @@ public class EventBroadcaster {
         passEventToReceivers(eventType, message.getArguments());
     }
 
-    // Forward an event to the receivers.
+    /**
+     * Forward an event to the receivers.
+     * @param eventType the event type
+     * @param data the event data
+     */
     private void passEventToReceivers(String eventType, List<Object> data) {
         // Fetch the list of event broadcaster entries for this particular event type.
         List<EventBroadcasterEntry> thisEventBroadcasterEntries = eventReceivers.get(eventType);

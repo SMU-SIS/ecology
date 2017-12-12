@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 /**
- * This class saves the sync data that need to be synced across the connected devices in the ecology
+ * This class can be used to synchronize any data across the connected devices in the ecology.
  */
 public class DataSync {
     private static final String TAG = DataSync.class.getSimpleName();
@@ -29,7 +29,7 @@ public class DataSync {
     private final static int DATA_SYNC_RESPONSE = 2;
 
     /**
-     * Notified when the data has changed.
+     * Notify when the sync data has changed.
      */
     private final SyncDataChangeListener dataChangeListener;
     /**
@@ -42,10 +42,13 @@ public class DataSync {
      */
     private Map<Object, Object> dataSyncValues = new ConcurrentHashMap<>();
     /**
-     * Whether this is the sync data reference or not
+     * Whether this device is the sync data reference or not
      */
     private boolean isReference;
 
+    /**
+     * Ecology instance
+     */
     private Ecology ecology;
 
     /**
@@ -53,6 +56,15 @@ public class DataSync {
      */
     private boolean isSynchronized = false;
 
+    /**
+     * Creates a new Data Sync Object that can be used to sync data across the connected devices
+     * part of the ecology.
+     *
+     * @param connector          to notify when a message needs to be forwarded to other devices
+     * @param dataChangeListener to notify when there is a change in sync data value
+     * @param isReference        if this device should be the data reference or not
+     * @param ecology            the ecology that this device is part of
+     */
     DataSync(Connector connector, SyncDataChangeListener dataChangeListener, boolean isReference,
              Ecology ecology) {
         this.connector = connector;
@@ -62,7 +74,7 @@ public class DataSync {
     }
 
     /**
-     * Sets the sync data value
+     * Set the sync data value
      *
      * @param key   the key paired to the sync data
      * @param value the new data
@@ -86,10 +98,10 @@ public class DataSync {
     }
 
     /**
-     * Get the sync data
+     * Get the sync data value corresponding to the key.
      *
      * @param key the key paired to the sync data
-     * @return the corresponding sync data
+     * @return the corresponding sync data value
      */
     public Object getData(Object key) {
         return dataSyncValues.get(key);
@@ -119,9 +131,10 @@ public class DataSync {
     }
 
     /**
-     * This method is called when the device is connected to the data reference device
+     * This method is called when this device is connected to the data reference device.
      */
     void onConnected() {
+        // Once the connection is established, data synchronization is requested.
         requestDataSynchronization();
     }
 
@@ -145,7 +158,7 @@ public class DataSync {
     }
 
     /**
-     * To check if the data sync is synchronized with the data reference or not
+     * To check if the data sync is currently synchronized with the data reference or not
      *
      * @return true if data sync is synchronized with the data reference
      */
@@ -157,7 +170,6 @@ public class DataSync {
      * Clear the current sync data
      */
     void clear() {
-        // Clear the data.
         for (Object key : dataSyncValues.keySet()) {
             Object oldValue = dataSyncValues.get(key);
             dataChangeListener.onDataUpdate(key, null, oldValue);
