@@ -157,6 +157,26 @@ public class BluetoothServerConnector extends BluetoothConnector {
     }
 
     /**
+     * When the bluetooth is turned off.
+     */
+    @Override
+    public void onBluetoothOff() {
+        handleDisconnection();
+
+        // All the connected client devices will get disconnected
+        for (String deviceId : getDeviceIdsList().values()) {
+            getReceiver().onDeviceDisconnected(deviceId);
+        }
+
+        // Clear the connected device ids list
+        getDeviceIdsList().clear();
+    }
+
+    @Override
+    public void onBluetoothOutOfRange() {
+    }
+
+    /**
      * This method updates the list accordingly when a client gets connected or disconnected.
      *
      * @param bluetoothSocketReadWriter the thread associated with the client
@@ -180,9 +200,17 @@ public class BluetoothServerConnector extends BluetoothConnector {
     public void disconnect() {
         super.disconnect();
 
+        handleDisconnection();
+    }
+
+    /**
+     * Handle the disconnection from ecology
+     */
+    private void handleDisconnection() {
         if (bluetoothServerAcceptThread != null && !bluetoothServerAcceptThread.isInterrupted()) {
             bluetoothServerAcceptThread.interrupt();
         }
+        bluetoothServerAcceptThread = null;
     }
 
     /**

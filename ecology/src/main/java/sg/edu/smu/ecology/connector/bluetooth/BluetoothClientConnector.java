@@ -157,7 +157,33 @@ public class BluetoothClientConnector extends BluetoothConnector {
     @Override
     public void disconnect() {
         super.disconnect();
+        handleDisconnection();
+    }
 
+    /**
+     * When the bluetooth is turned off - disconnect the existing connection and reset connected
+     * device ids
+     */
+    @Override
+    public void onBluetoothOff() {
+        handleDisconnection();
+        resetOnDisconnection();
+    }
+
+    /**
+     * When the server device goes out of range -  handle the disconnection and reset to start
+     * listening again for new server connection
+     */
+    @Override
+    public void onBluetoothOutOfRange() {
+        handleDisconnection();
+        resetOnDisconnection();
+        // Reset to start listening to any new server connection
+        addPairedDevices();
+        setupBluetoothConnection();
+    }
+
+    private void handleDisconnection() {
         if (bluetoothClientConnectThread != null && !bluetoothClientConnectThread.isInterrupted()) {
             bluetoothClientConnectThread.interrupt();
         }
@@ -170,6 +196,14 @@ public class BluetoothClientConnector extends BluetoothConnector {
                 }
             }
         }
+    }
+
+    /**
+     * Reset the device ids list and call onDisconnected method on disconnection.
+     */
+    private void resetOnDisconnection() {
+        getDeviceIdsList().clear();
+        getReceiver().onDisconnected();
     }
 
     /**

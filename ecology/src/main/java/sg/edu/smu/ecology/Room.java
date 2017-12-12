@@ -202,6 +202,14 @@ public class Room {
                 Collections.emptyList());
     }
 
+    /**
+     * Called when this device is disconnected from the ecology.
+     */
+    void onEcologyDisconnected() {
+        getEventBroadcasterManager().postLocalEvent(Settings.ECOLOGY_DISCONNECTED,
+                Collections.emptyList());
+    }
+
     static class DataSyncFactory {
         DataSync createDataSync(DataSync.Connector connector,
                                 DataSync.SyncDataChangeListener dataSyncChangeListener,

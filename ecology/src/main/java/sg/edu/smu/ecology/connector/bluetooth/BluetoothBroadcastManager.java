@@ -1,10 +1,10 @@
 package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 /**
  * Created by anurooppv on 25/10/2016.
@@ -16,6 +16,8 @@ import android.util.Log;
 class BluetoothBroadcastManager extends BroadcastReceiver {
     private static final String TAG = BluetoothBroadcastManager.class.getSimpleName();
     private BluetoothConnector bluetoothConnector;
+    // Whether the bluetooth is enabled or not
+    private Boolean bluetoothEnabled = true;
 
     /**
      * @param bluetoothConnector the connector associated with the receiver
@@ -34,22 +36,35 @@ class BluetoothBroadcastManager extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
-        if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-            final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                    BluetoothAdapter.ERROR);
-            switch (state) {
-                case BluetoothAdapter.STATE_OFF:
-                    break;
-                case BluetoothAdapter.STATE_TURNING_OFF:
-                    break;
-                case BluetoothAdapter.STATE_ON:
-                    Log.i(TAG, "BluetoothEnabled ");
-                    bluetoothConnector.addPairedDevices();
-                    bluetoothConnector.setupBluetoothConnection();
-                    break;
-                case BluetoothAdapter.STATE_TURNING_ON:
-                    break;
-            }
+        switch (action) {
+            case BluetoothAdapter.ACTION_STATE_CHANGED:
+                final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                        BluetoothAdapter.ERROR);
+                switch (state) {
+                    case BluetoothAdapter.STATE_OFF:
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_OFF:
+                        bluetoothConnector.onBluetoothOff();
+                        bluetoothEnabled = false;
+                        break;
+                    case BluetoothAdapter.STATE_ON:
+                        bluetoothConnector.addPairedDevices();
+                        bluetoothConnector.setupBluetoothConnection();
+                        bluetoothEnabled = true;
+                        break;
+                    case BluetoothAdapter.STATE_TURNING_ON:
+                        break;
+                }
+                break;
+            case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                // Disconnection can be either because the bluetooth was turned off or the other
+                // device went out of range. Ecology already handles disconnection if bluetooth is
+                // manually turned off. So this is for handling disconnections due to devices going
+                // out of range.
+                if (bluetoothEnabled) {
+                    bluetoothConnector.onBluetoothOutOfRange();
+                }
+                break;
         }
     }
 }

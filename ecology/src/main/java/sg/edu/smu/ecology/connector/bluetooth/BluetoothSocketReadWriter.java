@@ -84,6 +84,9 @@ class BluetoothSocketReadWriter extends Thread {
                     handler.obtainMessage(BluetoothConnector.MESSAGE_RECEIVED, clientId, 0,
                             dataBuffer).sendToTarget();
                 } catch (IOException e) {
+                    // This signals that there is a disconnection
+                    handler.obtainMessage(BluetoothConnector.SOCKET_CLOSE, clientId, 0,
+                            this).sendToTarget();
                     break;
                 }
             }
@@ -122,7 +125,7 @@ class BluetoothSocketReadWriter extends Thread {
      */
     void onInterrupt() {
         // To indicate that the device is disconnected from ecology
-        if (bluetoothSocket.isConnected()) {
+        if (bluetoothSocket != null && bluetoothSocket.isConnected()) {
             Log.i(TAG, "interrupted");
             try {
                 outputStream.writeInt(END_OF_FILE);
