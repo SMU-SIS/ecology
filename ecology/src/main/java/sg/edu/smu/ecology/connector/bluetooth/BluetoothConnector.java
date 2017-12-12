@@ -28,9 +28,8 @@ import sg.edu.smu.ecology.encoding.MessageEncoder;
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 /**
- * Created by anurooppv on 25/10/2016.
+ * @author Anuroop PATTENA VANIYAR
  */
-
 abstract class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
 

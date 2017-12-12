@@ -13,12 +13,10 @@ import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.Settings;
 
 /**
- * Created by anurooppv on 25/10/2016.
- */
-
-/**
  * This class helps to establish a client connection to any server device part of the ecology
  * using bluetooth
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 public class BluetoothClientConnector extends BluetoothConnector {
     private static final String TAG = BluetoothClientConnector.class.getSimpleName();

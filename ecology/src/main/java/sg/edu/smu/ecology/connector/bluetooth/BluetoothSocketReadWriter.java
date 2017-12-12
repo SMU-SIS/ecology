@@ -1,9 +1,5 @@
 package sg.edu.smu.ecology.connector.bluetooth;
 
-/**
- * Created by anurooppv on 25/10/2016.
- */
-
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
 import android.util.Log;
@@ -16,6 +12,8 @@ import java.util.Arrays;
 /**
  * This thread runs during a connection with a remote bluetooth device.
  * It handles all the incoming and outgoing messages.
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 class BluetoothSocketReadWriter extends Thread {
     private static final String TAG = BluetoothSocketReadWriter.class.getSimpleName();

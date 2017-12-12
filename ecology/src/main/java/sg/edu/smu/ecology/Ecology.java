@@ -16,10 +16,11 @@ import java.util.Map;
 import sg.edu.smu.ecology.connector.Connector;
 
 /**
- * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
- * <p>
  * Main Ecology class. Represents a group of devices closely linked together. The connected devices
  * can synchronize data across them, subscribe to events, send events
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class Ecology {
     /**

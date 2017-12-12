@@ -15,10 +15,10 @@ import static com.google.common.truth.Truth.assertThat;
 
 
 /**
- * Created by Quentin ROY on 15/12/16.
- *
  * Tests for {@link MessageData} and in particular the estimated message size in bytes (necessary
  * for {@link MessageEncoder}.
+ *
+ * @author Quentin Roy
  */
 public class MessageDataTest {
 

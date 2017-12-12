@@ -5,10 +5,11 @@ import java.util.List;
 import sg.edu.smu.ecology.EcologyMessage;
 
 /**
- * Created by Quentin ROY on 15/12/16.
- * <p>
  * Decode byte arrays (usually created by {@link MessageEncoder} into messages (i.e. lists of
  * objects).
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class MessageDecoder {
     private DataDecoder decoder = new DataDecoder();

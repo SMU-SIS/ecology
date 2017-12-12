@@ -28,7 +28,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by anurooppv on 28/2/2017.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 @RunWith(MockitoJUnitRunner.class)
 public class EventBroadcastManagerTest {

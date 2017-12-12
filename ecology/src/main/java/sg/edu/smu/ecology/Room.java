@@ -6,9 +6,10 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * Created by Quentin ROY on 20/6/16.
- * <p>
  * Represent an ecology space dedicated to a same set of functionalities (e.g. an application).
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class Room {
     private final static String TAG = Room.class.getSimpleName();

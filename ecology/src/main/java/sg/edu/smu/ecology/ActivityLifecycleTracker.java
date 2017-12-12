@@ -5,12 +5,11 @@ import android.app.Application;
 import android.os.Bundle;
 
 /**
- * Created by anurooppv on 30/3/2017.
- */
-
-/**
  * This class tracks the activity life cycles and hence ecology can query to know the current states
  * of the activities in the current application.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 class ActivityLifecycleTracker implements Application.ActivityLifecycleCallbacks {
     private static final String TAG = ActivityLifecycleTracker.class.getSimpleName();

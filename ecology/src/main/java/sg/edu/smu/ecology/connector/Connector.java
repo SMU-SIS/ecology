@@ -5,10 +5,11 @@ import android.content.Context;
 import sg.edu.smu.ecology.EcologyMessage;
 
 /**
- * Created by Quentin ROY on 17/6/16.
- * <p/>
  * Main interface for connectors. Connector abstracts the way a message can be sent to other
  * devices.
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public interface Connector {
 

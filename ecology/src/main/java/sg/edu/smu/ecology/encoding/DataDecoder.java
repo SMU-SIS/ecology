@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Created by anurooppv on 29/6/2016.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class DataDecoder {
 

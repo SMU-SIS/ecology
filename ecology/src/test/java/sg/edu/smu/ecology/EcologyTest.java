@@ -37,7 +37,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by anurooppv on 26/7/2016.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Log.class)

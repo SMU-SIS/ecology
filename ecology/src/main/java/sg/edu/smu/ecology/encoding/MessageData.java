@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by anurooppv on 29/6/2016.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class MessageData {
 

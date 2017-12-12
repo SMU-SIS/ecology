@@ -1,14 +1,13 @@
 package sg.edu.smu.ecology;
 
-/**
- * Created by anurooppv on 1/3/2017.
- */
-
 import android.os.Handler;
 import android.os.HandlerThread;
 
 /**
  * The looper associated with the ecology.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 class EcologyLooper extends HandlerThread {
     private static final String TAG = EcologyLooper.class.getSimpleName();

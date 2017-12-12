@@ -8,12 +8,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by anurooppv on 24/2/2017.
+ *
  */
 
 /**
  * This class is responsible for the creation of event broadcasters and also manage their associated
  * contexts.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 class EventBroadcasterManager {
     private static final String TAG = EventBroadcasterManager.class.getSimpleName();

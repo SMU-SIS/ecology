@@ -1,9 +1,5 @@
 package sg.edu.smu.ecology.connector.bluetooth;
 
-/**
- * Created by anurooppv on 25/10/2016.
- */
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -19,6 +15,8 @@ import java.util.UUID;
 /**
  * This thread runs while attempting to make an outgoing connection with a server device. The
  * connection either succeeds or fails.
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 class BluetoothClientConnectThread extends Thread {
     private static final String TAG = BluetoothClientConnectThread.class.getSimpleName();

@@ -2,9 +2,10 @@ package sg.edu.smu.ecology.connector;
 
 
 /**
- * Created by Quentin ROY on 18/6/16.
- * <p/>
  * Base implementation of {@link Connector} with receiver management.
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public abstract class BaseConnector implements Connector {
 

@@ -27,7 +27,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * Created by anurooppv on 26/7/2016.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RoomTest {

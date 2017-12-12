@@ -6,11 +6,12 @@ import android.content.Context;
 import sg.edu.smu.ecology.connector.Connector;
 
 /**
- * Created by anurooppv on 1/8/2016.
  * This class is used to create the Ecology instance. The device can be connected to the Ecology to
  * send events and sync data across other connected devices in the ecology. This class also helps to
  * disconnect from the ecology when required.
- * <p>
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class EcologyCreator {
     private static final String TAG = EcologyCreator.class.getSimpleName();

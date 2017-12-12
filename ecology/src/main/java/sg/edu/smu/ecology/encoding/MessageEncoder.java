@@ -8,10 +8,11 @@ import java.util.Arrays;
 import sg.edu.smu.ecology.EcologyMessage;
 
 /**
- * Created by Quentin ROY on 15/12/16.
- * <p>
  * Encode messages (list of objects) into byte arrays in a format decodable by a
  * {@link MessageDecoder}.
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class MessageEncoder {
 

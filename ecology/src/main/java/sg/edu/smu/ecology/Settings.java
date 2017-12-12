@@ -1,7 +1,8 @@
 package sg.edu.smu.ecology;
 
 /**
- * Created by tnnguyen on 28/4/16.
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class Settings {
     public static final String DEVICE_DISCONNECTED = "device:disconnected";

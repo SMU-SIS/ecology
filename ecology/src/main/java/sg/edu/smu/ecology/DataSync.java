@@ -7,11 +7,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Created by anurooppv on 29/11/2016.
- */
-
-/**
  * This class can be used to synchronize any data across the connected devices in the ecology.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class DataSync {
     private static final String TAG = DataSync.class.getSimpleName();

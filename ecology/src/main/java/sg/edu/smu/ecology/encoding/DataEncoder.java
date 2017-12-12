@@ -9,7 +9,8 @@ import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 
 /**
- * Created by anurooppv on 29/6/2016.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class DataEncoder {
 

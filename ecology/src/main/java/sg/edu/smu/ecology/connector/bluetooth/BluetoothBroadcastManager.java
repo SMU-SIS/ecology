@@ -7,11 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * Created by anurooppv on 25/10/2016.
- */
-
-/**
  * A BroadcastReceiver that notifies of important bluetooth events.
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 class BluetoothBroadcastManager extends BroadcastReceiver {
     private static final String TAG = BluetoothBroadcastManager.class.getSimpleName();
