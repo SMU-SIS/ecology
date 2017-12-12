@@ -1,7 +1,17 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
+
 package sg.edu.smu.ecology;
 
 /**
- * Created by tnnguyen on 28/4/16.
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class Settings {
     public static final String DEVICE_DISCONNECTED = "device:disconnected";

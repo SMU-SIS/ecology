@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
+
 package sg.edu.smu.ecology;
 
 import android.content.Context;
@@ -28,7 +37,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by anurooppv on 28/2/2017.
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 @RunWith(MockitoJUnitRunner.class)
 public class EventBroadcastManagerTest {

@@ -1,14 +1,22 @@
-package sg.edu.smu.ecology;
-
-/**
- * Created by anurooppv on 1/3/2017.
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
  */
+
+
+package sg.edu.smu.ecology;
 
 import android.os.Handler;
 import android.os.HandlerThread;
 
 /**
  * The looper associated with the ecology.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 class EcologyLooper extends HandlerThread {
     private static final String TAG = EcologyLooper.class.getSimpleName();

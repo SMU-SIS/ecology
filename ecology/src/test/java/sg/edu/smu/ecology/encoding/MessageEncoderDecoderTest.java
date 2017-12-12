@@ -18,9 +18,9 @@ import static org.mockito.Mockito.mock;
 
 
 /**
- * Created by Quentin ROY on 15/12/16.
- * <p>
  * Tests for {@link MessageEncoder} and {@link MessageDecoder}.
+ *
+ * @author Quentin Roy
  */
 public class MessageEncoderDecoderTest {
     private MessageEncoder encoder;

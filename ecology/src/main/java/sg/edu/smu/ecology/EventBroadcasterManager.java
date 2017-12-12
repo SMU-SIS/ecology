@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
+
 package sg.edu.smu.ecology;
 
 import android.content.Context;
@@ -8,12 +17,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by anurooppv on 24/2/2017.
+ *
  */
 
 /**
  * This class is responsible for the creation of event broadcasters and also manage their associated
  * contexts.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 class EventBroadcasterManager {
     private static final String TAG = EventBroadcasterManager.class.getSimpleName();

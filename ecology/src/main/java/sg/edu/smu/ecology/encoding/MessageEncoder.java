@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
 package sg.edu.smu.ecology.encoding;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -8,10 +16,11 @@ import java.util.Arrays;
 import sg.edu.smu.ecology.EcologyMessage;
 
 /**
- * Created by Quentin ROY on 15/12/16.
- * <p>
  * Encode messages (list of objects) into byte arrays in a format decodable by a
  * {@link MessageDecoder}.
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class MessageEncoder {
 

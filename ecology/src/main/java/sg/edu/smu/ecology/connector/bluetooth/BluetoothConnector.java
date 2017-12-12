@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
 package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.app.Activity;
@@ -28,9 +36,8 @@ import sg.edu.smu.ecology.encoding.MessageEncoder;
 import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 /**
- * Created by anurooppv on 25/10/2016.
+ * @author Anuroop PATTENA VANIYAR
  */
-
 abstract class BluetoothConnector implements Connector, Handler.Callback {
     private final static String TAG = BluetoothConnector.class.getSimpleName();
 

@@ -1,5 +1,13 @@
-package sg.edu.smu.ecology;
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
 
+
+package sg.edu.smu.ecology;
 
 import android.app.Application;
 import android.content.Context;
@@ -16,10 +24,11 @@ import java.util.Map;
 import sg.edu.smu.ecology.connector.Connector;
 
 /**
- * Created by Anuroop PATTENA VANIYAR on 1/6/2016.
- * <p>
  * Main Ecology class. Represents a group of devices closely linked together. The connected devices
  * can synchronize data across them, subscribe to events, send events
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class Ecology {
     /**

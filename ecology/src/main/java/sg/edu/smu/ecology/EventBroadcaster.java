@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
+
 package sg.edu.smu.ecology;
 
 import android.app.Activity;
@@ -11,10 +20,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Anuroop PATTENA VANIYAR (anurooppv@smu.edu.sg) on 1/6/2016.
- * <p/>
  * Event broadcaster is used to publish as well as receive events from the connected devices in the
  * ecology.
+ *
+ * @author Anuroop PATTENA VANIYAR
+ * @author Quentin ROY
  */
 public class EventBroadcaster {
     private final static String TAG = EventBroadcaster.class.getSimpleName();

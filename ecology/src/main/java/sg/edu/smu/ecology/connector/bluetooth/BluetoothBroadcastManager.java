@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
 package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
@@ -7,11 +15,9 @@ import android.content.Context;
 import android.content.Intent;
 
 /**
- * Created by anurooppv on 25/10/2016.
- */
-
-/**
  * A BroadcastReceiver that notifies of important bluetooth events.
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 class BluetoothBroadcastManager extends BroadcastReceiver {
     private static final String TAG = BluetoothBroadcastManager.class.getSimpleName();

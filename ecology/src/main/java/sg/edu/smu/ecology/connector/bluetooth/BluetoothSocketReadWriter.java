@@ -1,8 +1,12 @@
-package sg.edu.smu.ecology.connector.bluetooth;
-
-/**
- * Created by anurooppv on 25/10/2016.
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
  */
+
+package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
 import android.os.Handler;
@@ -16,6 +20,8 @@ import java.util.Arrays;
 /**
  * This thread runs during a connection with a remote bluetooth device.
  * It handles all the incoming and outgoing messages.
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 class BluetoothSocketReadWriter extends Thread {
     private static final String TAG = BluetoothSocketReadWriter.class.getSimpleName();

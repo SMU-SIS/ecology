@@ -1,3 +1,12 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
+
 package sg.edu.smu.ecology;
 
 import android.content.Context;
@@ -6,9 +15,10 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * Created by Quentin ROY on 20/6/16.
- * <p>
  * Represent an ecology space dedicated to a same set of functionalities (e.g. an application).
+ *
+ * @author Quentin ROY
+ * @author Anuroop PATTENA VANIYAR
  */
 public class Room {
     private final static String TAG = Room.class.getSimpleName();

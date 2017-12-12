@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2017, Singapore Management University.
+ * All rights reserved.
+ *
+ * This code is licensed under the MIT license.
+ * See file LICENSE (or LICENSE.html) for more information.
+ */
+
 package sg.edu.smu.ecology.connector.bluetooth;
 
 import android.os.Message;
@@ -13,12 +21,10 @@ import sg.edu.smu.ecology.EcologyMessage;
 import sg.edu.smu.ecology.Settings;
 
 /**
- * Created by anurooppv on 25/10/2016.
- */
-
-/**
  * This class helps to establish a client connection to any server device part of the ecology
  * using bluetooth
+ *
+ * @author Anuroop PATTENA VANIYAR
  */
 public class BluetoothClientConnector extends BluetoothConnector {
     private static final String TAG = BluetoothClientConnector.class.getSimpleName();
